@@ -21,7 +21,8 @@
 - `orchestrate_` for coordination
 
 ## Responsibilities:
-- One task per function (except high-level orchestration functions)
+- Keep methods as simple as possible - make more simple methods vs fewer complex methods.
+- One task per method (except high-level orchestration functions)
 - Multiple returns must have same format
 - Complex return objects → use dataclass/pydantic
 

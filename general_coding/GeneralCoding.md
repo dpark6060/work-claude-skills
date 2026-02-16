@@ -10,5 +10,14 @@
 - Never nest more than two conditions/loops.
 - When possible, don't nest an entire method in an `if` statement, instead check `if not` first and
   return if true.  
-- Whenever possible, have one method do one task.  Create more smaller methods rather than fewer
-  larger methods. 
+- Each method should have ONE task, aside from orchestration methods that simply call other methods.
+  If a method is performing multiple tasks that are not encapsulated in other methods, decompose the
+  method into simple smaller methods. 
+
+  ## Method Decomposition
+  - If you can describe a method's purpose with "AND" or "THEN", it should be split:
+    - BAD: "validate the data AND export it" → Split into `_validate_data()` and `_export_data()`
+    - BAD: "load from source THEN transform it" → Split into `_load_from_source()` and `_transform()`
+    - GOOD: "process zip dicom" can orchestrate calling helpers
+  - Private helper methods (prefixed with `_`) are encouraged for breaking up logic
+  - Public methods should be high-level orchestrators, not implementation details

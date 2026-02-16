@@ -10,3 +10,5 @@
 - Never nest more than two conditions/loops.
 - When possible, don't nest an entire method in an `if` statement, instead check `if not` first and
   return if true.  
+- Whenever possible, have one method do one task.  Create more smaller methods rather than fewer
+  larger methods. 

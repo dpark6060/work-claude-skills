@@ -1,0 +1,23 @@
+# Flywheel Core API (/api/) — engine
+
+Service: `core`  |  Tag: `engine`  |  Generated from OpenAPI spec.
+
+## `POST /api/engine`
+
+**Upload a list of file fields.**
+
+Upload engine
+
+**Parameters**
+
+| Name | In | Required | Type | Description |
+|---|---|---|---|---|
+| `level` | query | yes | `enum(group | project | subject | session | acquisition | analysis | file | user | ...)` |  |
+| `id` | query | yes | `string` |  |
+| `preserve_metadata` | query | no | `boolean` |  |
+| `upload_ticket` | query | no | `string` |  |
+| `job` | query | no | `string` |  |
+| `x-accept-feature` | header | no | `array[any]` |  |
+| `content-type` | header | no | `string` |  |
+
+---

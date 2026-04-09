@@ -1,0 +1,13 @@
+
+!.gitignore
+!agents/*
+!rules/*
+!skills/*
+!CLAUDE.md
+!link_to_main_claude.sh
+!README.md
+
+current_task.md
+*.json
+
+git-remotes-cheatsheet.md

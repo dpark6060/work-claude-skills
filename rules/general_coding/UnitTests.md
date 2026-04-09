@@ -28,11 +28,26 @@ Add "# Radical" to the beginning of every unit test.
 - For a given method, every sub-method called should be tested to see if it was appropriately
   called, or was not called depending on the test conditions and code logic. 
 
+## Test Robustness
+Tests should break on bugs, not on improvements. Before writing an assertion, ask:
+*"If this changes but no bug was introduced, should this test fail?"* If the answer is no, drop the assertion.
+
+**Don't assert implementation details:**
+- Log message wording — assert the log *level* was called (`.error`, `.warning`), not the exact string, unless the message is a user-facing requirement
+- Item ordering — only assert order if the method's contract guarantees it
+- Internal call counts — only assert frequency if "called exactly N times" is a correctness requirement, not just the current behavior
+
+**Do assert on contracts:**
+- Return values and their structure
+- That required side effects occurred (API calls made, exceptions raised, data written)
+- That conditional branches were taken correctly (method called vs. not called based on inputs)
+
 ## Mocking:
 - Mock objects with API calls/complex operations; create simple objects normally
 - Use `mock.patch` for secondary methods, `MagicMock` for objects
 - Mock return values should be real data when possible, mock objects when complex
 - Use `spec` parameter for typed objects (except flywheel SDK client)
+- **`spec=` does not expose instance attributes set in `__init__`**: if a class sets `self.foo` in `__init__` (not as a class-level attribute), `MagicMock(spec=MyClass)` will raise `AttributeError` when you access `mock.foo`. Set instance attributes explicitly after creating the mock: `mock_obj.foo = MagicMock()`.
 
 ## Example:
 
@@ -58,7 +73,7 @@ def test_my_method_raises_unexpected_error(mock_optional, mock_required, mock_lo
     with pytest.raises(RuntimeError):
         my_method(mock_my_class, mock_input_data)
 
-    mock_log.error.assert_called_once_with("unexpected error")
+    mock_log.error.assert_called_once()
     mock_required.assert_called_once_with(mock_input_data)
     mock_optional.assert_not_called()
     mock_my_class.populate.assert_called_once_with(mock_input_data)

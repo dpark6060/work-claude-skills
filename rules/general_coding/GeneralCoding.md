@@ -9,7 +9,22 @@
 ## Code structure
 - Never nest more than two conditions/loops.
 - When possible, don't nest an entire method in an `if` statement, instead check `if not` first and
-  return if true.  
+  return if true.
+- If an `if` block ends with a `return` or raises an exception, do not use `else` for the
+  remaining logic — it is unreachable from the `if` branch and the `else` adds unnecessary nesting.
+  ```python
+  # BAD
+  if not is_valid(data):
+      return None
+  else:
+      return process(data)
+
+  # GOOD
+  if not is_valid(data):
+      return None
+  return process(data)
+  ```
+  
 - Each method should have ONE task, aside from orchestration methods that simply call other methods.
   If a method is performing multiple tasks that are not encapsulated in other methods, decompose the
   method into simple smaller methods. 

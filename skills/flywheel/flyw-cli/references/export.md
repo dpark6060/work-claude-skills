@@ -2,6 +2,16 @@
 
 Export data from a Flywheel project to external cloud storage. Exports run server-side via the connector service.
 
+## Contents
+- [`export run`](#export-run) — Run an export (options: required, rule, behavior)
+- [Snapshots](#snapshots) — Point-in-time project snapshots
+- [Export Rules](#export-rules) — Filter fields, operators, path templates, overwrite settings
+- [`export get`](#export-get) — Check export status / monitor
+- [`export list`](#export-list) — List exports
+- [`export cancel` / `export rerun`](#export-cancel--export-rerun)
+- [Rule Sets](#rule-sets) — Reusable named rule collections
+- [Output Behavior](#output-behavior)
+
 ## `export run` — Run an Export
 
 ```bash

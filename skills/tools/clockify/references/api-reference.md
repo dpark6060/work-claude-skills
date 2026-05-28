@@ -144,6 +144,10 @@ for t in tasks:
     print(t["id"], t["name"], t.get("status"))   # status: "ACTIVE" or "DONE"
 ```
 
+**Note:** No auto-pagination. Pass `page`/`page-size` manually for projects
+with more than 50 tasks, or use `paginate_all()` from
+`scripts/lookup.py`.
+
 **Response fields per task:** `id`, `name`, `projectId`, `workspaceId`, `assigneeIds`,
 `userGroupIds`, `estimate`, `status` (`ACTIVE`/`DONE`), `duration`, `billable`,
 `hourlyRate`, `costRate`, `budgetEstimate`

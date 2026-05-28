@@ -1,5 +1,21 @@
 # fw-gear Basics: GearContext, Inputs, Outputs
 
+## Contents
+- [The Canonical run.py Pattern](#canonical-run)
+- [Gear Exit Lifecycle](#exit-lifecycle)
+- [GearContext Constructor](#constructor)
+- [Logging](#logging)
+- [Accessing Configuration Options](#config)
+- [Accessing Input Files](#inputs)
+- [Accessing the Destination Container](#destination)
+- [Writing Output Files](#outputs)
+- [SDK Client](#sdk-client)
+- [Checking Gear Runtime Context](#runtime-context)
+- [Accessing Manifest Properties](#manifest)
+- [Testing Patterns](#testing)
+
+---
+
 ## The Canonical run.py Pattern
 
 The standard gear structure separates `run.py` (entry point) from a `main.py` module

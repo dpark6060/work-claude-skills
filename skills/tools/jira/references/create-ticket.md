@@ -15,10 +15,12 @@ Collect the following before drafting anything. If the user has not provided a v
 | Description | Yes | User |
 | Assignee | Yes | Default to yourself (`5d88bebcc7d4e30dc282e6e0`) unless told otherwise |
 | Customer | Yes | User — must match a valid option (e.g. `"UWash - NACC"`) |
-| Labels | Yes | Always include `"Hourly"` + the client name as a label |
+| Labels | Yes | Always include `"Hourly"` + the client name as a label (see label normalization note below) |
 | Epic / parent | If given | User — accept as a ticket key (e.g. `GEAR-7595`) |
 | Sprint | Auto | Query the active sprint (see Phase 2) |
 | Billable | If known | See note below |
+
+**Label normalization:** For multi-word customer names, use the short form as the label (e.g. `"NACC"` not `"UWash - NACC"`). Check existing GEAR tickets for that customer to confirm the established label convention before creating. Check `.learnings/LEARNINGS.md` — confirmed label forms may already be recorded there.
 
 **Billable field:** The custom field ID for "billable" has not been confirmed. Before setting it, run:
 ```
@@ -105,4 +107,38 @@ After creation, report back:
 - The new ticket key (e.g. `GEAR-11710`)
 - The direct URL: `https://flywheelio.atlassian.net/browse/<key>`
 
-If the user is on a branch that maps to the new ticket, note they can update their branch or link the ticket manually.
+If the user is on a branch that maps to the new ticket, note they can update their branch or link
+the ticket manually.
+
+---
+
+## Flywheel Conventions
+
+1. Assign the ticket to the current user unless specified.
+2. Ticket Types:
+    - "Story": Tickets that require coding or an MR
+    - "Task": Non-coding, non-MR work (e.g. create tech spec)
+    - "Spike": An investigation to be carried out for information gathering. 
+3. Ticket name (summary) take the convention: <EpicNickname>-<OptionalNumber> <Summary>
+    Create a short nickname for the epic and if multiple related tickets are created
+    where order is important add a number.  The number is not necessary.
+Good:
+```
+# Two related tickets with a clear order:
+SesSplit-1 Create Manifest
+SesSplit-2 Update Parser
+
+# Ticket with no required order:
+SesSplit remove default content from readme.md
+```
+
+Bad:
+```
+# Tickets with no required order with unnecessary numbers:
+SesSplit-1 Update Readme
+SesSplit-2 Update Contributing
+SesSplit-3 Update flywheel-sdk
+```
+4. always attach the tickets to the current active sprint.
+
+  

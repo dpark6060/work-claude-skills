@@ -1,6 +1,15 @@
 ---
 name: fw-gear
-description: Write Python gear code using the fw-gear library
+description: >
+  Write Python gear code using the fw-gear library — GearContext, run.py, config/input
+  access, metadata writing, manifest.json. Use when the user is building, updating, or
+  debugging a Flywheel gear even if they don't say "fw-gear" explicitly.
+  MANDATORY TRIGGERS: gear, run.py, GearContext, manifest.json, flywheel gear,
+  gear input, gear output, gear config, api-key input, context.client,
+  context.destination, context.config.destination, destination container,
+  get_destination_container, get_destination_parent, gear destination,
+  parse_config, init_logging, log_config, context.work_dir, context.output_dir,
+  fw_gear, fw-gear
 version: 2026-03-03
 tags:
   - python
@@ -33,6 +42,23 @@ pip install fw-gear[nipype]      # nipype + nibabel for workflow integration
 pip install fw-gear[numpy]       # numpy array JSON support
 pip install fw-gear[all]         # All extras
 ```
+
+## Before Starting
+
+Read and summarize `.learnings/LEARNINGS.md` and `.learnings/ERRORS.md`.
+Summarizing (not just reading) forces you to internalize what has and hasn't worked
+in previous runs of this skill.
+
+## After Finishing
+
+If this session produced anything worth capturing, append to the relevant file:
+- **`.learnings/LEARNINGS.md`** — a pattern that worked well or a non-obvious fw-gear behavior.
+- **`.learnings/ERRORS.md`** — a wrong method name, incorrect import path, or API pattern
+  that had to be corrected (especially anything from the old flywheel-gear-toolkit API).
+
+Don't write an entry if nothing went wrong and nothing surprising happened.
+
+---
 
 ## Guide Index
 
@@ -80,4 +106,5 @@ All gear code you write should:
 4. Catch exceptions in `run()` with `log.exception()` and return 1 — never let exceptions propagate uncontrolled through the context manager
 5. Use correct method names from the guides (not outdated `flywheel-gear-toolkit` names)
 6. Only access `context.client` if the gear manifest declares an `api-key` input
-7. Follow project coding conventions (`rules/general_coding/`)
+7. Access the destination via `context.config.destination["id"]` (a dict on `context.config`) — **never** `context.destination.id`. That attribute does not exist and will raise `AttributeError`. For the SDK container, use `context.config.get_destination_container()`. See gear-basics.md.
+8. Follow project coding conventions (`rules/general_coding/`)

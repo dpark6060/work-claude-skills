@@ -1,19 +1,46 @@
 ---
 name: fw-gear-debugger
-description: Debug failed Flywheel gear jobs locally. Use when pulling a failed job, setting up a local debug environment, creating dev.py scripts, or attaching VSCode to a gear container. Triggers on "debug gear", "pull job", "gear failed", "debug this job", "gear debugging".
+description: >
+  Debug failed Flywheel gear jobs locally — pull a job, set up a local debug environment,
+  create dev.py scripts, and attach VSCode to a gear container. Use even when the user
+  doesn't say "debug" explicitly — triggers on gear failures, job errors, and container issues.
+  MANDATORY TRIGGERS: debug gear, gear failed, job failed, gear error, gear crash, pull job,
+  gear not working, troubleshoot gear, dev.py, attach VSCode, flyw job pull
 version: 1.0.0
+allowed-tools:
+  - Read
+  - Write
+  - Bash
+  - Glob
 ---
 
-You are helping the user debug a failed Flywheel gear job locally. This involves pulling the job, setting up the local environment, and providing tools for interactive debugging.
+## Before Starting
+
+Read and summarize `.learnings/LEARNINGS.md` and `.learnings/ERRORS.md`.
+Summarizing (not just reading) forces you to internalize what has and hasn't worked
+in previous debug sessions.
+
+## After Finishing
+
+If this session produced anything worth capturing, append to the relevant file:
+- **`.learnings/LEARNINGS.md`** — a non-obvious pattern, workaround, or approach that worked well.
+- **`.learnings/ERRORS.md`** — an unexpected container setup, gear structure quirk, or gotcha
+  that had to be worked around (Apple Silicon issues, non-standard entrypoints, etc.).
+
+Don't write an entry if nothing went wrong and nothing surprising happened.
+
+---
 
 ## Workflow Overview
 
 ```
 1. Pull the failed job         →  flyw job pull <JOB_ID>
 2. Re-add the API key          →  flyw gear config -i api_key=$MY_API_KEY
-3. Launch container with bash   →  flyw gear run . -- --entrypoint=/bin/bash
-4. Debug inside container       →  python -m pdb run.py  OR  dev.py (VSCode)
-5. Generate HOW_TO.md          →  so the user can re-launch easily
+3. Adjust config if needed     →  flyw gear config -c debug=true
+4. Generate run.sh             →  flyw gear run --prepare
+5. Launch container with bash  →  flyw gear run . -- --entrypoint=/bin/bash
+6. Debug inside container      →  python -m pdb run.py  OR  dev.py (VSCode)
+7. Generate HOW_TO.md          →  so the user can re-launch easily
 ```
 
 ## Step 1: Pull the Failed Job
@@ -46,7 +73,7 @@ flyw --profile mysite job pull <JOB_ID> /path/to/debug/dir
 └── work/
 ```
 
-## Step 2: Re-add the API Key
+## Step 2: Re-add the API Key and Adjust Config
 
 `flyw job pull` redacts the API key in `config.json`. Add it back:
 
@@ -55,7 +82,31 @@ cd <gear-name>-<version>-<job-id>/
 flyw gear config -i api_key=$MY_API_KEY
 ```
 
-## Step 3: Launch the Container
+Optionally override config values (types inferred from manifest):
+
+```bash
+flyw gear config -c debug=true
+flyw gear config -c my_string='some value'
+flyw gear config -c my_int=2
+```
+
+## Step 3: Generate run.sh
+
+Run `--prepare` to create a `run.sh` in the pulled directory. This is the recommended way to launch for both normal testing and VSCode debugging:
+
+```bash
+flyw gear run --prepare
+```
+
+This creates a `run.sh` with the exact `docker run` command needed. You can then run the gear with:
+
+```bash
+bash run.sh            # run gear normally
+```
+
+Or edit `run.sh` to override the entrypoint for interactive debugging.
+
+## Step 4: Launch the Container
 
 ```bash
 # Interactive bash shell
@@ -78,15 +129,30 @@ docker run -it --platform linux/amd64 --entrypoint=/bin/bash -v "$(pwd)":/flywhe
 
 ## Container Mount Mapping
 
-When `gear run` launches the container, the pulled job directory is mounted at **`/flywheel/v0/`**:
+`flyw gear run` mounts **individual files and subdirectories**, NOT the whole directory:
 
 ```
-Host: <pulled-dir>/                    → Container: /flywheel/v0/
-├── config.json                        → /flywheel/v0/config.json
-├── manifest.json                      → /flywheel/v0/manifest.json
-├── input/<input-name>/<file>          → /flywheel/v0/input/<input-name>/<file>
-├── output/                            → /flywheel/v0/output/
-└── work/                              → /flywheel/v0/work/
+-v <pulled-dir>/config.json    → /flywheel/v0/config.json
+-v <pulled-dir>/manifest.json  → /flywheel/v0/manifest.json
+-v <pulled-dir>/input/         → /flywheel/v0/input/
+-v <pulled-dir>/output/        → /flywheel/v0/output/
+-v <pulled-dir>/work/          → /flywheel/v0/work/
+```
+
+This means gear code baked into the image at `/flywheel/v0/` (e.g. `run.py`, `fw_gear_<name>/`) is **preserved** — it is not shadowed by the mount. The gear code is visible and breakpointable from VSCode after attaching to the container.
+
+The equivalent Docker command (for reference or manual use):
+
+```bash
+docker run -it --platform linux/amd64 \
+  -u 0:0 \
+  -v "$(pwd)/config.json":/flywheel/v0/config.json \
+  -v "$(pwd)/manifest.json":/flywheel/v0/manifest.json \
+  -v "$(pwd)/input":/flywheel/v0/input \
+  -v "$(pwd)/output":/flywheel/v0/output \
+  -v "$(pwd)/work":/flywheel/v0/work \
+  --entrypoint=/bin/bash \
+  <docker-image>
 ```
 
 ## config.json Schema
@@ -292,20 +358,24 @@ Generate with actual values filled in:
 Job ID: `<job-id>`
 Image:  `<docker-image>`
 
-## Launch container interactively
-
-From this directory:
+## Run the gear (normal)
 
 ```bash
-docker run -it --platform linux/amd64 --entrypoint=/bin/bash -v "$(pwd)":/flywheel/v0 <docker-image>
+bash run.sh
 ```
 
-> **Apple Silicon (M1/M2/M3)**: The `--platform linux/amd64` flag is required because Flywheel gear images are amd64-only.
-
-Or using flyw:
+## Launch container interactively
 
 ```bash
 flyw gear run . -- --entrypoint=/bin/bash
+```
+
+> **Apple Silicon (M1/M2/M3)**: `--platform linux/amd64` is applied automatically by flyw.
+
+Or directly with Docker:
+
+```bash
+docker run -it --platform linux/amd64 --entrypoint=/bin/bash -v "$(pwd)":/flywheel/v0 <docker-image>
 ```
 
 ## Inside the container
@@ -317,19 +387,16 @@ python run.py
 # Run with pdb
 python -m pdb run.py
 
-# Run the dev.py debug script (for VSCode)
-python /flywheel/v0/dev.py
-
 # Find where gear code is installed
 python -c "import <gear_python_package>; print(<gear_python_package>.__file__)"
 ```
 
 ## VSCode attach
 
-1. Launch the container with one of the commands above
-2. In VSCode: Remote-Containers -> "Attach to Running Container"
-3. Open `/flywheel/v0/dev.py` and run with debugger (F5)
-4. Set breakpoints in gear code under `/venv/lib/python/site-packages/`
+1. Launch the container: `flyw gear run . -- --entrypoint=/bin/bash`
+2. In VSCode: Remote-Containers → "Attach to Running Container"
+3. Open `/flywheel/v0/run.py` and run with debugger (F5)
+4. Set breakpoints in gear code (see path from import check above)
 ````
 
 ### How to Populate the Template

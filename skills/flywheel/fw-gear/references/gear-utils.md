@@ -1,5 +1,20 @@
 # fw-gear Utils
 
+## Contents
+- [exec_command — Run External Binaries](#exec-command)
+- [ZIP Archive Utilities](#zip)
+- [SDK Retry Handler](#sdk-retry)
+- [Report Open File Descriptors](#open-fds)
+- [SDK Delete 404 Handler](#delete-404)
+- [Install Requirements at Runtime](#install-requirements)
+- [FLYWHEEL_HIERARCHY — Container Level Constants](#hierarchy)
+- [Launching a Child Gear (setup_gear_run)](#child-gear)
+- [FreeSurfer License](#freesurfer)
+- [Resource Usage Monitoring](#monitoring)
+- [Nipype Integration](#nipype)
+
+---
+
 ## exec_command — Run External Binaries
 
 Import: `from fw_gear.utils.wrapper.command import exec_command`

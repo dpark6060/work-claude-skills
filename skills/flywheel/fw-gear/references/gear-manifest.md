@@ -1,5 +1,20 @@
 # fw-gear Manifest (manifest.json)
 
+## Contents
+- [Name Rules](#name-rules)
+- [Minimal manifest.json](#minimal)
+- [Config Fields](#config-fields)
+- [Input Fields](#input-fields)
+- [Input Key Naming Rules](#key-naming)
+- [Directory Layout at Runtime](#directory-layout)
+- [Output Metadata Spec (.metadata.json)](#output-metadata)
+- [Custom Manifest Fields](#custom-fields)
+- [Output Configuration](#output-config)
+- [Networking Capability](#networking)
+- [Environment Variables](#environment)
+
+---
+
 The `manifest.json` lives at `/flywheel/v0/manifest.json` and describes the gear's
 inputs, configuration, and metadata. It is baked into the Docker image at build time.
 

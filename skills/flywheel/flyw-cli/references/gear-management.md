@@ -2,6 +2,16 @@
 
 Commands for listing, uploading, exporting, installing, updating, and permissioning gears on a Flywheel site.
 
+## Contents
+- [`gear ls`](#gear-ls) — List installed gears
+- [`gear upload`](#gear-upload) — Build + upload to Flywheel (gear categories)
+- [`gear export`](#gear-export) — Export between sites or download locally
+- [`gear install`](#gear-install) — Install from gear exchange
+- [`gear update`](#gear-update) — Update from gear exchange
+- [`gear permission`](#gear-permission) — Manage access control (permissions model)
+- [`gear --enable` / `gear --disable`](#gear---enable--gear---disable)
+- [`gear --validate`](#gear---validate)
+
 ## `gear ls` — List Installed Gears
 
 ```bash

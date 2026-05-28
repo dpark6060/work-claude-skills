@@ -1,7 +1,13 @@
 ---
 name: fw-client
-description: Use the fw-client Python library to make direct HTTP API calls to a Flywheel instance
-version: 2026-03-09
+description: >
+  Use to make HTTP API calls to a Flywheel instance via the fw-client Python library.
+  Triggers when the user needs to call a Flywheel endpoint directly, work with /api/,
+  /xfer/, or /snapshot/ services, handle auth, pagination, file upload/download, error
+  handling, or async requests. Also triggers when the Flywheel SDK doesn't expose an
+  endpoint the user needs. MANDATORY TRIGGERS: fw-client, FWClient, Flywheel API,
+  HTTP request, api_key, /api/, /xfer/, /snapshot/, flywheel endpoint, fw.get, fw.post,
+  fw.put, fw.patch
 tags:
   - python
   - flywheel
@@ -20,7 +26,6 @@ the Flywheel Python SDK doesn't expose an endpoint you need, or when you want lo
 control over API calls.
 
 **Install**: `pip install fw-client`
-**Source**: `/Users/davidparker/Documents/Flywheel/GitLab/tools/lib/fw-client`
 **Version**: 2.2.0, requires Python >=3.10
 
 ---
@@ -54,7 +59,13 @@ Tags: `blobs`, `conflicts`, `connectors`, `exports`, `imports`, `rule_sets`, `sc
 Index: `endpoints_index_snapshot.md`
 Tag files: `endpoints/snapshot_untagged.md`
 
-**Always check the index before guessing an endpoint path.**
+Check the relevant index before using an endpoint path — guessing introduces silent bugs when paths or parameters change.
+
+### Operation Guides
+
+For common multi-step patterns that go beyond raw endpoint schemas:
+
+- **[guides/job-operations.md](guides/job-operations.md)** — Querying jobs with filters, bulk cancel, batch cancel, pagination
 
 ---
 

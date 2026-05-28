@@ -2,6 +2,16 @@
 
 Import data from external cloud storage into a Flywheel project. Imports run server-side via the connector service.
 
+## Contents
+- [`import run`](#import-run) — Run an import (options: required, rule, DICOM, behavior)
+- [Import Rules](#import-rules) — Filters, mappings, file types, DICOM defaults
+- [`import test`](#import-test) — Test rules without importing
+- [`import get`](#import-get) — Check import status / monitor
+- [`import list`](#import-list) — List imports
+- [`import cancel` / `import rerun`](#import-cancel--import-rerun)
+- [Rule Sets](#rule-sets) — Reusable named rule collections
+- [Output Behavior](#output-behavior)
+
 ## `import run` — Run an Import
 
 ```bash

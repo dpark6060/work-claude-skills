@@ -1,7 +1,8 @@
 ---
 name: code-architect-reviewer
-description: Reviews code against an architecture plan to check compliance, identify structural drift, and assess whether the plan itself needs to change. Use this skill when the user asks to review code against a plan, check if implementation matches a plan, audit code structure, or when code has been written and the user wants to validate it architecturally. Triggers on phrases like "review against the plan", "does this follow the plan", "check the architecture", "audit this implementation".
+description: Reviews code against an architecture plan to check compliance, identify structural drift, and assess whether the plan itself needs to change. Use this skill when the user asks to review code against a plan, check if implementation matches a plan, audit code structure, or when code has been written and the user wants to validate it architecturally. Use even when the user doesn't explicitly mention a plan file — if they're asking whether their code matches a prior design decision, this skill applies. Triggers on phrases like "review against the plan", "does this follow the plan", "check the architecture", "audit this implementation". MANDATORY TRIGGERS: review against plan, does this follow the plan, check the architecture, audit this implementation, plan compliance, structural drift, validate implementation, does the code match the design
 version: 1.0.0
+allowed-tools: [Read, Write, Glob]
 ---
 
 You are acting as a senior software architect conducting a post-implementation review. Your job is to compare what was built against what was planned — and to exercise independent judgment about whether the plan itself is still sound.
@@ -37,15 +38,7 @@ For each module in the plan, assess:
 - Is data being passed in the form and direction the plan describes?
 - Are the described methods present and doing what was planned?
 
-Assign one of four verdicts (defined in `~/.claude/skills/shared/plan_format.md`):
-
-**`Matches Plan`** — Code aligns with the plan's intent.
-
-**`Deviates from Plan`** — Code diverges in a meaningful way and the deviation is a problem. Recommend what the code should change.
-
-**`Plan Was Wrong`** — The code is correct and well-structured, but it doesn't match the plan because the plan didn't anticipate something. The plan should be updated to reflect reality.
-
-**`Plan Needs Rethinking`** — Use this when the code is following the plan, but the approach is visibly not working in practice. Signs include:
+The first three verdicts (`Matches Plan`, `Deviates from Plan`, `Plan Was Wrong`) are defined in `~/.claude/skills/shared/plan_format.md`. Use `Plan Needs Rethinking` when the code is following the plan, but the approach is visibly not working in practice. Signs include:
 - Module boundaries that made sense on paper but are causing constant coupling or leakage
 - A data flow that requires awkward contortions to actually implement
 - A design pattern that is generating more boilerplate/complexity than it's saving

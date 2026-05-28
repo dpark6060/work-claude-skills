@@ -101,7 +101,7 @@ Include the exact error, the clone path, and what the user should do.>
 
 - Always write the report **before** invoking a sub-agent.
 - After the sub-agent returns, read `fix-result.md` to determine next action.
-- If status is `success`: report what was fixed, go back to **Step 3** (poll loop).
+- If status is `success`: report what was fixed, go back to **Step 1** (run the poll script).
 - If status is `escalate` or `failed`: surface the escalation message to the user
   verbatim and stop.
 - The failure report accumulates fix attempts across cycles so sub-agents can

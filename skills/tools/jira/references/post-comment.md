@@ -37,6 +37,8 @@ git log origin/$(git remote show origin | grep "HEAD branch" | awk '{print $NF}'
 git diff origin/$(git remote show origin | grep "HEAD branch" | awk '{print $NF}')...HEAD --stat
 ```
 
+> **Fallback:** If either command errors (no remote configured, detached HEAD, or `origin` not found), fall back to `git log main...HEAD --oneline` / `git diff main...HEAD --stat`, then try `master` if `main` doesn't exist. Note the assumption to the user.
+
 **Work notes from other Claude skills:**
 ```bash
 find claude-work -name "*.md" 2>/dev/null | sort | xargs cat 2>/dev/null

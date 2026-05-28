@@ -1,5 +1,17 @@
 # fw-gear Metadata
 
+## Contents
+- [Update Container Metadata (No SDK)](#update-container)
+- [Update File Metadata (No SDK)](#update-file)
+- [Add QC Result to a File (No SDK)](#qc-result)
+- [Add QC Result to Analysis Container (No SDK)](#qc-analysis)
+- [Add File Tags (No SDK)](#file-tags)
+- [SDK-Enabled Metadata Methods](#sdk-methods)
+- [Complete Example](#example)
+- [Notes](#notes)
+
+---
+
 Gears can write metadata back to Flywheel containers and files. There are two mechanisms:
 
 1. **`.metadata.json`** (no SDK required) — updates destination container hierarchy on

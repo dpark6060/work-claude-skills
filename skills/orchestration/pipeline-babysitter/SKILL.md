@@ -4,6 +4,10 @@ description: >
   Monitors a GitLab MR pipeline in a self-looping cycle. Detects failures,
   auto-fixes linting and merge conflicts, escalates anything uncertain.
   Single invocation — runs until the pipeline passes or escalation is needed.
+  Use even if the user doesn't say "pipeline-babysitter" explicitly — triggers
+  on any request to watch, monitor, or wait on a pipeline or MR.
+  MANDATORY TRIGGERS: babysit, watch pipeline, monitor pipeline, MR pipeline,
+  wait for pipeline, keep an eye on CI, pipeline failing, pipeline passing.
 version: 2026-04-08
 tags:
   - gitlab
@@ -13,6 +17,14 @@ tags:
 ---
 
 # Pipeline Babysitter
+
+## Before Starting
+
+Read and summarize `.learnings/LEARNINGS.md` and `.learnings/ERRORS.md`.
+Summarizing (not just reading) forces you to internalize what has and hasn't
+worked in previous runs of this skill.
+
+---
 
 ## Overview
 
@@ -31,7 +43,7 @@ its output, act on `ACTION_NEEDED`, fix what you can, and loop until done.
 ## Step 1 — Run the poll script
 
 ```bash
-python3 ~/.claude/skills/pipeline-babysitter/pipeline_poll.py [<URL>]
+python3 ${CLAUDE_SKILL_DIR}/pipeline_poll.py [<URL>]
 ```
 
 Pass the user's URL argument if one was given. Use a Bash timeout of 600000ms
@@ -171,3 +183,17 @@ After handling **any** failure not already documented in `pipeline_failures/`:
 | `references/conflict-resolve.md` | When ACTION_NEEDED is `resolve_conflicts` |
 | `references/pipeline-failures-template.md` | When creating pipeline_failures/ from scratch |
 | `references/gear-repo-conventions.md` | If you need context on gear repo structure |
+| `references/pipeline-status.md` | When the poll script output is ambiguous or the script is unavailable |
+| `references/lint-fix.md` | When fixing a lint failure without delegating to the lint-fixer agent |
+
+---
+
+## After Finishing
+
+If this session produced anything worth capturing, append to the relevant file:
+- **`.learnings/LEARNINGS.md`** — a pattern that worked well, a non-obvious CI
+  behavior, or a workflow adjustment that improved the result.
+- **`.learnings/ERRORS.md`** — a failure, error, or wrong assumption and how it
+  was fixed.
+
+Don't write an entry if nothing went wrong and nothing surprising happened.

@@ -1,15 +1,37 @@
 ---
 name: clockify
-description: Interact with the Clockify time-tracking API using the ClockifySdk Python library
-version: 2026-04-07
+description: >
+  Logs, edits, and queries Clockify time entries using the ClockifySdk Python library.
+  Use whenever the user wants to track time, add a time entry, log hours, or work with
+  the Clockify API — even if they don't say "Clockify" explicitly. MANDATORY TRIGGERS:
+  clockify, log time, time entry, track time, log hours, billable hours, time tracking,
+  ClockifySdk, time log.
+version: 2026-04-09
 tags:
   - python
   - clockify
   - time-tracking
   - api
+allowed-tools:
+  - Bash
 ---
 
 # Clockify SDK
+
+## Before starting
+
+Read and summarize `.learnings/LEARNINGS.md` and `.learnings/ERRORS.md`.
+Summarizing (not just reading) forces you to internalize what has and hasn't
+worked in previous runs of this skill. If both files are empty, skip this step.
+
+## After finishing
+
+If this session produced anything worth capturing, append to the relevant file:
+
+- **`.learnings/LEARNINGS.md`** — a pattern that worked well, a non-obvious API behavior, or a workflow adjustment that improved the result.
+- **`.learnings/ERRORS.md`** — a failure, a script error, or a wrong assumption and how it was corrected.
+
+Don't write an entry if nothing went wrong and nothing surprising happened. Use the entry format at the top of each file.
 
 ## Overview
 
@@ -65,7 +87,7 @@ embed "confirm with user first" instructions in their docstrings.
 ## Scripts
 
 Reusable helper scripts live at `/Users/davidparker/.claude/skills/clockify/scripts/`.
-Call them via Bash: `python3 /Users/davidparker/.claude/skills/clockify/scripts/<name>.py [args]`
+Call them via Bash: `python3 ${CLAUDE_SKILL_DIR}/scripts/<name>.py [args]`
 
 All scripts require `CLOCKIFY_API` in the environment and default to `--tz-offset -5` (CDT).
 
@@ -73,15 +95,48 @@ All scripts require `CLOCKIFY_API` in the environment and default to `--tz-offse
 |---|---|---|
 | `get_day_entries.py` | Fetch all entries for a calendar day, sorted by start | Anytime you need to see what's already on a day |
 | `add_jitter.py` | Apply scaled independent jitter to start and end | When the user gives an approximate duration (`~1hr`, `~30min`) |
-| `check_overlap.py` | Detect overlap with existing entries and resolve interactively | **Always run before posting any new entry** |
+| `check_overlap.py` | Detect overlap with existing entries and resolve interactively | **Always run before posting any new entry** (single-entry path) |
 | `find_gaps.py` | Find free time slots ≥ N minutes on a given day | When looking for where to fit an entry |
 | `parse_time_spec.py` | Convert fuzzy time phrases to UTC ISO datetime | When the user gives a non-exact time (`"yesterday afternoon"`, `"2pm CDT"`) |
+| `refresh_cache.py` | Rebuild the Client > Project > Task workspace cache | Once, then again whenever a client/project/task is unresolvable |
+| `batch_submit.py` | Post a batch of entries from a JSON intent file | Bulk fills (>5 entries); covers resolution, overlap checks, and posting |
+| `lookup.py` | Importable resolver — substring hints → IDs via the cache | Used by the scripts above; not invoked directly |
 
 ### Mandatory workflow rules
 
-1. **Always call `parse_time_spec.py`** when the user specifies a time loosely (e.g. "yesterday around 3", "this morning", "~2pm CDT"). Feed the returned `utc_iso` into subsequent scripts.
-2. **Always call `check_overlap.py`** with the proposed start/end before posting. Use its returned `start`/`end` for the actual entry.
-3. **Call `add_jitter.py`** when the user prefixes a duration with `~` (tilde). Jitter both start and end independently; magnitude scales with duration. Show the jittered times in the confirmation summary.
+1. **Always call `parse_time_spec.py`** when the user specifies a time loosely (e.g. "yesterday around 3", "this morning", "~2pm CDT"). Feed the returned `utc_iso` into subsequent scripts. (Reason: manual UTC conversion from fuzzy phrases has consistently produced off-by-one-hour errors, especially across DST boundaries.)
+2. **Single-entry: always call `check_overlap.py`** with the proposed start/end before posting. Use its returned `start`/`end` for the actual entry. (Reason: posting without this check has caused overlapping entries that are difficult to untangle after the fact.)
+3. **Call `add_jitter.py`** when the user prefixes a duration with `~` (tilde). Jitter both start and end independently; magnitude scales with duration. Show the jittered times in the confirmation summary. (Reason: exact round-number entries on approximate durations look fabricated; jitter makes the log credible.)
+
+### Bulk fills (>5 entries)
+
+For multi-day or multi-entry fills, use the JSON-intent path instead of
+chaining single-entry scripts:
+
+1. **Ensure cache is current.** If `cache/workspace.json` is missing or
+   `batch_submit.py` warns it's stale (>30 days), run
+   `python3 scripts/refresh_cache.py` once (~1–3 minutes).
+2. **Author an intent JSON** at `/tmp/clockify_batch_<topic>.json`. Use
+   human-readable substring hints for `client`, `project`, `task`. Each
+   hint must match a unique substring of the real name — the resolver
+   prefers an exact (case-insensitive) name match if multiple candidates
+   match. See `references/patterns.md` for the full schema.
+
+   **Tiebreaker gotcha:** when a hint is *itself* the exact name of one
+   candidate and also a substring of another, the exact match silently
+   wins — even if the user meant the longer name. For example, the hint
+   `"NACC"` matches both a literal client named `nacc` and `UWash - NACC`,
+   and the resolver will pick `nacc`. Prefer the most specific name you
+   can (e.g. `"UWash - NACC"` over `"NACC"`); resolution failures
+   downstream are easier to debug than silently-wrong client IDs.
+3. **Dry-run** first: `python3 scripts/batch_submit.py /tmp/file.json`
+   prints a per-day preview and validates overlaps but posts nothing.
+4. **Post** with `--yes` after the user confirms.
+
+Resolution errors print the candidate list at the failing level — amend
+the intent JSON with a more specific hint and re-run. `batch_submit.py`
+internally checks for both in-batch and external overlaps; the
+single-entry `check_overlap.py` is not needed.
 
 ### Script reference
 
@@ -91,6 +146,8 @@ add_jitter.py       --start ISO  --end ISO
 check_overlap.py    --start ISO  --end ISO  --tz-offset N
 find_gaps.py        --date YYYY-MM-DD  --min-duration-min N  --tz-offset N
 parse_time_spec.py  --spec "TEXT"  --tz-offset N
+refresh_cache.py    [--include-archived] [--clients-only | --projects-only]
+batch_submit.py     INTENT_JSON  [--yes]  [--tz-offset N]  [--allow-conflicts]
 ```
 
 ---
@@ -99,6 +156,13 @@ parse_time_spec.py  --spec "TEXT"  --tz-offset N
 
 If the MCP is not available, the SDK can be called via Bash. See the reference files
 for patterns. Note: `start`/`end` must be `datetime` objects — see Critical Gotcha below.
+
+**SDK method names and pagination caveats.** The SDK wrapper method names
+are `get_workplace_clients`, `get_current_workspace_projects`, and
+`get_project_tasks` — not `get_clients`/`get_projects`. None of them
+auto-paginate; each returns only the first 50 results. For full-workspace
+scans, page manually via `cl.client.make_call(..., {"page": N,
+"page-size": 200})` or use the `paginate_all` helper in `scripts/lookup.py`.
 
 ## Initialization
 

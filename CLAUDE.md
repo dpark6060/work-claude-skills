@@ -25,6 +25,12 @@ ONE EXCEPTION: when searching for files in your .claude directory (global or loc
 - Ask before running destructive or system-modifying bash commands — show the command first and wait for approval.
 - Never take shortcuts or implement a "quick fix" instead of the correct solution. If the correct approach seems significantly harder, present both options and ask which to pursue — do not silently choose the easier one.
 
+## Respecting User Code Changes Between Sessions
+- The user sometimes makes manual code changes between sessions. NEVER revert or overwrite those changes.
+- Before changing any existing line of code, read the file first and treat whatever is there as the authoritative version.
+- If a summary or prior context says "the code should look like X" but the file currently says Y, trust the file — the user may have changed it intentionally.
+- Do NOT use session summaries or conversation history to override what is currently in a file.
+
 
 ## Coding Rules
 - Read the `rules/general_coding/GeneralCoding.md` guide initially as your primary
@@ -57,6 +63,8 @@ always use `uv` commands (e.g., `uv pip install`, `uv sync`, `uv run`) instead o
 
 ## Git
 - Never rebase. Always use merge to reconcile diverged branches (`git pull`, not `git pull --rebase`).
+- When creating an MR, sign the description with: “Co-Authored-By: <model>”, e.g.: Co-Authored-By: Claude Opus 4.6 (1M context)
+- Branch names must use the format `<TICKET-ID>_<description>` with underscores only — no forward slashes. Example: `GEAR-12042_config-parsing`.
 
 ## MCP Servers
 - GitLab MCP credentials must be valid JSON (no trailing commas). If connection fails, check credential file syntax first.

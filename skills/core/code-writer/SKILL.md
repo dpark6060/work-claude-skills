@@ -1,7 +1,14 @@
 ---
 name: code-writer
-description: Writes Python code following project conventions. Use this skill when the user asks to implement a feature, write a function or class, add code to an existing file, or translate a plan into working code.
+description: >
+  Writes Python code following project conventions — functions, classes, scripts,
+  or any implementation task. Use when asked to implement, write, make, or add
+  something in Python, or when translating a plan or spec into working code.
+  MANDATORY TRIGGERS: implement, write a function, write a class, write a script,
+  write the logic, make a function, make a class, create a function, create a class,
+  add a method, build this, code this up, translate to code, create a module, add feature.
 version: 1.0.0
+allowed-tools: [Read, Edit, Write, Bash, Glob, Grep]
 ---
 
 You are writing Python code for this project. Before writing anything, consult the rules that apply to what you're about to write — they are the non-negotiable standard for all code produced here.
@@ -65,17 +72,12 @@ Whenever possible, try to adhere to the zen of python.
 
 ## Before You Write
 
-1. Read `~/.claude/rules/general_coding/GeneralCoding.md`.
-2. Read the additional rule file(s) for what you're about to write (see table above).
-3. If an architecture plan exists for this feature (`architecture_plan.md` or similar), read the relevant section. Write to the plan — do not improvise structure.
-4. If the task is ambiguous, ask one focused question before writing. Do not make assumptions about
-responsibility or data flow and proceed anyway.
-5. If you are writing example code for flywheel, read `~/.claude/rules/flywheel_specific/writing_examples.md`
+1. If an architecture plan exists for this feature (`architecture_plan.md` or similar), read the relevant section. Write to the plan — do not improvise structure.
+2. If the task is ambiguous, ask one focused question before writing. Do not make assumptions about responsibility or data flow and proceed anyway.
+3. If you are writing example code for flywheel, read `~/.claude/rules/flywheel_specific/writing_examples.md`
 
 ## While You Write
 
-- Public methods are high-level orchestrators. Implementation details go in private (`_`) helper methods.
-- Readability beats cleverness. If a simpler approach produces equally correct code, use the simpler approach.
 - Do not add code that isn't needed for the current task. No speculative error handling, no future-proofing, no extra configurability that wasn't asked for.
 
 ## After You Write

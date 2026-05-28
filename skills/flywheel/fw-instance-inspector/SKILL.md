@@ -1,19 +1,29 @@
 ---
 name: fw-instance-inspector
-description: Investigate live data on a Flywheel instance. Use when the user wants to inspect container metadata, file info, file contents, or job details on a running Flywheel site. Triggers on phrases like "pull the data from Flywheel", "check this file on Flywheel", "what does this job's config look like", "inspect this subject/session/file", "look at the raw data", "pull down this file".
+description: >
+  Investigate live data on a Flywheel instance — pull container metadata, file info,
+  file contents, job configs, and job logs. Use even when the user doesn't say
+  "Flywheel" explicitly, if they're asking about a gear job, a subject/session/file,
+  or why something failed on a running site.
+  MANDATORY TRIGGERS: inspect, investigate, pull data, check file, look at job,
+  job config, job logs, why did this gear fail, debug job, trace error, what did
+  the gear see, container metadata, subject session acquisition, Flywheel URL,
+  fw-client, fw.get
 version: 1.0.0
 tags:
   - flywheel
   - investigation
   - sdk
   - jobs
+allowed-tools:
+  - Bash
+  - Read
+  - Write
 ---
 
 # Flywheel Instance Inspector
 
-You are investigating live data on a Flywheel instance. Your job is to pull and examine data — not to modify it.
-
-**CRITICAL: Never modify any data on Flywheel. Read-only only. Do not call any PUT, POST, PATCH, or DELETE endpoints unless the user explicitly asks for a write operation and confirms it.**
+You are investigating live data on a Flywheel instance. Your job is to pull and examine data. See Safety Rules at the bottom before writing any code.
 
 ---
 
@@ -73,13 +83,6 @@ for acq in session.acquisitions.iter():
     acq = acq.reload()
     for f in acq.files:
         print(f.name)
-```
-
-### Always reload before accessing metadata
-SDK list results are "slim" — they may omit fields. Call `.reload()` to get the full object:
-```python
-session = session.reload()
-subject = subject.reload()
 ```
 
 ---
@@ -188,21 +191,7 @@ detail = fw_http.get(f"/api/jobs/{job_id}/detail")
 
 ---
 
-## Common Investigation Patterns
-
-### "What does this file's info look like?"
-1. Get the session/container by ID from the URL
-2. Reload it
-3. Find the file by name in `.files`
-4. Print `file.info` or drill into nested keys
-
-### "Why does this gear produce wrong output?"
-1. Get the job ID from the user (from the Flywheel UI URL or logs)
-2. Pull `config.json` to see exact inputs and config used
-3. Pull logs text to see what the gear reported
-4. Pull the input file's info to compare against the output
-
-### "What happened to a specific subject?"
+## Subject Investigation Pattern
 ```python
 subject = fw.get(subject_id).reload()
 print(f"Label: {subject.label}")
@@ -213,6 +202,20 @@ for session in subject.sessions.iter():
     for f in session.files:
         print(f"    File: {f.name}")
 ```
+
+---
+
+## Before Starting
+
+Read and summarize `.learnings/LEARNINGS.md` and `.learnings/ERRORS.md`. Summarizing (not just reading) forces you to internalize what has and hasn't worked in previous runs.
+
+## After Finishing
+
+If this session produced anything worth capturing, append to the relevant file:
+- **.learnings/LEARNINGS.md** — a pattern that worked, a non-obvious SDK behavior, or a workflow adjustment that improved the result.
+- **.learnings/ERRORS.md** — a failure, an error, or a wrong assumption and how it was fixed.
+
+Don't write an entry if nothing went wrong and nothing surprising happened.
 
 ---
 

@@ -4,3 +4,4 @@ If you read this file, say "I have read the SDK use rules".
 - Use proper SDK models (e.g., AdhocAnalysisInput) — check SDK source or docs before guessing at types.
 - When working with Flywheel gears, always check existing patterns in the codebase for auth, client
   initialization, and metadata handling.
+- Before writing any finder/filter query (`fw.<containers>.find()`, `fw.<containers>.find_first()`), read `FinderBehaviors.md` in this directory for quoting rules and known gotchas.

@@ -34,9 +34,19 @@ If the project does not use `uv`, fall back to:
 
 ## Phase 2 — Stage and Commit
 
-Stage all modified and new files:
+Show current status for review:
 ```bash
-git add -A
+git status --short
+```
+
+Stage tracked modified files:
+```bash
+git add -u
+```
+
+For any untracked files shown in the status output, stage them explicitly by name (do not use `git add -A` or `git add .`):
+```bash
+git add path/to/specific/file
 ```
 
 Generate a commit message from the diff:

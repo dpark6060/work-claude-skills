@@ -237,3 +237,88 @@ new_project = cl.client.make_call(
 
 See Clockify API docs for all available endpoints. Base URL is
 `https://api.clockify.me/api/v1`.
+
+---
+
+## Pattern: Bulk Fill via Batch Intent JSON
+
+For fills of more than ~5 entries, write an intent file and feed it to
+`scripts/batch_submit.py`. The script resolves human substring hints
+against the local workspace cache, validates in-batch and external
+overlaps, prints a per-day preview, and posts when `--yes` is set.
+
+### Intent file schema
+
+```json
+{
+  "timezone_offset_hours": -5,
+  "default_billable": true,
+  "entries": [
+    {
+      "date": "2026-05-04",
+      "start": "08:30",
+      "end": "10:30",
+      "client": "UWash - NACC",
+      "project": "Solutions Hourly",
+      "task": "session-splitter",
+      "description": "Session splitter development"
+    },
+    {
+      "date": "2026-05-13",
+      "start": "09:00",
+      "end": "17:00",
+      "client": "Flywheel",
+      "task": "PTO",
+      "description": "PTO",
+      "billable": false
+    },
+    {
+      "date": "2026-05-15",
+      "start": "10:00",
+      "end": "11:00",
+      "project_id": "5cc91b42d278ae0c520fa46d",
+      "task_id": "5cc91b69d278ae0c520fa4b1",
+      "description": "fully-resolved escape hatch"
+    }
+  ]
+}
+```
+
+### Required vs optional fields per entry
+
+| Field | Required | Notes |
+|---|---|---|
+| `date` | yes | ISO date `YYYY-MM-DD` (local). |
+| `start`, `end` | yes | Local time `HH:MM` (24h). `end > start`. |
+| `description` | yes | Free text. |
+| `client` | yes (unless using IDs) | Substring of the client name. |
+| `project` | no | Substring; omit when `task` alone is unambiguous within the client. |
+| `task` | no | Substring of the task name. |
+| `billable` | no | Overrides `default_billable`. One of the two must be set. |
+| `project_id` + `task_id` | escape hatch | Replaces `client`/`project`/`task` entirely; cannot mix in one entry. |
+
+### Hint resolution
+
+Hints are case-insensitive substring matches against names in
+`cache/workspace.json`. At each tree level (client → project → task), if
+multiple candidates match the hint but exactly one equals the hint
+case-insensitively, that one wins (so "Solutions Hourly" prefers the
+un-suffixed project over "Solutions Hourly - 2023/2024"). Any other
+ambiguity raises a resolution error listing the candidates at that level
+so you can tighten the hint and re-run.
+
+### Running
+
+```bash
+# Dry-run (default) — prints preview, posts nothing
+python3 scripts/batch_submit.py /tmp/clockify_batch.json
+
+# Actually post
+python3 scripts/batch_submit.py /tmp/clockify_batch.json --yes
+
+# Override the intent file's tz offset
+python3 scripts/batch_submit.py /tmp/clockify_batch.json --tz-offset -6 --yes
+
+# Bypass external-overlap blocking (e.g. when intentionally splitting an entry)
+python3 scripts/batch_submit.py /tmp/clockify_batch.json --allow-conflicts --yes
+```

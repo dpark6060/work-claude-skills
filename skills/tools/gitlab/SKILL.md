@@ -1,14 +1,38 @@
 ---
 name: gitlab
-description: Search GitLab and fetch file contents using the GitLab MCP server and glab CLI
-version: 2026-03-12
+description: >
+  Search GitLab code and repos, view and diff merge requests, read MR review comments,
+  fetch files, and run the end-of-session MR creation workflow. Use when the user wants
+  to find code, read a file, check a merge request or PR, view comments or diffs, or
+  create an MR — even if they don't explicitly say "GitLab". MANDATORY TRIGGERS: GitLab,
+  MR, merge request, PR, glab, pipeline, review comments, MR diff, search code, fetch
+  file, create MR, open pull request
+version: 2026-04-13
 tags:
   - gitlab
   - search
   - api
+allowed-tools:
+  - Bash
+  - mcp__GitLab__search
 ---
 
 # GitLab
+
+## Before starting
+
+Read and summarize `.learnings/ERRORS.md`. Summarizing (not just reading) forces you
+to internalize past failures and how they were fixed.
+
+## After finishing
+
+If this session produced anything worth capturing, append to the relevant file:
+- `.learnings/LEARNINGS.md` — a non-obvious behavior, a workflow that worked well, or an API quirk.
+- `.learnings/ERRORS.md` — a failure, error, or wrong assumption and how it was fixed.
+
+Don't write an entry if nothing went wrong and nothing surprising happened.
+
+---
 
 ## Overview
 

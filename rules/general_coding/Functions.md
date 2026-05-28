@@ -13,12 +13,18 @@
 - Include type hints in docstring for args/returns
 
 ## Naming Prefixes:
+Use **only** these prefixes. Any other prefix (e.g. `maybe_`, `try_`, `do_`, `handle_`) is not allowed — if none fit, reconsider whether the method has a single clear responsibility.
+
 - `get_` for returns
 - `set_` for setting
 - `is_` for booleans
 - `validate_` for verification
 - `process_` for data work
 - `orchestrate_` for coordination
+- `delete_` for deletion operations
+- `add_` for adding/appending
+- `build_` for constructing objects
+- `run_` for executing a process
 
 ## Responsibilities:
 - Keep methods as simple as possible - make more simple methods vs fewer complex methods.

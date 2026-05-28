@@ -2,6 +2,15 @@
 
 Local gear development workflow: create → build → config → run → debug → version bump → upload.
 
+## Contents
+- [Prerequisites](#prerequisites) — Docker/Podman requirement
+- [`gear create`](#gear-create) — Scaffold new gear (templates, base images)
+- [`gear build`](#gear-build) — Build container image (env, pass-through args)
+- [`gear config`](#gear-config) — Build config.json for local runs
+- [`gear run`](#gear-run) — Run gear locally (workflow, directory structure)
+- [`gear version`](#gear-version) — Show/bump version
+- [Debugging](#debugging) — Pointer to fw-gear-debugger skill
+
 ## Prerequisites
 
 Gear commands require **Docker** (default) or **Podman** installed.

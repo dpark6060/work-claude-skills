@@ -1,7 +1,8 @@
 ---
 name: flyw-cli
-description: Reference for the Flywheel CLI (flyw). Use when constructing or running CLI commands, writing shell scripts that invoke the CLI, or debugging CLI usage. Triggers on "flyw", "flywheel cli", "flywheel command line", "cli command".
+description: Reference for the Flywheel CLI (flyw). Use when constructing or running CLI commands, writing shell scripts that invoke the CLI, or debugging CLI usage. Use even when the user doesn't mention "flyw" directly — if they're asking how to perform a Flywheel operation from the command line or in a shell script, this skill applies. Triggers on "flyw", "flywheel cli", "flywheel command line", "cli command". MANDATORY TRIGGERS: flyw, flywheel cli, flywheel command line, import from S3, import from cloud storage, export data, export to cloud, run a gear, batch run, build a gear, upload a gear, install a gear, pull job, gear job, list jobs, retry job, import status, check import, schedule import, schedule export, auth login, switch sites, storage credentials, storage connection, browse flywheel files
 version: 2.0.0
+allowed-tools: [Read, Bash]
 ---
 
 You are using the Flywheel CLI (`flyw`).

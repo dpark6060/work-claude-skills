@@ -158,9 +158,11 @@ Skills that don't produce consistent output usually lack examples or structure.
 These aren't in the official docs but come from real usage at scale.
 
 **Check:**
-- [ ] Skill runs repeatedly over time but has no `.learnings/` directory?
-      The learnings pattern captures what worked/failed and improves the skill
-      automatically. Suggest adding it for any skill used more than occasionally.
+- [ ] Would this skill genuinely benefit from a `.learnings/` directory?
+      Only suggest it for skills where: failure modes aren't fully known upfront,
+      the skill interacts with external systems/APIs, or behavior varies across runs
+      in ways worth capturing. Do NOT suggest it for simple, deterministic skills
+      (e.g. a skill that always runs the same command or formats text).
 - [ ] Description would benefit from a MANDATORY TRIGGERS block?
       Community research shows this is the single highest-ROI description change.
 - [ ] Skill invokes another model/tool in a complex way but doesn't specify which
@@ -170,7 +172,7 @@ These aren't in the official docs but come from real usage at scale.
       One granular skill per domain outperforms one large multi-domain skill.
       Trigger rates and description specificity both improve with granularity.
 
-**🟡 Flag if:** Skill is used regularly and would benefit from learnings capture.
+**🟢 Flag if:** Skill clearly benefits from learnings capture (external APIs, variable failure modes, repeated runs with non-obvious behavior). Skip for simple/deterministic skills.
 **🟡 Flag if:** MCP tools referenced without server prefix.
 **🟢 Flag if:** Skill covers multiple distinct domains and could be profitably split.
 

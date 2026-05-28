@@ -1,7 +1,14 @@
 ---
 name: test-writer
-description: Writes Python unit tests following project testing conventions. Use this skill when the user asks to write tests, add test coverage, or test a specific function or class. Triggers on phrases like "write tests for", "add unit tests", "test coverage", "test this method".
+description: Writes Python unit tests following project testing conventions. Use this skill when the user asks to write tests, add test coverage, or test a specific function or class. Use even when the user doesn't say "test" explicitly — if they're asking about coverage, verifying behavior, or preparing to ship code without tests, this skill applies. Triggers on phrases like "write tests for", "add unit tests", "test coverage", "test this method". MANDATORY TRIGGERS: write tests, unit tests, pytest, test coverage, test suite, test this, add tests, need tests, coverage report, test method, test class, how do I test, should I test
 version: 1.0.0
+allowed-tools: [Read, Write, Glob, Grep]
+---
+
+## Before Starting
+
+Read and summarize `.learnings/LEARNINGS.md` and `.learnings/ERRORS.md` if they exist. Summarizing (not just reading) forces you to internalize project-specific testing patterns from past sessions.
+
 ---
 
 You are writing unit tests. Read `~/.claude/rules/general_coding/UnitTests.md` before writing a single line. Do not rely on memory — the rules there are specific and some are non-obvious.
@@ -36,18 +43,6 @@ For each sub-method called by the method under test:
 - Verify it was called with the correct arguments
 - Verify call frequency (once, never, multiple times depending on logic)
 - Test conditions where it should NOT be called
-
----
-
-## Structure Rules
-
-- One test file per code file
-- Individual test functions, not classes
-- Fixtures at the top of the file using `@pytest.fixture`
-- One test per scenario — no parametrize
-- Multiple asserts are fine if they're all testing a single outcome
-- Naming: `test_methodundertest_scenario_behavior`
-- Always follow Arrange / Act / Assert with blank lines separating each section
 
 ---
 
@@ -94,3 +89,13 @@ Self-check:
 - Does every test follow Arrange / Act / Assert with whitespace?
 
 Once the tests are complete, write a log entry per `~/.claude/skills/shared/logging.md`.
+
+---
+
+## After Finishing
+
+If this session produced anything worth capturing, append to the relevant file in `.learnings/`:
+- **LEARNINGS.md** — a project-specific fixture pattern, a mocking approach that worked well, or a non-obvious testing convention in this codebase.
+- **ERRORS.md** — a test that seemed right but was wrong, a testability issue discovered, or a pattern that caused flakiness.
+
+Don't write an entry if nothing unusual happened.

@@ -1,7 +1,10 @@
 ---
 name: jira
 description: All Jira write operations via the Atlassian MCP — posting end-of-session comments and creating new tickets. Triggers on "comment on the Jira ticket", "update Jira", "log work to Jira", "create a Jira ticket", "file a ticket", "open a ticket".
+
+MANDATORY TRIGGERS: Jira, ticket, GEAR, story, bug, sprint, epic, create ticket, open ticket, file a bug, raise a bug, log work, add comment, end of session, post to Jira, update ticket, link ticket
 version: 1.0.0
+disable-model-invocation: true
 ---
 
 # Jira Skill
@@ -76,3 +79,11 @@ additional_fields={
 | Create a new ticket | `references/create-ticket.md` |
 
 Load only the reference file for the operation at hand. Do not load both unless you are doing both.
+
+---
+
+## Learnings
+
+Before starting any operation, check `.learnings/LEARNINGS.md` for confirmed field IDs, sprint lookup quirks, or MCP behavior notes accumulated from prior runs.
+
+After finishing, update `.learnings/LEARNINGS.md` with anything newly discovered (confirmed field IDs, unexpected MCP behavior, label conventions). Log any MCP errors and their resolutions in `.learnings/ERRORS.md`.

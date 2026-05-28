@@ -1,7 +1,5 @@
 # Unit tests:
 
-Add "# Radical" to the beginning of every unit test.
-
 ## Rules:
 - CRITICAL: All imports must go at the top of the file. NEVER add imports within test methods.
 - Use `pytest` and `unittest.mock`
@@ -36,6 +34,7 @@ Tests should break on bugs, not on improvements. Before writing an assertion, as
 - Log message wording — assert the log *level* was called (`.error`, `.warning`), not the exact string, unless the message is a user-facing requirement
 - Item ordering — only assert order if the method's contract guarantees it
 - Internal call counts — only assert frequency if "called exactly N times" is a correctness requirement, not just the current behavior
+- Pass-through return values — if a function returns one of its input arguments unchanged, do not assert `result is input_arg`. The function performed no transformation, so the assertion only verifies that a mock equals itself — it can never catch a real bug. Only assert return values when the function constructs or transforms the returned object.
 
 **Do assert on contracts:**
 - Return values and their structure

@@ -24,27 +24,27 @@ The goal is maximum effectiveness at minimum token cost.
 
 Or: "audit my deploy skill" — find the path yourself if not provided.
 
-## Step 1: Read the skill
+## Step 1: Read the skill and load references
 
-Resolve the path from `$ARGUMENTS`. If it's a symlink, follow it to the real
-location — that's where changes should be written (per the user's setup, edit
-in `Documents/Flywheel/Claude/skills`, not in `~/.claude/skills`).
+Read these files before doing anything else — all three are required:
 
-Read `SKILL.md` in full. Then list all other files in the directory and read
-any supporting files (references/, scripts/, assets/) to understand the full
-picture. Note file sizes and line counts — they matter for the audit.
+1. **The skill under audit** — resolve the path from `$ARGUMENTS`. If symlink, follow to real location (edit in `Documents/Flywheel/Claude/skills`, not `~/.claude/skills`). Read `SKILL.md` in full, then list and read any supporting files (references/, scripts/, assets/). Note file sizes and line counts. If read-only, copy to `/tmp/skill-audit-work/` and note that the user must copy it back.
 
-If the target path is read-only, copy the skill to `/tmp/skill-audit-work/`
-before making any edits, and note that the user will need to copy it back.
+2. **`references/checklist.md`** — the audit checklist. You will work through every category in Step 2.
 
-Also load `~/.claude/references/community-insights.md` if it exists — it
-contains field-tested patterns that supplement the checklist below.
+3. **`references/community-insights.md`** — field-tested patterns from real usage at scale. Read this in full. You must apply these patterns actively during the audit, not just use them as background. Specifically look for: undertriggering (MANDATORY TRIGGERS, synonym lists, implicit-trigger language), caveman compression opportunities, learnings.md pattern applicability, MUST/ALWAYS tension (body vs. description), and token efficiency rules.
 
 ## Step 2: Audit
 
 Work through every category in `references/checklist.md`. For each finding,
 note the exact location (line number or section name), what's wrong, and the
 specific fix. Don't flag things that are fine.
+
+Apply insights from `references/community-insights.md` throughout — particularly:
+- Undertriggering checks (MANDATORY TRIGGERS, synonym lists, "even if" language)
+- Caveman compression: is the body language tighter than necessary?
+- Would a `.learnings/` directory improve this skill over time?
+- Are MUST/ALWAYS directives in the body (bad) vs. description (fine)?
 
 Think about the skill as a whole, not just line by line:
 - Is the description going to trigger reliably in practice?

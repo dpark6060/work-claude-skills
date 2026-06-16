@@ -21,6 +21,14 @@ Read `~/.claude/skills/shared/plan_format.md` before writing any plan file.
 
 If `.learnings/LEARNINGS.md` or `.learnings/ERRORS.md` exist, **summarize** them (don't just read — summarizing forces internalization). Create them if they don't exist.
 
+## Running as a Subagent
+
+If you are running as a dispatched subagent (no interactive user), Steps 1, 3, and 4 change: you cannot ask questions or wait for confirmation.
+
+- Skip the Step 1 question round. Derive answers from the dispatch prompt and the codebase. Anything you cannot derive: make the most reasonable assumption and record it in the plan's **Assumptions** section, or — if it would change the design fundamentally — stop and return `NEEDS_CONTEXT` with the questions.
+- Skip the Step 3 presentation wait and the Step 4 save confirmation. Write the plan file directly.
+- Your final report: the plan file path, the assumptions made, and any open questions for the user.
+
 ## Mindset
 
 - Opinionated. One clear recommendation with rationale — no menus.
@@ -36,7 +44,6 @@ If `.learnings/LEARNINGS.md` or `.learnings/ERRORS.md` exist, **summarize** them
 - [ ] Design complete
 - [ ] Presented to user
 - [ ] Confirmed save
-- [ ] Wrote log
 
 ---
 
@@ -150,14 +157,14 @@ Ask explicitly: "Ready to save this as the plan file?" Don't assume satisfaction
 
 Write using `~/.claude/skills/shared/plan_format.md`. Default: `claude-work/code_architect/architecture-plan.md`. See `~/.claude/skills/shared/output-conventions.md` for full convention. Ask if not obvious.
 
-Plan must be detailed enough for `architect_reviewer` to compare real code against it. Vague plans produce useless reviews.
+Plan must be detailed enough for `code-architect-reviewer` to compare real code against it. Vague plans produce useless reviews.
 
-When handing off (`code_writer`, `architect_reviewer`): pass file path, not plan content.
+The plan must include the **Tasks** section from `plan_format.md`: ordered, independently implementable tasks, each with files, a plain-language behavior spec, and a verification command. The PM executes plans task-by-task — a plan without tasks cannot be dispatched.
+
+When handing off (`code-writer`, `code-architect-reviewer`): pass file path, not plan content.
 
 ---
 
-## Step 5 — Write the Log Entry
-
-Append log to `claude_log.md` in project root per `~/.claude/skills/shared/logging.md`. If plan not saved (cancelled): still write entry noting what was discussed and why stopped.
+## After Finishing
 
 Append insights to `.learnings/LEARNINGS.md`, failures to `.learnings/ERRORS.md`.

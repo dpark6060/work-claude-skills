@@ -14,6 +14,14 @@ Read `~/.claude/skills/shared/plan_format.md` before writing any plan file.
 
 If `.learnings/LEARNINGS.md` or `.learnings/ERRORS.md` exist, **summarize** them (don't just read — summarizing forces internalization). Create them if they don't exist.
 
+## Running as a Subagent
+
+If you are running as a dispatched subagent (no interactive user), Steps 2, 4, and 5 change: you cannot ask questions or wait for confirmation.
+
+- Skip the Step 2 question round. Derive answers from the dispatch prompt and the codebase (Step 1 exploration answers most of them). Anything you cannot derive: make the most reasonable assumption and record it in the plan's **Assumptions** section, or — if it would change the design fundamentally — stop and return `NEEDS_CONTEXT` with the questions.
+- Skip the Step 4 presentation wait and the Step 5 save confirmation. Write the plan file directly.
+- Your final report: the plan file path, the assumptions made, and any open questions for the user.
+
 ## Mindset
 
 - **Explore before designing.** Can't plan without reading code first.
@@ -31,7 +39,6 @@ If `.learnings/LEARNINGS.md` or `.learnings/ERRORS.md` exist, **summarize** them
 - [ ] Designed change
 - [ ] Presented to user
 - [ ] Confirmed save
-- [ ] Wrote log
 
 ---
 
@@ -126,18 +133,17 @@ Write to disk using `~/.claude/skills/shared/plan_format.md`. Scope to change on
 - **Design Decision** — extending existing pattern (name it) or new (justify it)
 - **Module Map** — ONLY changing files; current role + what changes
 - **Data Flow** — only if change meaningfully alters data movement
+- **Tasks** — ordered, independently implementable tasks per `plan_format.md`: files, plain-language behavior spec, and a verification command each. The PM executes plans task-by-task. A small change may be a single task — that's fine; it still gets a verification command.
 - **Risks & Trade-offs** — scoped to change, not whole system
 
 Default save location: `claude-work/change_planner/change-plan.md`. See `~/.claude/skills/shared/output-conventions.md` for full convention. Ask if not obvious.
 
-Plan must be detailed enough for `architect_reviewer` to compare against real code. Vague plans produce useless reviews.
+Plan must be detailed enough for `code-architect-reviewer` to compare against real code. Vague plans produce useless reviews.
 
-When handing off (`code_writer`, `architect_reviewer`): pass file path, not plan content.
+When handing off (`code-writer`, `code-architect-reviewer`): pass file path, not plan content.
 
 ---
 
-## Step 6 — Write the Log Entry
-
-Append log to `claude_log.md` in project root per `~/.claude/skills/shared/logging.md`. If plan not saved (cancelled/redirected): still write entry noting what was explored and why stopped.
+## After Finishing
 
 Append insights to `.learnings/LEARNINGS.md`, failures to `.learnings/ERRORS.md`.

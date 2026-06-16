@@ -58,7 +58,7 @@ Follow these phases in order. Use the Task tool to track progress through each p
 
 ### Phase 4 — Parallel Writing
 
-9. **Spawn one sub-agent per output file** using the Agent tool with `subagent_type: "doc_writer"`. Run independent sections in the background for parallelism. Do NOT use a predefined section-writer agent — compose a detailed, self-contained prompt for each sub-agent that includes everything it needs to write its section autonomously.
+9. **Spawn one sub-agent per output file** using the Agent tool with `subagent_type: "doc-writer"`. Run independent sections in the background for parallelism. Do NOT use a predefined section-writer agent — compose a detailed, self-contained prompt for each sub-agent that includes everything it needs to write its section autonomously.
 
    Each sub-agent prompt MUST contain these sections (see Sub-Agent Prompt Template below):
    - **Style Rules** — the condensed style block from Phase 3
@@ -153,7 +153,7 @@ Write the complete file now.
 ## Sub-Agent Configuration
 
 When using the Agent tool to spawn writer sub-agents:
-- `subagent_type`: `"doc_writer"` (has Read, Glob, Grep, Edit, Write — sufficient for writing and SDK source verification)
+- `subagent_type`: `"doc-writer"` (has Read, Glob, Grep, Edit, Write — sufficient for writing and SDK source verification)
 - `mode`: `"bypassPermissions"` (writers need to read SDK source and write output files without prompts)
 - `run_in_background`: `true` (for parallel execution)
 - Give each agent a descriptive `name` like `"writer-getting-started"`

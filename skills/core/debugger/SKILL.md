@@ -76,6 +76,19 @@ If you can confirm the root cause from the code alone, state your conclusion wit
 
 ---
 
+## Step 4.5 — Write the Failing Repro Test
+
+Once the root cause is confirmed, write a unit test that reproduces the bug: it calls the real code path and asserts the **correct** behavior. Run it and confirm it fails for the diagnosed reason.
+
+- If it passes on the broken code, your diagnosis is wrong — go back to Step 3.
+- If it fails for a different reason than you diagnosed, your diagnosis is incomplete — go back to Step 3.
+
+Do not write the fix before this test exists and fails. After the fix (Step 5), this test must pass and the rest of the suite must stay green. The test ships with the fix — it is the permanent regression pin for this bug.
+
+**Escape hatch**: some bugs are impractical to reproduce in a unit test (race conditions, infra/config issues, live-instance interactions). If a repro test would require mocking so much that it no longer proves anything, skip it — but say so explicitly in your findings and explain why, and describe how the fix was verified instead. Do not write a fake test that only exercises mocks.
+
+---
+
 ## Step 5 — Fix
 
 Once the root cause is confirmed:
@@ -91,11 +104,10 @@ After applying the fix, write a findings summary to `claude-work/debugger/debug-
 - What the bug was (one sentence)
 - Root cause
 - Fix applied
+- Repro test added (path), or why a repro test was impractical
 - Any broader structural issue flagged (if any)
 
 This file is used by other skills (e.g. `jira-comment`) to summarize session work.
-
-Then write a log entry per `~/.claude/skills/shared/logging.md`.
 
 ---
 

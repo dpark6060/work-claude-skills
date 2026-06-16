@@ -191,15 +191,3 @@ A new pipeline should trigger shortly on `!<mr_iid>`.
 
 - `<git rev-parse --short HEAD>` — fix(lint-fixer): auto-format via pre-commit
 ```
-
----
-
-## Step 7 — Write Log Entry
-
-Append to `claude_log.md` in the **repo root** (the clone, not the skills
-repo). Per `~/.claude/skills/shared/logging.md`:
-
-```
-## lint-fixer — <date>
-<one-line summary of what was fixed and pushed>
-```

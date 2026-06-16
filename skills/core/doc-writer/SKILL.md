@@ -42,7 +42,7 @@ Match the content to the doc type:
 - Example
 
 ### Inline / Code-Level Docs (docstrings)
-These are handled by the `code_writer` skill. If you find undocumented code while writing docs, flag it — do not silently add docstrings as part of a documentation task.
+These are handled by the `code-writer` skill. If you find undocumented code while writing docs, flag it — do not silently add docstrings as part of a documentation task.
 
 ---
 
@@ -69,5 +69,3 @@ Read the docs as if you've never seen the code. Ask:
 - Is there a single sentence of filler that could be cut?
 
 If yes to the last question, cut it.
-
-Once the documentation is complete, write a log entry per `~/.claude/skills/shared/logging.md`.

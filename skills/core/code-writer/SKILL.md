@@ -99,8 +99,6 @@ Once the task is complete, write implementation notes to `claude-work/code_write
 
 This file is used by other skills (e.g. `jira-comment`) to summarize session work.
 
-Then write a log entry per `~/.claude/skills/shared/logging.md`.
-
 If you modified code in an existing method, double check the doc string and ensure that the method
-is still properly described, i.e. add or remove information as necessary. 
+is still properly described, i.e. add or remove information as necessary.
 

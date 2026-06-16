@@ -11,6 +11,6 @@ current_task.md
 *.json
 
 git-remotes-cheatsheet.md
-**/.DS_Store
+.DS_Store
 
 flywheel-engineering/*

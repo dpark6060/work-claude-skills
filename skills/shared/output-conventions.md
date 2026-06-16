@@ -6,17 +6,10 @@ This file defines where skills write their output files. All skills must follow 
 
 ```
 <project-root>/
-├── claude_log.md           ← shared activity log (all skills append here)
 └── claude-work/            ← skill output files (no permission issues)
     └── <skill-name>/       ← one subdirectory per skill
         └── <output-file>
 ```
-
-## claude_log.md
-
-Lives at the project root. Every skill appends a brief entry after completing a task. See `~/.claude/skills/shared/logging.md` for the entry format and rules.
-
-Do not put `claude_log.md` inside `claude-work/` — it's a cross-skill artifact that belongs at the top level.
 
 ## claude-work/
 
@@ -28,15 +21,15 @@ Skill-specific output files go in `claude-work/<skill-name>/`. Create the direct
 
 | Skill | Directory | File |
 |-------|-----------|------|
-| `code_architect` | `claude-work/code_architect/` | `architecture-plan.md` |
-| `change_planner` | `claude-work/change_planner/` | `change-plan.md` |
+| `code-architect` | `claude-work/code_architect/` | `architecture-plan.md` |
+| `change-planner` | `claude-work/change_planner/` | `change-plan.md` |
 | `debugger` | `claude-work/debugger/` | `debug-findings.md` |
-| `process_architect` | `claude-work/process_architect/` | `process-design.md` |
-| `code_reviewer` | `claude-work/code_reviewer/` | `code-review.md` |
-| `code_architect_reviewer` | `claude-work/code_architect_reviewer/` | `architecture-review.md` |
-| `code_writer` | `claude-work/code_writer/` | `implementation-notes.md` |
-| `pipeline_babysitter` | `claude-work/pipeline-babysitter/` | `failure-report.md` |
-| `lint_fixer` | `claude-work/pipeline-babysitter/` | `fix-result.md` (co-located with failure report) |
+| `process-architect` | `claude-work/process_architect/` | `process-design.md` |
+| `code-reviewer` | `claude-work/code_reviewer/` | `code-review.md` |
+| `code-architect-reviewer` | `claude-work/code_architect_reviewer/` | `architecture-review.md` |
+| `code-writer` | `claude-work/code_writer/` | `implementation-notes.md` |
+| `pipeline-babysitter` | `claude-work/pipeline-babysitter/` | `failure-report.md` |
+| `lint-fixer` | `claude-work/pipeline-babysitter/` | `fix-result.md` (co-located with failure report) |
 
 ### Adding a new skill
 
@@ -56,9 +49,8 @@ find claude-work -name "*.md" 2>/dev/null | sort | xargs cat 2>/dev/null
 
 ## .gitignore note
 
-`claude-work/` and `claude_log.md` are generated artifacts. Whether to commit them is a per-project call. To exclude them:
+`claude-work/` is a generated artifact. Whether to commit it is a per-project call. To exclude it:
 
 ```
 claude-work/
-claude_log.md
 ```

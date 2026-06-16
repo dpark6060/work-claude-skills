@@ -6,7 +6,7 @@ description: >
   the Clockify API — even if they don't say "Clockify" explicitly. MANDATORY TRIGGERS:
   clockify, log time, time entry, track time, log hours, billable hours, time tracking,
   ClockifySdk, time log.
-version: 2026-04-09
+version: 2026-06-11
 tags:
   - python
   - clockify
@@ -89,7 +89,10 @@ embed "confirm with user first" instructions in their docstrings.
 Reusable helper scripts live at `/Users/davidparker/.claude/skills/clockify/scripts/`.
 Call them via Bash: `python3 ${CLAUDE_SKILL_DIR}/scripts/<name>.py [args]`
 
-All scripts require `CLOCKIFY_API` in the environment and default to `--tz-offset -5` (CDT).
+All scripts require `CLOCKIFY_API` in the environment and default to
+`--tz-offset -5` (CDT). **The default is a trap** — the user travels
+(e.g. MDT, -6). Confirm the current timezone and pass `--tz-offset`
+explicitly on every call.
 
 | Script | Purpose | When to use |
 |---|---|---|
@@ -107,6 +110,86 @@ All scripts require `CLOCKIFY_API` in the environment and default to `--tz-offse
 1. **Always call `parse_time_spec.py`** when the user specifies a time loosely (e.g. "yesterday around 3", "this morning", "~2pm CDT"). Feed the returned `utc_iso` into subsequent scripts. (Reason: manual UTC conversion from fuzzy phrases has consistently produced off-by-one-hour errors, especially across DST boundaries.)
 2. **Single-entry: always call `check_overlap.py`** with the proposed start/end before posting. Use its returned `start`/`end` for the actual entry. (Reason: posting without this check has caused overlapping entries that are difficult to untangle after the fact.)
 3. **Call `add_jitter.py`** when the user prefixes a duration with `~` (tilde). Jitter both start and end independently; magnitude scales with duration. Show the jittered times in the confirmation summary. (Reason: exact round-number entries on approximate durations look fabricated; jitter makes the log credible.)
+
+### Day fills: calendar-first scheduling (MANDATORY)
+
+These rules apply whenever filling a day (or range of days) with estimated
+entries — single-day or bulk.
+
+0. **Confirm the user's CURRENT timezone before planning anything.** The
+   user travels; do not assume CDT (-5). Ask, or infer from context, and
+   pass the offset explicitly to every script (`--tz-offset`). The oof
+   calendar events fix the working window in UTC (currently 15:00Z–23:00Z);
+   the user's local labels for that window shift with their timezone
+   (10:00–18:00 CDT ≡ 9:00–17:00 MDT). Planning in the wrong zone puts
+   estimated entries an hour off — e.g. "8 AM" blocks landing at 7 AM
+   local. No estimated entry should start before ~8:00 AM in the user's
+   current zone.
+
+1. **Pull the Outlook calendar first.** The Clockify public API cannot see
+   the calendar events shown in the Clockify UI (confirmed: all calendar
+   endpoints 404). Outlook via the Microsoft 365 MCP connector is the
+   ground truth. Use `mcp__claude_ai_Microsoft_365__outlook_calendar_search`
+   (load via ToolSearch if deferred) with `query: "*"`, `order: "oldest"`,
+   and `afterDateTime`/`beforeDateTime` bounding the range. If the
+   connector isn't available, tell the user and ask how to proceed.
+2. **Skip canceled events** (`isCancelled: true`). Never log them, and
+   flag any existing Clockify entry that matches a canceled meeting — it
+   probably needs deleting.
+3. **Log meetings by client:**
+   - Internal meetings → `Flywheel > SSE Admin > Team Meetings`
+   - Client meetings, or internal meetings *about* a client → that
+     client's `Project Management` task (under their `Solutions Hourly`
+     or `Impl. & Support` project).
+4. **The working day must be contiguously filled.** The span between the
+   two `Outside working hours` (`showAs: "oof"`) calendar events — e.g.
+   10:00–18:00 CDT — must be covered by entries end-to-end, with a MAXIMUM
+   gap of 25 minutes between consecutive entries. Gaps are fine (5–25 min
+   is natural); the gap time is simply recouped by the SSE Admin > Other
+   entry at the end of the day (rule 6), which may extend past working
+   hours.
+5. **Coding work prefers the oof window, contiguity wins.** Start the
+   day's coding / development / hands-on technical work in the morning
+   oof block (before working hours). When meetings + non-coding work
+   (docs, writeups, project management) can't cover the working day by
+   themselves, coding entries fill the remaining working hours — rule 4
+   takes priority over keeping coding in oof.
+6. **Every day must total EXACTLY 8.00 hours.** After meetings and work
+   entries are placed, append one `Flywheel > SSE Admin > Other` entry at
+   the end of the day sized to bring the total to exactly 8h — even if it
+   lands outside working hours. The Other entry is the only flex; never
+   pad other entries to hit the target.
+7. **Every day needs at least 1.00h of `SSE Admin > Other` time** (the
+   recurring 15-min "Flywheel Admin" block counts toward this). If
+   meetings + work would leave less than 1h for it within the 8h total,
+   shorten work entries to make room — preferring the estimated entries
+   that plausibly shouldn't have taken long. Never go below 1h of SSE
+   Admin time to fit more work.
+8. **Personal calendar blocks (Focus Time, etc.) are reserved work
+   time** — schedule work entries over them freely. The slots of canceled
+   meetings are likewise free time to fill with work. Only actual
+   meetings block their time.
+9. Don't log Lunch calendar blocks as entries (work entries may span the
+   lunch slot — it does not block scheduling).
+
+**Default estimation mode.** When asked to fill a time period with no
+further instructions, build the best estimate from two sources and apply
+the rules above:
+
+1. The Outlook calendar (rule 1) — gives each day's meetings and oof
+   windows.
+2. Claude session activity: scan `~/.claude/projects/*/` for `.jsonl`
+   session files with mtimes in the period. File size per project per
+   day approximates effort; the project directory name identifies the
+   repo, which maps to a client/project (e.g. a CHOP repo dir → CHOP,
+   `sdk-playground`/`core-api` → SDK docs, Claude/skills repos →
+   `SSE Admin > Training/Learning`). Assume some work happened outside
+   Claude sessions on the same projects.
+
+Jira (tickets In Progress / In Review / Done in the period, via the
+Atlassian MCP) is a useful third source for descriptions and client
+attribution when available, but calendar + sessions are sufficient.
+Always present the proposed table before posting.
 
 ### Bulk fills (>5 entries)
 

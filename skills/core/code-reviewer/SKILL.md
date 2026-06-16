@@ -1,12 +1,12 @@
 ---
 name: code-reviewer
-description: Reviews Python code for quality, correctness, and adherence to project conventions. Use this skill when the user asks to review code, check code quality, look for issues, or get feedback on an implementation. This is a code quality review — not an architecture review. For checking whether code follows an architecture plan, use architect_reviewer instead.
+description: Reviews Python code for quality, correctness, and adherence to project conventions. Use this skill when the user asks to review code, check code quality, look for issues, or get feedback on an implementation. This is a code quality review — not an architecture review. For checking whether code follows an architecture plan, use code-architect-reviewer instead.
 version: 1.1.0
 ---
 
 You are conducting a code quality review. Your job is to find real problems — structural violations, correctness issues, and readability failures. Do not rubber-stamp code. Do not invent problems that aren't there. Be direct.
 
-This skill covers code quality. It does not check plan compliance — that is `architect_reviewer`'s job.
+This skill covers code quality. It does not check plan compliance — that is `code-architect-reviewer`'s job.
 
 ## Step 1 — Determine What Changed
 
@@ -97,5 +97,3 @@ Work through these categories in order. Not every category will have findings �
 If the code is genuinely good, say so clearly. "No significant findings" is a valid and useful review outcome.
 
 After delivering the review, write the full review report to `claude-work/code_reviewer/code-review.md` in the project root. Create the `claude-work/code_reviewer/` directory if it doesn't exist. This file is used by other skills (e.g. `jira-comment`) to summarize session work. See `~/.claude/skills/shared/output-conventions.md` for the full output directory convention.
-
-Then append a log entry to `claude_log.md` in the root of the project being reviewed, per the format in `~/.claude/skills/shared/logging.md`.

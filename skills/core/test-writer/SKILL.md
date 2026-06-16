@@ -17,17 +17,17 @@ You are writing unit tests. Read `~/.claude/rules/general_coding/UnitTests.md` b
 
 These are the rules most commonly violated and the ones that are hardest to catch after the fact.
 
-**1. `# Radical` at the top of every test file.**
-No exceptions.
-
-**2. All imports at the top of the file. Never inside a test method.**
+**1. All imports at the top of the file. Never inside a test method.**
 This is explicitly called out as CRITICAL in the rules. If you find yourself writing an import inside a test function, stop.
 
-**3. Never test mock return values.**
+**2. Never test mock return values.**
 If you set `mock_method.return_value = "something"` and then assert `result == "something"`, you are testing the mock, not the code. Test that the right method was called with the right arguments, and use `result == mock_method.return_value` for return value assertions.
 
-**4. Test one level deep.**
-Mock direct calls only. Do not mock sub-methods of sub-methods. Each test is responsible for one method's behavior.
+**3. Classify the method before testing it.**
+Orchestration methods (call other methods, little logic of their own) get wiring tests: mock their direct calls, verify arguments and branch-dependent dispatch. Logic methods (compute, transform, validate) get behavior tests: mock only architectural boundaries (network, filesystem, database, SDK clients, subprocess, time) and let private helpers run for real. Mocking a private helper inside a logic method pins the test to the current decomposition — the test breaks on refactors instead of bugs.
+
+**4. Test one level deep — assertions stop at the method's own calls.**
+A test for `method_a` asserts only on what `method_a` does directly. If `method_a` calls `method_b`, and `method_b` calls `fw.get_project()`, the `method_a` test never asserts on `get_project()` — that assertion belongs to `method_b`'s test. Mocking something deep so the test can run is fine; asserting on it is not.
 
 ---
 
@@ -39,10 +39,18 @@ For every method under test, cover:
 2. **Edge cases** — empty input, None, zero, boundary values relevant to the logic
 3. **Error/exception paths** — what happens when a dependency raises, when validation fails, when input is malformed
 
-For each sub-method called by the method under test:
+Then, depending on the method's classification:
+
+**Orchestration methods** — for each method called directly:
 - Verify it was called with the correct arguments
-- Verify call frequency (once, never, multiple times depending on logic)
 - Test conditions where it should NOT be called
+- Verify call frequency only when "exactly N times" is a correctness requirement
+
+**Logic methods**:
+- No mocks on internal calls — assert input → output behavior, with only architectural
+  boundaries mocked
+- The test must survive an internal refactor (helper extracted, inlined, or renamed) without
+  changing — if it wouldn't, restructure the test
 
 ---
 
@@ -52,7 +60,7 @@ For each sub-method called by the method under test:
 - Use `spec=ClassName` when mocking typed objects so attribute access is validated
 - Exception: Flywheel SDK client gets plain `MagicMock()` with no spec
 - Mock return values should use real data when possible; use mock objects only when the data is complex
-- Use `tempfile` for any test involving file paths or output — clean up after
+- Use pytest's `tmp_path` fixture for any test involving file paths or output — unique per test, auto-cleaned, no manual cleanup code
 - **Fixture-level mocking for `__init__` side effects.** If the class under test makes external calls (network, DB, subprocess, cloud APIs, etc.) inside `__init__`, those must be patched inside the fixture where the instance is created — not via `@mock.patch` on the test function. Test-function patches only become active *after* all fixtures have already run, so `__init__` sub-calls will have already fired by then. Use a `with mock.patch(...):` block inside the fixture wrapping the constructor:
   ```python
   @pytest.fixture
@@ -74,21 +82,19 @@ If a method is genuinely hard to test, say so — and explain why. Difficulty te
 - **Hidden dependencies** — objects instantiated inside the method rather than injected, making them impossible to mock cleanly
 - **No clear return value or output** — method produces side effects with nothing to assert against
 
-When you hit one of these, write the best test you can, but flag the issue explicitly. The code_reviewer or architect_reviewer skills are the right place to address the root cause — but the test writer is often the first to discover it.
+When you hit one of these, write the best test you can, but flag the issue explicitly. The code-reviewer or code-architect-reviewer skills are the right place to address the root cause — but the test writer is often the first to discover it.
 
 ---
 
 ## Before Presenting Tests
 
 Self-check:
-- Does the file start with `# Radical`?
 - Are all imports at the top?
 - Does each test name follow `test_methodundertest_scenario_behavior`?
-- Is every sub-method call verified (called with right args, right frequency)?
+- For orchestration methods: is every direct call verified (right args, not-called branches)?
+- For logic methods: are any internal helpers mocked that should run for real? Would the test survive a refactor that extracts or inlines a helper?
 - Are any assertions testing mock return values directly instead of behavior?
 - Does every test follow Arrange / Act / Assert with whitespace?
-
-Once the tests are complete, write a log entry per `~/.claude/skills/shared/logging.md`.
 
 ---
 

@@ -18,7 +18,3 @@ You are non-interactive. Do not ask the user questions. Do not explain
 what you are about to do — just do it. Your only output to the caller is
 the fix-result.md file you write to the clone, plus a brief terminal
 summary at the end.
-
-After completing any task (success or escalation), append a log entry to
-`claude_log.md` in the **repo root** (the clone path from the failure report)
-per `~/.claude/skills/shared/logging.md`.

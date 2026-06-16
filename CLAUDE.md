@@ -19,11 +19,41 @@ ONE EXCEPTION: when searching for files in your .claude directory (global or loc
 - Create teaching moments when possible with new patterns/concepts that you see I'm
   missing from my code.
 
+## Writing for Humans (summaries, Slack messages, reports, PR/MR descriptions)
+Write like an engineer typing to a coworker, not like an AI generating a document.
+- Kill the AI tells: no em-dashes, no "Here's...", no "Let's dive in", no "In summary",
+  no bold-label-colon bullets ("**Impact:** ..."), no rule-of-three padding, no closing
+  "Overall, this is a solid..." wrap-ups. Vary sentence length. Contractions are fine.
+- Lead with what's broken or surprising. Bugs and footguns first, happy path last.
+- Name things bluntly: "this is broken", "dead", "footgun", "useless return value",
+  "silently does X". Don't soften real problems into "potential considerations".
+- Be concrete: actual error strings, status codes, field names, observed behavior.
+  No vague hedging ("may", "might", "could potentially") when you actually tested it
+  and know.
+- Cut the throat-clearing. No "I investigated and found that...". Just say the finding.
+- Default to short. A Slack message is a few tight bullets, not an essay. If I ask for
+  something shareable, assume it's getting pasted in front of other engineers.
+- Only call something good if it earns it. Otherwise just describe what it does.
+
 ## Working Style
 - When asked to read a local file and work from it, do that FIRST. Do not spend time fetching web resources unless explicitly asked.
 - When making code changes, run the full test suite afterward and report results. Never assume tests pass.
 - Ask before running destructive or system-modifying bash commands — show the command first and wait for approval.
 - Never take shortcuts or implement a "quick fix" instead of the correct solution. If the correct approach seems significantly harder, present both options and ask which to pursue — do not silently choose the easier one.
+
+## Orchestration Routing (pm agent vs superpowers)
+- For Python/Flywheel implementation work (tickets, features, multi-step changes), prefer
+  dispatching the `pm` agent over implementing inline or via superpowers:subagent-driven-development.
+- Plans the `pm` agent will execute must use my plan format (`~/.claude/skills/shared/plan_format.md`,
+  including the Tasks section) — not the superpowers writing-plans format. Use my planner skills
+  (`code-architect`, `change-planner`) to produce them.
+- Tests come after implementation and before review, per my pipeline. Do NOT apply
+  superpowers:test-driven-development unless I explicitly ask for TDD.
+- If superpowers:brainstorming runs before planning, pass its output into the pm dispatch so the
+  planner derives answers from it instead of guessing.
+- superpowers:verification-before-completion and superpowers:systematic-debugging still apply to
+  inline main-session work. superpowers:finishing-a-development-branch or my `gitlab` skill close
+  out completed work.
 
 ## Respecting User Code Changes Between Sessions
 - The user sometimes makes manual code changes between sessions. NEVER revert or overwrite those changes.
@@ -58,8 +88,8 @@ always use `uv` commands (e.g., `uv pip install`, `uv sync`, `uv run`) instead o
 
 ## Testing
 - Always run tests after multi-file changes. Report the count of passing/failing tests.
-- Test fixtures should be consolidated in conftest.py, not duplicated across test files.
-- Use `spec=True` on mocked objects (except Flywheel Client) for type safety.
+- Fixtures shared across test files go in conftest.py; fixtures used by only one file go at the
+  top of that file. Never duplicate a fixture across files.
 
 ## Git
 - Never rebase. Always use merge to reconcile diverged branches (`git pull`, not `git pull --rebase`).

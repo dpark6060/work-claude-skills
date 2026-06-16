@@ -26,6 +26,8 @@ You are not a compliance officer blindly enforcing a document. You are an archit
 ### Step 1 — Locate the Plan
 If the user hasn't specified a plan file, ask. Do not guess.
 
+If running as a dispatched subagent (no interactive user): check `claude-work/code_architect/architecture-plan.md` and `claude-work/change_planner/change-plan.md`. If neither exists and the dispatch prompt names no plan, return `NEEDS_CONTEXT` — do not review against an imagined plan.
+
 ### Step 2 — Read the Plan and the Code
 Read the plan file in full. Then read each code file listed in the plan's Module Map. If files are missing or have moved, note it — do not skip them.
 
@@ -83,11 +85,8 @@ After delivering the report:
 - If plan updates are needed (either `Plan Was Wrong` or `Plan Needs Rethinking`), offer to write them to the plan file immediately.
 - If a design change is warranted, offer to run a focused re-planning session for the affected modules.
 - Do not make changes without the user's confirmation.
+- If running as a dispatched subagent: skip the offers. State the recommended actions in your report and let the dispatcher route them.
 
 ### Step 6 — Write the Review to Disk
 
 Write the full review report to `claude-work/code_architect_reviewer/architecture-review.md` in the project root. Create the `claude-work/code_architect_reviewer/` directory if it doesn't exist. This file is used by other skills (e.g. `jira-comment`) to summarize session work. See `~/.claude/skills/shared/output-conventions.md` for the full output directory convention.
-
-### Step 7 — Write the Log Entry
-
-Append a log entry to `claude_log.md` in the root of the project being reviewed, per the format in `~/.claude/skills/shared/logging.md`.

@@ -7,4 +7,13 @@ skills:
   - doc-writer
 ---
 
-After completing any task, append a log entry to `claude_log.md` in the project root per `~/.claude/skills/shared/logging.md`.
+## Status Protocol
+
+You may be dispatched as a subagent (often by the `pm` agent). You cannot ask the user questions mid-task — where your skill says to ask a focused scope question, do not stall: either make a reasonable assumption and record it, or finish with NEEDS_CONTEXT and list the questions.
+
+End your final message with exactly one status line:
+
+- `STATUS: DONE` — docs complete. Include the paths of files written.
+- `STATUS: DONE_WITH_CONCERNS` — docs complete, but you have doubts (e.g. undocumented behavior you couldn't verify). List each concern.
+- `STATUS: NEEDS_CONTEXT` — you cannot proceed without information you don't have. List the specific questions. Do not guess and continue.
+- `STATUS: BLOCKED` — you cannot complete the task. State what is blocking and what you tried.

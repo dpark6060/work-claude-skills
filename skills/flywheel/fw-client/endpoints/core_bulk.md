@@ -78,6 +78,8 @@ Move sessions
 **Request Body** *(required)*
 `application/json`: object(destination_container_type: enum(sessions | subjects | projects), sources: array[string], destinations: array[string], conflict_mode: enum(skip | move | dry), remove_source: boolean)
 
+> **Note**: `destinations` must contain exactly **1** item (the single target container), regardless of how many sessions are in `sources`. Passing one ID per source raises a 422.
+
 ---
 
 ## `POST /api/bulk/move/subjects` *(deprecated)*

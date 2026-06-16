@@ -85,10 +85,10 @@ Ask the user the following as a single grouped message. Do not proceed until you
 
 | Type | Description | Example |
 |---|---|---|
-| **Action** | Tells Claude how to do a task (phases: before/during/after) | `code_writer`, `doc_writer`, `test_writer` |
-| **Planning** | Multi-step workflow that produces a deliverable (usually a file) | `change_planner`, `code_architect` |
+| **Action** | Tells Claude how to do a task (phases: before/during/after) | `code-writer`, `doc-writer`, `test-writer` |
+| **Planning** | Multi-step workflow that produces a deliverable (usually a file) | `change-planner`, `code-architect` |
 | **Reference/Library** | Overview + guide index for a large domain; points to sub-files | `fw-gear`, `fw-client` |
-| **Analysis/Review** | Reviews, audits, or evaluates something; produces a report | `code_reviewer`, `code_architect_reviewer` |
+| **Analysis/Review** | Reviews, audits, or evaluates something; produces a report | `code-reviewer`, `code-architect-reviewer` |
 
 **Reference file philosophy:**
 

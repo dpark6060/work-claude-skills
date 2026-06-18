@@ -1,22 +1,20 @@
 #!/usr/bin/env python3
 """Generate endpoint reference docs from Flywheel OpenAPI specs.
 
-Outputs (per service):
-  - endpoints_index_<service>.md     — one line per endpoint
-  - endpoints/<service>_<tag>.md     — per-tag detail files
+Outputs (per service), written into the skill's references/ dir:
+  - references/endpoints_index_<service>.md   — one line per endpoint
+  - references/endpoints/<service>_<tag>.md   — per-tag detail files
 
-The core service also writes endpoints_index.md (no suffix) for backwards compatibility.
-
-Usage:
+Usage (run from the repo root so --spec paths resolve):
     # Core API (fetched from docs site)
-    python generate_endpoint_docs.py --service core
+    python scripts/generate_endpoint_docs.py --service core
 
     # Local spec files
-    python generate_endpoint_docs.py --service xfer --spec xferapi.json
-    python generate_endpoint_docs.py --service snapshot --spec snapshotapi.json
+    python scripts/generate_endpoint_docs.py --service xfer --spec xferapi.json
+    python scripts/generate_endpoint_docs.py --service snapshot --spec snapshotapi.json
 
     # Regenerate all
-    python generate_endpoint_docs.py --all
+    python scripts/generate_endpoint_docs.py --all
 """
 
 import argparse
@@ -29,7 +27,8 @@ from pathlib import Path
 
 OPENAPI_URL = "https://api-docs.flywheel.io/latest/tags/21.5.0/swagger/openapi.json"
 SCRIPT_DIR = Path(__file__).parent
-OUT_DIR = SCRIPT_DIR / "endpoints"
+REFS_DIR = SCRIPT_DIR.parent / "references"
+OUT_DIR = REFS_DIR / "endpoints"
 
 HTTP_METHODS = ["get", "post", "put", "patch", "delete", "head"]
 
@@ -174,7 +173,7 @@ def collect_endpoints(spec: dict) -> dict[str, list[dict]]:
 
 def write_index(service: str, label: str, by_tag: dict[str, list[dict]]) -> None:
     """Write the compact endpoints_index_<service>.md."""
-    index_file = SCRIPT_DIR / f"endpoints_index_{service}.md"
+    index_file = REFS_DIR / f"endpoints_index_{service}.md"
 
     lines = [
         f"# {label} — Endpoints Index",
@@ -262,7 +261,7 @@ def process_service(service: str, spec_path: str | None, spec_url: str | None) -
         print(f"ERROR: no spec URL or path configured for service '{service}'", file=sys.stderr)
         sys.exit(1)
 
-    OUT_DIR.mkdir(exist_ok=True)
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     print(f"\nParsing {service} endpoints...")
     by_tag = collect_endpoints(spec)

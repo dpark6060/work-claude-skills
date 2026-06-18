@@ -43,7 +43,7 @@ its output, act on `ACTION_NEEDED`, fix what you can, and loop until done.
 ## Step 1 — Run the poll script
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/pipeline_poll.py [<URL>]
+python3 ${CLAUDE_SKILL_DIR}/scripts/pipeline_poll.py [<URL>]
 ```
 
 Pass the user's URL argument if one was given. Use a Bash timeout of 600000ms
@@ -185,6 +185,7 @@ After handling **any** failure not already documented in `pipeline_failures/`:
 | `references/gear-repo-conventions.md` | If you need context on gear repo structure |
 | `references/pipeline-status.md` | When the poll script output is ambiguous or the script is unavailable |
 | `references/lint-fix.md` | When fixing a lint failure without delegating to the lint-fixer agent |
+| `references/setup-and-permissions.md` | First-time setup — pre-approving permissions for hands-off runs |
 
 ---
 

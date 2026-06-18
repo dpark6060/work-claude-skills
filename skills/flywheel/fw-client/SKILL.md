@@ -32,15 +32,15 @@ control over API calls.
 
 ## API Endpoint Reference
 
-Three services are documented. All reference files live in `skills/fw-client/`.
+Three services are documented. All reference files live in `references/`.
 
 **Lookup workflow:**
 1. Check the relevant index file (one line per endpoint — method, path, tag, summary).
-2. If you need full parameter/body schema detail, read the matching `endpoints/<service>_<tag>.md`.
+2. If you need full parameter/body schema detail, read the matching `references/endpoints/<service>_<tag>.md`.
 
 ### Core API (`/api/`) — 662 endpoints, 48 tags
-Index: `endpoints_index_core.md`
-Tag files: `endpoints/core_<tag>.md`
+Index: `references/endpoints_index_core.md`
+Tag files: `references/endpoints/core_<tag>.md`
 Tags: `acquisitions`, `analyses`, `annotations`, `audit_trail`, `auth`, `batch`, `bulk`,
 `change_log`, `collections`, `config`, `containers`, `custom_filters`, `cvat`,
 `data_view_executions`, `dataexplorer`, `devices`, `dimse`, `download`, `engine`, `files`,
@@ -50,14 +50,14 @@ Tags: `acquisitions`, `analyses`, `annotations`, `audit_trail`, `auth`, `batch`,
 `uids`, `upload`, `users`, `viewer_configs`, `views`, `container_type`
 
 ### Transfer API (`/xfer/`) — 61 endpoints, 9 tags
-Index: `endpoints_index_xfer.md`
-Tag files: `endpoints/xfer_<tag>.md`
+Index: `references/endpoints_index_xfer.md`
+Tag files: `references/endpoints/xfer_<tag>.md`
 Tags: `blobs`, `conflicts`, `connectors`, `exports`, `imports`, `rule_sets`, `schedules`,
 `storages`, `upload`
 
 ### Snapshot API (`/snapshot/`) — 8 endpoints
-Index: `endpoints_index_snapshot.md`
-Tag files: `endpoints/snapshot_untagged.md`
+Index: `references/endpoints_index_snapshot.md`
+Tag files: `references/endpoints/snapshot_untagged.md`
 
 Check the relevant index before using an endpoint path — guessing introduces silent bugs when paths or parameters change.
 
@@ -65,7 +65,7 @@ Check the relevant index before using an endpoint path — guessing introduces s
 
 For common multi-step patterns that go beyond raw endpoint schemas:
 
-- **[guides/job-operations.md](guides/job-operations.md)** — Querying jobs with filters, bulk cancel, batch cancel, pagination
+- **[references/guides/job-operations.md](references/guides/job-operations.md)** — Querying jobs with filters, bulk cancel, batch cancel, pagination
 
 ---
 

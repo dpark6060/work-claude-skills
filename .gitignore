@@ -1,16 +1,7 @@
-
-!.gitignore
-!agents/*
-!rules/*
-!skills/*
-!CLAUDE.md
-!link_to_main_claude.sh
-!README.md
-
-current_task.md
-*.json
-
-git-remotes-cheatsheet.md
 .DS_Store
 
-flywheel-engineering/*
+# Per-skill runtime/generated state — see misc/claude-skills-best-practices.md
+skills/*/*/cache/
+skills/*/cache/
+
+.DS_Store

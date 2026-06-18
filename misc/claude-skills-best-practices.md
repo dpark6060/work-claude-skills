@@ -9,6 +9,7 @@
 
 1. [What Skills Are](#1-what-skills-are)
 2. [Anatomy of a Skill](#2-anatomy-of-a-skill)
+   - [Sanctioned directory structure (this repo's standard)](#sanctioned-directory-structure-this-repos-standard)
 3. [Token Efficiency: The Core Model](#3-token-efficiency-the-core-model)
 4. [Writing a Lean SKILL.md](#4-writing-a-lean-skillmd)
 5. [Progressive Disclosure Patterns](#5-progressive-disclosure-patterns)
@@ -67,6 +68,75 @@ description: What it does and when to use it. Front-load the key use case.
 | `paths` | No | Glob patterns; skill auto-loads only for matching files |
 | `model` | No | Model override for this skill |
 | `effort` | No | `low`/`medium`/`high`/`max` |
+
+---
+
+### Sanctioned directory structure (this repo's standard)
+
+> This is **this repo's** convention layered on top of the official loading model in §3 — not
+> Anthropic guidance. It exists so every skill has the same shape and tooling (`skill-maker`,
+> `skill-audit`) can assume it.
+
+**The base directory holds only `SKILL.md`.** Everything else goes in one of six sanctioned
+subdirectories. All are optional — add one only when the skill needs it. Don't invent siblings;
+`server/` was added precisely so MCP servers stopped being a one-off.
+
+| Subdir | Holds | Loading | Index? |
+|---|---|---|---|
+| `references/` | Detailed agent-ready markdown, split by topic/domain | Lazy — zero tokens until read | Only past ~8–10 files |
+| `sources/` | Raw data (API dumps, large JSON/CSV) too costly to load casually | Lazy — high token cost, dig in only when needed | Only past ~8–10 files |
+| `scripts/` | Executable code Claude **runs**, not reads | Token-free — executed, never loaded | **Never** — describe at call site |
+| `server/` | Long-running / hosted processes (e.g. MCP servers) | Started, not loaded | **Never** — describe at call site |
+| `cache/` | Runtime/generated state a script writes and later reads | Not loaded — runtime only | n/a — gitignored, never committed |
+| `.learnings/` | Accumulated gotchas (`LEARNINGS.md`, `ERRORS.md`) | Read + summarized at task start | n/a — execution skills only |
+
+```
+skills/<category>/<skill-name>/
+├── SKILL.md            # the only file in the base dir
+├── references/         # topic docs, lazy-loaded; index.md only past ~8–10 files
+│   └── <topic>.md
+├── sources/            # raw data; high token cost; index.md only past ~8–10 files
+├── scripts/            # run via ${CLAUDE_SKILL_DIR}/scripts/...; never indexed
+├── server/             # long-running processes (MCP servers); never indexed
+├── cache/              # runtime state a script generates; gitignored, never committed
+└── .learnings/         # execution skills only
+    ├── LEARNINGS.md
+    └── ERRORS.md
+```
+
+**This is an organization standard, not a token optimization.** Flat vs nested doesn't change
+what loads — per §3, only the SKILL.md body loads on trigger, references/sources cost nothing
+until read, and scripts/server never load. The subdirs buy authoring consistency, not fewer
+tokens. The one real token lever is `index.md`, and it cuts both ways (below).
+
+**`index.md` — `references/` and `sources/` only, and only at scale.** SKILL.md is the index by
+default: it lists the files and says *when* to load each ("writing a new gear? load
+gear-basics.md"). Add an `index.md` only once a folder grows past ~8–10 files and enumerating
+them inline would bloat SKILL.md. Below that, an index is a redundant read hop and a second
+thing to keep in sync. Keep it a pure pointer list (filename + one line) — an index that holds
+content Claude actually needs creates the `SKILL.md → index.md → file` two-hop that §5 and §11
+warn against.
+
+**`scripts/` and `server/` are described at their call site, never indexed.** The caller doesn't
+browse to pick a script — it needs the invocation contract (args in, what it writes/returns, exit
+codes) inline next to the `${CLAUDE_SKILL_DIR}/scripts/foo.py` call. Always use
+`${CLAUDE_SKILL_DIR}` for paths so they survive being symlinked into `~/.claude` and cloned
+elsewhere.
+
+**`.learnings/` is for execution skills only.** A pure reference/lookup skill has no "runs" to
+learn from. It's writable and append-only, so periodically promote hot learnings into the SKILL.md
+body and prune — otherwise it drifts from reality.
+
+**`cache/` is where runtime state goes — never the base dir.** If a skill's script needs to write
+generated state (a workspace dump, a resolved-ID lookup, anything fetched-then-reused), it writes
+to `cache/` under the skill root, e.g. `${CLAUDE_SKILL_DIR}/cache/`. It's gitignored repo-wide by
+`skills/*/*/cache/`, so it's never committed and doesn't count as authored skill content — a
+script can rebuild it from scratch. Don't scatter runtime files at the skill root or invent
+per-skill names for them.
+
+**Data policy for `sources/` and `scripts/` fixtures.** Raw data and fixtures bloat a repo that's
+cloned and symlinked into `~/.claude`. Commit small representative samples; fetch large dumps via
+a script or keep them out of the repo.
 
 ---
 

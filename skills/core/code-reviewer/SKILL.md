@@ -1,10 +1,10 @@
 ---
 name: code-reviewer
 description: Reviews Python code for quality, correctness, and adherence to project conventions. Use this skill when the user asks to review code, check code quality, look for issues, or get feedback on an implementation. This is a code quality review — not an architecture review. For checking whether code follows an architecture plan, use code-architect-reviewer instead.
-version: 1.1.0
+version: 1.2.0
 ---
 
-You are conducting a code quality review. Your job is to find real problems — structural violations, correctness issues, and readability failures. Do not rubber-stamp code. Do not invent problems that aren't there. Be direct.
+You are conducting a code quality review. Your job is to find real problems — correctness issues, structural violations, and readability failures. Do not rubber-stamp code. Do not invent problems that aren't there. Be direct.
 
 This skill covers code quality. It does not check plan compliance — that is `code-architect-reviewer`'s job.
 
@@ -18,7 +18,7 @@ From the diff:
 - Note which files changed and which line ranges are new (`+` lines)
 - For each changed hunk, use `Read` with `offset`/`limit` to pull the **full function or class** containing the change — not just the diff lines
 
-This gives you enough context to evaluate structural rules (single responsibility, nesting depth, etc.) that can't be judged from a few lines alone.
+This gives you enough context to evaluate rules that span a whole function — whether the logic is actually correct, single responsibility, nesting depth — which can't be judged from a few diff lines alone.
 
 **Scope rule**: Only report findings on code that appears as `+` lines in the diff. If you spot a pre-existing issue in unchanged context lines, note it once at the end under "Pre-existing issues (not in scope)" — do not include it in severity counts or the verdict.
 
@@ -35,26 +35,42 @@ Do not rely on memory. Read them.
 
 ## What to Look For
 
-Work through these categories in order. Not every category will have findings — that's fine.
+Work through these in priority order — it mirrors the team's review pyramid in `CODE_REVIEW_GUIDE.md`. Functionality and design are what block a merge; clarity issues warrant requested changes; tests, docs, and style are mostly clean-up that can follow. Not every category will have findings — that's fine.
 
-**Structural violations (highest priority — these require rewriting)**
+**1. Functionality — does it work?**
+- Logic that fails on edge cases (empty input, None, unexpected types)
+- Missing, wrong, or swallowed error handling
+- State mutations that happen in the wrong place or at the wrong time
+- Concurrency or ordering assumptions that don't hold
+- Does the code actually accomplish what the change set out to do?
+
+**2. Design — is this the right approach?**
+- Solving a symptom instead of the real problem
+- Change in the wrong architectural layer, or bypassing existing abstractions
+- Excess coupling, or responsibilities landing on the wrong methods/classes
+- Over-engineering for hypothetical future needs
+- I/O mixed in with business logic (also makes the code hard to test)
+- Raw dicts where a dataclass or Pydantic model belongs (any dict whose keys are referenced by name); complex return values with no defined return type
+
+**3. Clarity — can someone understand and maintain this?**
 - Methods that do more than one thing (AND/THEN test)
+- Public methods carrying implementation detail instead of delegating to private helpers
 - Nesting deeper than two levels
 - Logic wrapped in an `if` block that should use an early return instead
-- Public methods that contain implementation details instead of delegating to private helpers
+- Names that don't convey what the thing is or does
 
-**Data shape violations**
-- Raw dicts used where a dataclass or Pydantic model should be (any dict whose keys are referenced by name)
-- Complex return values without a defined return type
+**4. Tests — will they catch regressions?**
+- New or changed behavior is covered
+- Tests fail when the code breaks and don't false-positive on an internal refactor
+- Test names describe the scenario; assertions are simple
+- Coverage level (unit/integration) matches the risk
 
-**Correctness concerns**
-- Logic that will fail on edge cases (empty input, None, unexpected types)
-- State mutations that happen in the wrong place or at the wrong time
-- Methods doing I/O mixed in with business logic (makes testing hard and violates single responsibility)
-
-**Convention violations (lower priority — fixable without restructuring)**
-- Missing or incorrect type hints
+**5. Documentation — is the context captured?**
 - Missing or inadequate docstrings (all functions need them; complex ones need full Google-style)
+- Comments explain WHY, not WHAT; obsolete comments removed; TODOs reference a ticket
+
+**6. Style / convention — is it consistent?**
+- Missing or incorrect type hints
 - Naming that doesn't follow conventions (`get_`, `is_`, `validate_`, etc.)
 - Using a complex one-liner where readable multi-line code is clearer
 
@@ -90,7 +106,7 @@ Work through these categories in order. Not every category will have findings �
 ```
 
 **Severity guide:**
-- **Critical** — Structural violation or correctness bug. The code needs to be rewritten, not tweaked.
+- **Critical** — Correctness bug, or a structural violation that needs a rewrite rather than a tweak.
 - **Major** — Real problem that will cause pain (testing difficulty, maintenance burden, likely bug vector) but doesn't require full rewrite.
 - **Minor** — Convention or readability issue. Correct it, but it doesn't block anything.
 

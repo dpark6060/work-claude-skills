@@ -1,10 +1,11 @@
 # Community Insights: Real-World Skill Patterns
 
-> Supplementary context for the skill-creator skill. Load this file when helping a user
-> build, optimize, or debug a skill — especially for questions about token efficiency,
-> trigger rates, or patterns discovered through real-world usage.
->
-> Sources: GitHub repositories, developer experiments, and community research (April 2026).
+> Companion to `claude-skills-best-practices.md`. That doc is the canonical rulebook (official
+> guidance); this one is field reports — practitioner discoveries from GitHub repos, developer
+> experiments, and community research (April 2026), kept separate because they evolve on their
+> own cadence and aren't official. Load this when building, optimizing, or debugging a skill —
+> especially for questions about token efficiency, trigger rates, or patterns discovered through
+> real-world usage.
 
 ---
 
@@ -17,6 +18,7 @@
 - [Community framework patterns (superpowers)](#superpowers)
 - [The MUST/ALWAYS tension](#musts)
 - [Quick reference: community rules of thumb](#quick-reference)
+- [Notable community resources](#resources)
 
 ---
 
@@ -186,6 +188,11 @@ a skill is strictly more efficient.
 - All behavioral instructions (how to commit, how to review, how to test) live in skills
 - Keeps CLAUDE.md small and context-pressure low
 
+**Still unsettled:** some maintainers prefer one well-structured CLAUDE.md over a sprawl of
+skills (you always know where everything is); others insist on-demand loading is the only way
+to manage a large collection without constant context pressure. Both work — it's a function of
+how many specialized workflows you actually have.
+
 ---
 
 ## Token Efficiency: The Expert Rules {#token-efficiency}
@@ -268,3 +275,23 @@ trigger keywords and descriptions where you need to force activation.
 - "Descriptions truncate at ~250 chars in listing — front-load what matters"
 - "Granular domain-specific skills beat one monolithic skill"
 - "Baselines matter: always compare with-skill vs without-skill, not just output quality"
+
+---
+
+## Notable Community Resources {#resources}
+
+| Resource | What it offers |
+|---|---|
+| [anthropics/skills](https://github.com/anthropics/skills) | Official Anthropic skill repository — production reference implementations |
+| [travisvn/awesome-claude-skills](https://github.com/travisvn/awesome-claude-skills) | Curated list of 1,234+ community skills |
+| [obra/superpowers](https://github.com/obra/superpowers) | 7-stage dev pipeline framework, 143k stars |
+| [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) | Token compression via caveman-mode communication |
+| [ykdojo/claude-code-tips](https://github.com/ykdojo/claude-code-tips) | 45 practical Claude Code tips including skills |
+| [Delphine-L/claude_global](https://github.com/Delphine-L/claude_global) | Token efficiency skill and global skill patterns |
+| [rohitg00/awesome-claude-code-toolkit](https://github.com/rohitg00/awesome-claude-code-toolkit) | 135 agents, 35 skills, 42 commands mega-toolkit |
+| [FlorianBruniaux/claude-code-ultimate-guide](https://github.com/FlorianBruniaux/claude-code-ultimate-guide) | Comprehensive beginner-to-power-user guide |
+
+---
+
+*Last updated: April 2026. Field reports, not official guidance — see
+`claude-skills-best-practices.md` for the canonical rulebook.*

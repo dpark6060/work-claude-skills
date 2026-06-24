@@ -32,7 +32,7 @@ Read these files before doing anything else — all three are required:
 
 2. **`references/checklist.md`** — the audit checklist. You will work through every category in Step 2.
 
-3. **`references/community-insights.md`** — field-tested patterns from real usage at scale. Read this in full. You must apply these patterns actively during the audit, not just use them as background. Specifically look for: undertriggering (MANDATORY TRIGGERS, synonym lists, implicit-trigger language), caveman compression opportunities, learnings.md pattern applicability, MUST/ALWAYS tension (body vs. description), and token efficiency rules.
+3. **`~/.claude/skills/shared/community-insights.md`** — field-tested patterns from real usage at scale. Read this in full. You must apply these patterns actively during the audit, not just use them as background. Specifically look for: undertriggering (MANDATORY TRIGGERS, synonym lists, implicit-trigger language), caveman compression opportunities, learnings.md pattern applicability, MUST/ALWAYS tension (body vs. description), and token efficiency rules.
 
 ## Step 2: Audit
 
@@ -40,7 +40,7 @@ Work through every category in `references/checklist.md`. For each finding,
 note the exact location (line number or section name), what's wrong, and the
 specific fix. Don't flag things that are fine.
 
-Apply insights from `references/community-insights.md` throughout — particularly:
+Apply insights from `~/.claude/skills/shared/community-insights.md` throughout — particularly:
 - Undertriggering checks (MANDATORY TRIGGERS, synonym lists, "even if" language)
 - Caveman compression: is the body language tighter than necessary?
 - Would a `.learnings/` directory improve this skill over time?

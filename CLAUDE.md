@@ -49,7 +49,7 @@ Re-run it after adding a new skill, agent, or rule subdir. Existing symlinks pic
   Any underscored name is stale.
 - **A skill dir = a directory containing `SKILL.md`** plus optional reference `.md` files. Use
   the `skill-maker` skill to scaffold new ones rather than hand-rolling.
-- **Before creating or restructuring a skill, read `misc/claude-skills-best-practices.md`** —
+- **Before creating or restructuring a skill, read `skills/shared/claude-skills-best-practices.md`** —
   especially the "Sanctioned directory structure" section (§2). It defines the required layout:
   `SKILL.md` alone in the base dir, with optional `references/`, `sources/`, `scripts/`, `server/`,
   and `.learnings/` subdirs. New skills must follow it.

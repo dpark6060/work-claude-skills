@@ -12,7 +12,7 @@ doesn't load this at runtime.
 ## v1 design decisions
 
 - **Spec layer is generated, not hand-written.** `references/bids/` is a deterministic join off
-  the vendored schema (`vendor/bids-schema/`) via `bidsschematools`. Don't hand-edit those files —
+  the vendored schema (`sources/bids-schema/`) via `bidsschematools`. Don't hand-edit those files —
   edit the generator and regenerate, or they drift from the schema and lose provenance.
 - **Code depth is ground truth, no LLM distill.** `code-index/cards.jsonl` holds real source +
   real template rules (no paraphrase). Regenerated deterministically.
@@ -38,5 +38,5 @@ doesn't load this at runtime.
 - Code index (latest repo versions):
   `python3 ${CLAUDE_SKILL_DIR}/scripts/build_code_index.py --pull`
 
-Provenance/versions: each spec page's frontmatter, `vendor/bids-schema/VENDOR.md`, and
+Provenance/versions: each spec page's frontmatter, `sources/bids-schema/VENDOR.md`, and
 `code-index/code-manifest.md`.

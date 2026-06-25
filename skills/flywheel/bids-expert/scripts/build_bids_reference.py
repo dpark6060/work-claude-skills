@@ -22,7 +22,7 @@ produces clean diffs.
 
 Usage:
     uv run --with bidsschematools python build_bids_reference.py \
-        [--schema vendor/bids-schema] [--out references/bids] [--datatype anat]
+        [--schema sources/bids-schema] [--out references/bids] [--datatype anat]
 """
 
 import argparse
@@ -388,8 +388,8 @@ def main() -> None:
     skill_root = Path(__file__).resolve().parent.parent
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--schema", type=Path, default=skill_root / "vendor" / "bids-schema",
-        help="BIDS schema dir (default: vendored snapshot under vendor/bids-schema)",
+        "--schema", type=Path, default=skill_root / "sources" / "bids-schema",
+        help="BIDS schema dir (default: vendored snapshot under sources/bids-schema)",
     )
     parser.add_argument(
         "--out", type=Path, default=skill_root / "references" / "bids",

@@ -40,7 +40,7 @@ extensions, and datatype-specific sidecar metadata. Each modality dir also has a
 | Behavioral | [`beh`](bids/beh/beh.md) · [common](bids/beh/_common-metadata.md) |
 
 > For exhaustive/edge-case rules not captured here, the full machine-readable schema is vendored at
-> `vendor/bids-schema/` and is the ground truth. Regenerate these pages with
+> `sources/bids-schema/` and is the ground truth. Regenerate these pages with
 > `uv run --with bidsschematools python3 ${CLAUDE_SKILL_DIR}/scripts/build_bids_reference.py`.
 
 ## Flywheel curation tooling (`flywheel/`)

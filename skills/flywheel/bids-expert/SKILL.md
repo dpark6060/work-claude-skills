@@ -31,7 +31,7 @@ memory.** BIDS is large and you will misremember it. Read the relevant reference
 it. The ground-truth hierarchy:
 
 1. `references/bids/` pages — generated from the vendored schema; authoritative for the spec.
-2. `vendor/bids-schema/` — the raw machine-readable schema, for edge cases the pages don't cover.
+2. `sources/bids-schema/` — the raw machine-readable schema, for edge cases the pages don't cover.
 3. For Flywheel tool behavior: `search_code.py` (real `path:line` source + real template rules) **wins over** the `references/flywheel/*.md` overviews when precision matters or they conflict — overviews are a hand-distilled summary and can drift.
 
 ## Reference map — four areas
@@ -84,7 +84,7 @@ Mining an existing report is free and carries curation context a fresh label pul
 ### Answer a BIDS spec question
 INDEX → the datatype page (`references/bids/<modality>/<datatype>.md`) + `_entities.md` +
 `_filename-grammar.md`. For metadata, also the modality `_common-metadata.md`. Cite the page.
-If it's an edge case the page doesn't cover, dig into `vendor/bids-schema/`.
+If it's an edge case the page doesn't cover, dig into `sources/bids-schema/`.
 
 ### Plan a relabel (precuration)
 When acquisition/session/subject labels don't match what the template expects. Read
@@ -161,7 +161,7 @@ Every artifact ships with the exact command the user runs to apply it.
 ## Non-negotiables
 
 - Cite a reference file or `path:line` for every factual claim. No uncited BIDS assertions.
-- BIDS rules come from `references/bids/` or `vendor/bids-schema/`, never memory. On any
+- BIDS rules come from `references/bids/` or `sources/bids-schema/`, never memory. On any
   spec/tool conflict, schema and real code win over the overview prose.
 - Do not mutate live instances. Produce the artifact + the exact gear/SDK command. For SDK
   calls, auth, or inspecting a live project, invoke `fw-client`, `flywheel-sdk`, or

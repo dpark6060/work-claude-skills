@@ -439,13 +439,13 @@ This is the shape of the JSON edited in the UI protocol editor (not the full API
 - **`labels`** — annotation label list shown when measuring: `items` (array of `{value, label, color?}`), `labelOnMeasure` (boolean, auto-prompt on create), `exclusive` (boolean, disallow custom labels).
 - **`fileBrowser`** — `enabled` (boolean, default `true` for non-task; **default `false` for task protocols** — must explicitly set `true` to enable), `scope` (`"subject"` or `"session"`).
 
-If the user's question involves viewer configuration in depth, read the additional reference file before responding. It is located at `references/viewer_config.md` in the same directory as this SKILL.md.
+If the user's question involves viewer configuration in depth, read the additional reference file before responding: `~/.claude/skills/fw-v3-reader-tasks/references/viewer_config.md`
 
 ---
 
 ## SDK / Programmatic Access
 
-If the user's question involves querying, listing, or filtering reader tasks via the Flywheel Python SDK or API, read the additional reference file before responding. It is located at `references/sdk.md` in the same directory as this SKILL.md.
+If the user's question involves querying, listing, or filtering reader tasks via the Flywheel Python SDK or API, read the additional reference file before responding: `~/.claude/skills/fw-v3-reader-tasks/references/sdk.md`
 
 Do not load this file for questions about protocol authoring, form fields, or configuration.
 

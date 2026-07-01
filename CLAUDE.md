@@ -22,7 +22,7 @@ skills/                    # on-demand skill modules → ~/.claude/skills/ (flat
   flywheel/                #   fw-gear, fw-client, flyw-cli, fw-instance-inspector, ...
   meta/                    #   skill-maker, skill-audit, bootstrap-validator, write-claudemd
   orchestration/           #   pipeline-babysitter, lint-fixer
-  tools/                   #   gitlab, jira, clockify
+  tools/                   #   gitlab, jira
   shared/                  #   reference files shared across skills (no SKILL.md)
 agents/                    # subagent definitions (one .md each) → ~/.claude/agents/
 hooks/  scripts/  misc/    # supporting material, not linked

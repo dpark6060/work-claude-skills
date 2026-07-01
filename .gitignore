@@ -3,5 +3,5 @@
 # Per-skill runtime/generated state — see skills/shared/claude-skills-best-practices.md
 skills/*/*/cache/
 skills/*/cache/
-
+docs/superpowers
 .DS_Store

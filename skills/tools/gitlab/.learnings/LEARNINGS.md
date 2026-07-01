@@ -37,3 +37,8 @@ Entry format:
 `git -c credential."https://gitlab.com".helper='!glab auth git-credential' push -u origin <branch>`
 This avoids putting the token in the remote URL/reflog. Worked first try pushing a doc branch to `flywheel-io/scientific-solutions/gears/file-classifier`.
 **Suggested action:** Add this push-auth one-liner to the create-mr reference / SKILL.md push steps.
+
+## [2026-06-26] | Priority: MED | Status: RESOLVED
+**Area:** User commit activity over a date range
+**Summary:** To get a user's own commits across ALL repos in a window, use the events API — one paginated call, no per-project loop.
+**Details:** `glab api "events?action=pushed&after=YYYY-MM-DD&before=YYYY-MM-DD&per_page=100" --paginate`. `after`/`before` are exclusive and date-only (widen by a day each side). Each event has `created_at`, `project_id`, `push_data.ref`, `push_data.commit_count`, `push_data.commit_title`. Resolve repo names with `glab api "projects/<id>" | jq -r .path_with_namespace`. Much faster than searching commits per project; branch names often carry the ticket ID. Used to reconcile Clockify time-fill estimates against actual work.

@@ -105,7 +105,7 @@ Scan the task content for keywords to determine which domain skills each section
 | gear, manifest, GearToolkitContext, `fw_gear` | fw-gear | `~/.claude/skills/fw-gear/` |
 | executable examples, runnable scripts, validation code | code-writer | `~/.claude/skills/code-writer/` |
 
-If a skill directory does not exist at the expected path, search with: `Glob: ~/.claude/skills/*/SKILL.md`
+If a skill directory does not exist at the expected path, search with: `Glob: ~/.claude/skills/**/SKILL.md` (use `**/`, not `*/` — the Glob tool returns nothing for a single-level intermediate wildcard)
 
 ## Sub-Agent Prompt Template
 

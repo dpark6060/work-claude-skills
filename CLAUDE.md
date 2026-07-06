@@ -5,13 +5,15 @@ definitions, and the personal global instructions. It is cloned once and **symli
 `~/.claude/` so a `git pull` updates your live Claude config with no copy step.
 
 This file is the guide for working *in this repo*. It is NOT the global instructions Claude
-loads — those live in `global_config/CLAUDE.md` and are linked to `~/.claude/CLAUDE.md`.
+loads. The global instructions (`~/.claude/CLAUDE.md`) are now owned and linked by the Personal
+Claude config repo (`~/Documents/Personal/Claude/global_config/CLAUDE.md`). A copy is kept here
+in `global_config/CLAUDE.md` for reference only — this repo no longer links it.
 
 ## Layout
 
 ```
 CLAUDE.md                  # this file — guide for editing the repo
-global_config/CLAUDE.md    # personal global instructions → ~/.claude/CLAUDE.md
+global_config/CLAUDE.md    # reference copy of global instructions (linked by Personal repo, not here)
 link_to_main_claude.sh     # creates all the ~/.claude symlinks (safe to re-run)
 README.md                  # human-facing overview (may lag the actual layout)
 rules/                     # standing instructions Claude reads as rules → ~/.claude/rules/
@@ -31,7 +33,6 @@ hooks/  scripts/  misc/    # supporting material, not linked
 ## How linking works
 
 `link_to_main_claude.sh` is the install step. It:
-- symlinks `global_config/CLAUDE.md` → `~/.claude/CLAUDE.md` (repoints an existing symlink)
 - symlinks each subdir of `rules/` → `~/.claude/rules/<name>`
 - finds every `skills/**/SKILL.md`, symlinks its **parent dir** into `~/.claude/skills/<name>`
   — the category dirs (`core/`, `flywheel/`, …) are organizational only and get **flattened**

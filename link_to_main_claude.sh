@@ -76,25 +76,11 @@ link_subdirs() {
     fi
 }
 
-echo "=== Linking global CLAUDE.md ==="
-# The personal global config lives in global_config/CLAUDE.md and is linked to
-# ~/.claude/CLAUDE.md. The repo root CLAUDE.md is the repo's own guide, not this.
-GLOBAL_MD_SRC="$SCRIPT_DIR/global_config/CLAUDE.md"
-GLOBAL_MD_TGT="$CLAUDE_DIR/CLAUDE.md"
-if [ ! -f "$GLOBAL_MD_SRC" ]; then
-    echo "[SKIP] CLAUDE.md — source $GLOBAL_MD_SRC does not exist"
-elif [ -L "$GLOBAL_MD_TGT" ]; then
-    # Existing symlink (possibly dangling after a move) — repoint it.
-    ln -sf "$GLOBAL_MD_SRC" "$GLOBAL_MD_TGT"
-    echo "[RELINKED] CLAUDE.md → $GLOBAL_MD_TGT"
-elif [ -e "$GLOBAL_MD_TGT" ]; then
-    echo "[SKIP] CLAUDE.md — already exists as a real file (not a symlink, leaving it alone)"
-else
-    ln -s "$GLOBAL_MD_SRC" "$GLOBAL_MD_TGT"
-    echo "[LINKED] CLAUDE.md → $GLOBAL_MD_TGT"
-fi
+# NOTE: The global ~/.claude/CLAUDE.md is NO LONGER linked from this repo. That
+# responsibility now lives in the Personal Claude config repo
+# (~/Documents/Personal/Claude), which owns global_config/CLAUDE.md and links it.
+# A copy is kept here in global_config/CLAUDE.md for reference only — it is not linked.
 
-echo ""
 echo "=== Linking rules ==="
 link_subdirs "rules"
 

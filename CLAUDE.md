@@ -6,7 +6,7 @@ definitions, and the personal global instructions. It is cloned once and **symli
 
 This file is the guide for working *in this repo*. It is NOT the global instructions Claude
 loads. The global instructions (`~/.claude/CLAUDE.md`) are now owned and linked by the Personal
-Claude config repo (`~/Documents/Personal/Claude/global_config/CLAUDE.md`). A copy is kept here
+Claude config repo (`~/Projects/Personal/PersonalClaude/global_config/CLAUDE.md`). A copy is kept here
 in `global_config/CLAUDE.md` for reference only — this repo no longer links it.
 
 ## Layout

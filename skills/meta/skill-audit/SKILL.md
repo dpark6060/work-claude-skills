@@ -19,7 +19,7 @@ The goal is maximum effectiveness at minimum token cost.
 ## Invoke
 
 ```
-/skill-audit /Users/davidparker/Documents/Flywheel/Claude/skills/category/skill-name
+/skill-audit /Users/davidparker/Projects/Flywheel/WorkClaude/skills/category/skill-name
 ```
 
 Or: "audit my deploy skill" — find the path yourself if not provided.
@@ -28,7 +28,7 @@ Or: "audit my deploy skill" — find the path yourself if not provided.
 
 Read these files before doing anything else — all three are required:
 
-1. **The skill under audit** — resolve the path from `$ARGUMENTS`. If symlink, follow to real location (edit in `Documents/Flywheel/Claude/skills`, not `~/.claude/skills`). Read `SKILL.md` in full, then list and read any supporting files (references/, scripts/, assets/). Note file sizes and line counts. If read-only, copy to `/tmp/skill-audit-work/` and note that the user must copy it back.
+1. **The skill under audit** — resolve the path from `$ARGUMENTS`. If symlink, follow to real location (edit in `Projects/Flywheel/WorkClaude/skills`, not `~/.claude/skills`). Read `SKILL.md` in full, then list and read any supporting files (references/, scripts/, assets/). Note file sizes and line counts. If read-only, copy to `/tmp/skill-audit-work/` and note that the user must copy it back.
 
 2. **`references/checklist.md`** — the audit checklist. You will work through every category in Step 2.
 

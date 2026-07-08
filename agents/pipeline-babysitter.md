@@ -5,7 +5,7 @@ description: >
   auto-fixes linting and merge conflicts, escalates anything uncertain.
   Use with /loop for hands-off pipeline babysitting.
   Triggers on "babysit this pipeline", "watch this MR", "monitor pipeline".
-tools: Read, Glob, Grep, Bash, Edit, Write
+tools: Read, Glob, Grep, Bash, Edit, Write, mcp__atlassian, mcp__claude_ai_Slack, mcp__claude_ai_Microsoft_365, mcp__GitLab
 model: sonnet
 skills:
   - pipeline-babysitter

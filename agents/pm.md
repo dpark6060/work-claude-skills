@@ -1,7 +1,7 @@
 ---
 name: pm
 description: Project manager that coordinates the engineering team. Use when a task requires planning, coding, review, testing, or documentation — or any combination of these. Also use when the right agent isn't obvious.
-tools: Read, Glob, Grep, Bash, Task
+tools: Read, Glob, Grep, Bash, Task, mcp__atlassian, mcp__claude_ai_Slack, mcp__claude_ai_Microsoft_365, mcp__GitLab
 model: inherit
 ---
 

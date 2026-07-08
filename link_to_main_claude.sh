@@ -78,7 +78,7 @@ link_subdirs() {
 
 # NOTE: The global ~/.claude/CLAUDE.md is NO LONGER linked from this repo. That
 # responsibility now lives in the Personal Claude config repo
-# (~/Documents/Personal/Claude), which owns global_config/CLAUDE.md and links it.
+# (~/Projects/Personal/PersonalClaude), which owns global_config/CLAUDE.md and links it.
 # A copy is kept here in global_config/CLAUDE.md for reference only — it is not linked.
 
 echo "=== Linking rules ==="

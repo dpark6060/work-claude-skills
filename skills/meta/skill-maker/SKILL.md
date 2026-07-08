@@ -44,7 +44,7 @@ Rule of thumb: if the instructions wouldn't hurt to have loaded in *every* conve
 
 This repo's system has three layers in a strict hierarchy: **Reference files → Skills → Agents**. Each does one job and never the job of the layer above or below it. (This framing is repo-specific and not in the rulebook — it's how skills plug into the agent system here.)
 
-- **Layer 1 — Reference files** (`skills/<name>/references/*.md`): one sub-topic, maximum depth, loaded on demand. Full schemas, edge cases, advanced patterns for one use case. Never auto-loaded; the skill decides when to pull it in. Many reference files feed one skill.
+- **Layer 1 — Reference files** (`skills/<name>/references/*.md`): one sub-topic, maximum depth, loaded on demand. Full schemas, edge cases, advanced patterns for one use case. Never auto-loaded; the skill decides when to pull it in. Many reference files feed one skill. Structure them per the [OKF format](#reference-file-format-okf).
 - **Layer 2 — Skills** (`skills/<name>/SKILL.md`): one domain, always-applicable rules, gateway to reference files. Overview, the rules that always apply, the workflow, quality standards, and explicit pointers telling Claude when to load which reference file. No deep single-topic detail (that's Layer 1), no cross-domain orchestration (that's Layer 3).
 - **Layer 3 — Agents** (`agents/<name>.md`): one role, orchestration only, no domain knowledge. Which skills to invoke for which tasks and how to coordinate with other agents. Domain knowledge lives entirely in the skill and its references.
 
@@ -154,7 +154,7 @@ You are reviewing [X]. Your job is [goal]. You produce [output].
 ## What Good / Bad Looks Like — examples or heuristics
 ```
 
-**Reference files (if any):** write each to `skills/<name>/references/<guide-name>.md` as a focused standalone guide on its topic — not a summary of SKILL.md. SKILL.md points to it; it holds the detail.
+**Reference files (if any):** write each to `skills/<name>/references/<guide-name>.md` as a focused standalone guide on its topic — not a summary of SKILL.md. SKILL.md points to it; it holds the detail. Structure every reference file per the OKF format below.
 
 **Companion agent (if any):**
 ```
@@ -173,6 +173,35 @@ Tool selection:
 - Coordination agents (PM): `Read, Glob, Grep, Bash, Task`
 
 Keep the agent body short — the skill does the heavy lifting (the `skills:` array injects the full skill into the agent's prompt). Include only cross-skill routing and sequencing.
+
+---
+
+## Reference File Format (OKF)
+
+Reference files (Layer 1) follow the **Open Knowledge Format** — a domain-agnostic spec for knowledge concept documents. It applies *only* to files under `references/`. It does **not** touch `SKILL.md` or agent frontmatter: those keep the fields the Claude Code harness parses (`name`, `description`, control flags) exactly as §8 defines them. The harness never reads reference-file frontmatter, so OKF fields here are purely for discovery, indexing, and progressive disclosure.
+
+**Frontmatter on each reference file** — YAML block at the top:
+
+```yaml
+---
+type: <concept kind>          # required, non-empty. e.g. "API Endpoint Schema", "Config Reference", "Example Set"
+title: <human-readable name>  # recommended
+description: <one sentence>    # recommended — feeds index.md and search snippets
+tags: [x, y, z]               # optional — cross-cutting categories
+timestamp: 2026-07-07T00:00:00Z  # optional — ISO 8601, last meaningful change
+resource: <uri>               # optional — the underlying asset; omit for abstract concepts
+---
+```
+
+`type` is the only required field. Pick descriptive, self-explanatory values — it isn't a registered enum. Custom keys are allowed; consumers must preserve unknown keys.
+
+**Reserved filenames** (optional, per directory):
+- `references/index.md` — directory listing for progressive disclosure. **No frontmatter.** Markdown sections with bulleted links, each entry carrying the linked file's `description`. Add one once a skill has several reference files so the skill can point to the index instead of enumerating files inline.
+- `references/log.md` — change history, newest first. ISO `YYYY-MM-DD` date headings; entries are prose, optionally prefixed `Update` / `Creation` / `Deprecation`.
+
+**Standard section headings** (conventional, use when they fit): `# Schema` (column/field descriptions), `# Examples` (concrete usage), `# Citations` (external sources backing the doc, at the end, numbered `[1] [text](url)`).
+
+Full spec: https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md
 
 ---
 

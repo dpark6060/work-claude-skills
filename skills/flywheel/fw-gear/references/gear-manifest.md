@@ -134,13 +134,8 @@ Required for `context.client` to be available in the gear:
 }
 ```
 
-Read-only version (preferred when gear doesn't need to write to Flywheel):
-```json
-"api-key": {
-  "base": "api-key",
-  "read-only": true
-}
-```
+**Do NOT use `"read-only": true`** — it is deprecated. Declare the api-key input
+as the plain `{"base": "api-key"}` form above whether or not the gear writes.
 
 **Important:** The key name (`"api-key"` above) can be anything; `"base": "api-key"` is
 what tells Flywheel to inject an API key at runtime.

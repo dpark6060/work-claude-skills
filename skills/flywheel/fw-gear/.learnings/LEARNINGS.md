@@ -30,3 +30,9 @@ Format:
 **Summary:** Don't use `urllib.parse.parse_qs` on storage connection URLs — it decodes `+` as space, corrupting base64 credentials.
 **Details:** S3 secret keys and GCP private keys routinely contain `+`. Split the query on `&`/`=` manually and use `unquote()` (which leaves `+` intact).
 **Suggested action:** Reuse the `_get_url_params` pattern from storage-auth-test's main.py.
+
+## [2026-07-09] | Priority: MEDIUM | Status: RESOLVED
+**Area:** api-key input (gear-manifest.md)
+**Summary:** `"read-only": true` on an api-key input is deprecated — always use the plain `{"base": "api-key"}` form.
+**Details:** Confirmed by David. The gear-manifest.md reference used to present a read-only variant as "preferred when the gear doesn't write"; that guidance is stale. Updated the reference to say don't use read-only.
+**Suggested action:** Never emit `read-only` on an api-key input, regardless of whether the gear writes back.

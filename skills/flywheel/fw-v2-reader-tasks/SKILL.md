@@ -50,7 +50,7 @@ V2-only keys: `studyForm`, `bSlices`, `studyFormWorkflow`, `contourUnique`
 | `hotkeys` | array | **Replaces all defaults — include everything needed** |
 | `mouseActions` | array | Map tools to left/right/middle/wheel |
 | `studyForm` | object | The reader task form |
-| `studyFormWorkflow` | string | "Form", "ROI", or "Mixed" |
+| `studyFormWorkflow` | string | `"Form"` (default), `"ROI"`, or `"Mixed"` — see below |
 | `bSlices` | object | Per-slice form responses |
 | `contourUnique` | boolean | Prevent overlapping ROIs |
 | `allowDraft` | boolean | Enable draft saves (default: true) |
@@ -66,6 +66,20 @@ V2-only keys: `studyForm`, `bSlices`, `studyFormWorkflow`, `contourUnique`
 the viewer forces `contourUnique: false`, `timerOn: false`, and `timerVisible: false`
 regardless of what the config specifies. These three properties cannot be enabled in
 multi-task mode.
+
+### studyFormWorkflow
+
+Controls the relationship between the form and annotations. Choose carefully — the modes are architecturally distinct.
+
+| Value | Behavior | Use when |
+|---|---|---|
+| `"Form"` (default) | Standard form. Reader fills a top-level form; annotations are drawn independently and tracked separately. Tools are globally enabled. | Reader fills a form AND/OR draws annotations — the typical case. |
+| `"ROI"` | ROI-driven. No top-level form. Each drawn annotation triggers a question dialog — the annotation IS the form entry. | The form IS the lesion list; each drawn ROI must have its own answer set. |
+| `"Mixed"` | Combination. Has a top-level form AND each drawn ROI spawns a per-ROI sub-form popup. Highly complex UX. | Reader must both fill a global form AND answer per-ROI questions for every annotation drawn. |
+
+**Default:** If `studyFormWorkflow` is omitted, the viewer behaves as `"Form"`.
+
+**Most tasks use `"Form"`.** `"ROI"` and `"Mixed"` are for specialized RECIST-style workflows where each drawn measurement must carry its own structured answer set. Do not use `"Mixed"` simply because a task involves both a form and annotations — that is what `"Form"` is for.
 
 ### labels
 
@@ -122,12 +136,20 @@ via `mouseActions` instead.
 Valid buttons: `left`, `right`, `middle`, `wheel`.
 On MacBook trackpad: `left` = click, `right` = two-finger click, `middle` = not accessible.
 
-Valid tools: `Rotate`, `Pan`, `Zoom`, `StackScroll`, `Wwwc`, `Crosshair` (left only),
-`StackScrollMouseWheel`, `ZoomMouseWheel`.
+The viewer passes `toolName` directly to cornerstone's `setToolActive` — any registered tool name is valid, including annotation tools. Navigation tools: `Rotate`, `Pan`, `Zoom`, `StackScroll`, `Wwwc`, `Crosshair` (left only), `StackScrollMouseWheel`, `ZoomMouseWheel`. Annotation tools (e.g. `FreehandRoi`, `Length`, `Bidirectional`) can also be bound to make them the default active tool on left-click.
 
 ```json
 "mouseActions": [
   { "toolName": "Wwwc", "button": "left" },
+  { "toolName": "Pan", "button": "right" },
+  { "toolName": "StackScrollMouseWheel", "button": "wheel" }
+]
+```
+
+To make `FreehandRoi` the default active left-click tool:
+```json
+"mouseActions": [
+  { "toolName": "FreehandRoi", "button": "left" },
   { "toolName": "Pan", "button": "right" },
   { "toolName": "StackScrollMouseWheel", "button": "wheel" }
 ]
@@ -151,6 +173,32 @@ Trim available tools by category. Use `only` to allowlist or `except` to denylis
 
 Categories: `Zoom`, `Annotate`, `Segment`, `Segmentation`, `Download`, `CINE`,
 `Protocols`, `2D MPR`. Labels are case-sensitive.
+
+### toolbar vs measurementTools — which to use
+
+These are two separate mechanisms with different effects. Use one or the other, not both:
+
+| Approach | How it works | Use when |
+|---|---|---|
+| `toolbar.Annotate.only` | Restricts which tools appear in the toolbar. Tools that pass the filter are **always enabled** — the reader can draw at any time. | Reader should be able to draw freely at any time, regardless of form state. |
+| `measurementTools` on an answer | Tools are **disabled globally** until the reader selects that answer. Only the tools listed for the selected answer become active. | Drawing must be tied to a specific form answer — e.g. "draw the lesion" only enabled after selecting "Finding: Abnormal". |
+
+**The global disable effect of `measurementTools` is all-or-nothing.** The viewer checks whether ANY answer in ANY component has `measurementTools` defined (`hasMeasurementTools()` in source). If yes, ALL annotation tools start disabled and are only activated per-answer. This means: if even one answer in your form uses `measurementTools`, every other answer that omits it will also disable tools.
+
+**For a simple "reader draws FreehandRoi and fills a form" task:**
+```json
+{
+  "studyFormWorkflow": "Form",
+  "toolbar": { "Annotate": { "only": ["FreehandRoi"] } }
+}
+```
+Do NOT add `measurementTools` unless tools must be gated behind a specific answer selection.
+
+### labels and toolbar-only tasks
+
+If `measurementTools` is not used anywhere in the form, the viewer dispatches `labels: ['']` (empty-string sentinel) — tools are enabled globally and annotations are drawn without a label. This is functional but produces unlabeled measurements.
+
+To have labeled annotations in a toolbar-only task, define labels in the root `labels` array. Without `measurementTools` to gate them, all defined labels are available at all times.
 
 ---
 
@@ -248,121 +296,20 @@ Each answer option can use either the **flat style** (simple cases) or the **ins
 
 ## instructionSet
 
-`instructionSet` is an advanced alternative to the flat `requireMeasurements`/`measurementTools` pattern. Use it when a single answer requires **multiple independent annotation groups**, each with its own labels, tools, and instructions — for example, "annotate a target lesion AND a reference organ separately."
+`instructionSet` is an advanced alternative to the flat `requireMeasurements`/`measurementTools`
+pattern. Use it when a single answer requires **multiple independent annotation groups**, each
+with its own labels, tools, and instructions — for example, "annotate a target lesion AND a
+reference organ separately."
 
-Define `instructionSet` on an answer `value` object instead of (not alongside) flat `requireMeasurements`/`measurementTools`:
-
-```json
-"values": [
-  {
-    "value": "annotate",
-    "label": "Annotate lesion and organ",
-    "instructionSet": [
-      {
-        "requireMeasurements": ["TL-01"],
-        "measurementTools": ["Bidirectional"],
-        "directive": "Draw a bidirectional on the target lesion.",
-        "instruction": "Measure along the longest axis."
-      },
-      {
-        "requireMeasurements": ["REF-ORGAN"],
-        "measurementTools": ["Length"],
-        "directive": "Draw a length measurement on the reference organ."
-      }
-    ]
-  }
-]
-```
-
-### instructionSet item properties
-
-| Property | Required | Notes |
-|---|---|---|
-| `requireMeasurements` | yes | Array of label values that must be annotated for this instruction |
-| `measurementTools` | yes | Tools enabled for this instruction group |
-| `directive` | no | Inline instruction text shown in the annotation row |
-| `instruction` | no | Help tooltip text shown via the info icon |
-| `exact` | no | Require exactly N annotations per label (e.g., `"exact": 2`) |
-| `min` | no | Require at least N annotations per label |
-| `max` | no | Allow at most N annotations per label |
-
-### Range constraints (`exact`, `min`, `max`)
-
-When `exact` or `max` is set, the viewer renders placeholder slots in the annotation list — readers fill them by drawing annotations. An "Add" button appears if `min`/`max` allows more than the default count.
-
-- `exact: N` — reader must draw exactly N annotations per label
-- `min: N` — reader must draw at least N; "Add" button appears up to the max
-- `max: N` — upper bound; "Add" button is disabled once reached
-- If none are set, the label's `limit` in the root `labels` array governs the cap
-
-```json
-{
-  "requireMeasurements": ["TL-01", "TL-02"],
-  "measurementTools": ["Bidirectional"],
-  "directive": "Annotate both target lesions.",
-  "exact": 1
-}
-```
-
-This requires exactly 1 annotation per label (`TL-01` and `TL-02`).
-
-### subForms
-
-SubForms display additional questions for each individual annotation drawn when a specific answer is selected. They appear automatically in the Viewer Form panel when an annotation is created.
-
-Define `subForms` as a sibling of `components` inside `studyForm`:
-
-```json
-"studyForm": {
-  "components": [
-    {
-      "label": "Annotate lesions",
-      "key": "meas_lesions",
-      "type": "radio",
-      "values": [
-        {
-          "value": "done",
-          "label": "Start annotating",
-          "requireMeasurements": ["TL"],
-          "measurementTools": ["FreehandRoi"],
-          "subForm": "lesion_details"
-        }
-      ]
-    }
-  ],
-  "subForms": {
-    "lesion_details": {
-      "label": "Lesion details",
-      "components": [
-        {
-          "label": "Side",
-          "key": "side",
-          "type": "radio",
-          "values": [
-            { "value": "left", "label": "Left" },
-            { "value": "right", "label": "Right" }
-          ]
-        }
-      ]
-    }
-  }
-}
-```
-
-**subForm rules:**
-- `subForms` is a key inside `studyForm`, not at root
-- The `subForm` value on an answer must exactly match a key in `subForms`
-- Each subForm definition **must** have a `"label"` field — omitting it prevents the subForm from rendering
-- `studyFormWorkflow: "Form"` must be set (at root of the study form JSON file) for subForms to work
-- SubForm components support the same question types as the main form, including conditionals
-- The `requireMeasurements` value must match the `value` field of a label in the `labels` array (not the `label` field)
-
-**Known limitation:** As of June 2026 on `sse-latest-azure`, subForms are confirmed to load correctly via the API but do not render in the viewer panel. This appears to be a viewer rendering bug — file with the Flywheel viewer engineering team if encountered.
+For full schema, range constraints (`exact`/`min`/`max`), and subForms documentation, read
+the reference file located at `references/instruction-set.md` in the same directory as this
+SKILL.md.
 
 **Critical:** When `measurementTools` is defined on any answer in the form, ALL annotation
 tools are disabled by default. Tools only activate when the reader selects that answer.
 Annotation questions must have at least one answer with `measurementTools` defined,
-or no tools will be accessible.
+or no tools will be accessible. If you don't need tools gated by answer selection, use
+`toolbar.Annotate.only` instead — see "toolbar vs measurementTools" above.
 
 ### Supported measurementTools values
 
@@ -382,22 +329,17 @@ the `labels` array — remove it to allow unlimited annotations.
 
 ## bSlices
 
-Enables separate form responses per image slice. Not applicable when multiple series are open.
+> **Before answering any bSlices question or generating any bSlices config, always ask or confirm: is this a single-series DICOM task?** If the answer is no — NIfTI, MHD, multi-series DICOM, or unknown — state clearly that bSlices will not work and explain why before proceeding.
 
-```json
-"bSlices": {
-  "settings": {
-    "3": { "hiddenQuestions": ["q1"], "measurementTools": { "q2": ["Length"] } },
-    "5": {}
-  },
-  "required": {
-    "all": ["q1"],
-    "any": ["q2"],
-    "one": ["q3"],
-    "specific": { "3": ["q4"] }
-  }
-}
-```
+Enables separate form responses per image slice. Instead of one answer set for the whole study, the reader answers questions independently for each configured slice as they scroll through the series.
+
+**Only applicable to single-series DICOM tasks.** bSlices is silently disabled (no error, no warning — the form simply shows on every slice) when:
+- The file is NIfTI or ITK MetaImage (non-DICOM)
+- More than one display set is loaded (multi-series DICOM or multi-plane NIfTI)
+
+For full documentation of `settings`, `required` modes, `positiveAnswers`, and a complete
+example, read the reference file located at `references/bslices.md` in the same directory
+as this SKILL.md.
 
 ---
 
@@ -501,6 +443,7 @@ Configures the scale bar displayed in viewports.
 - **Using `type: "2D"` for NIfTI layout viewports** — use `type: "nifti"` instead; `type: "2D"` uses DICOM-style matching and can cause "DICOM image could not be indexed" errors
 - **Merging viewer config and study form into one file** — V2 reader tasks require two separate files; never combine them
 - **Missing `"label"` on a subForm definition** — subForm will not render without it
+- **Using `studyFormWorkflow: "Mixed"` for a simple form + annotation task** — `"Mixed"` is a specialized mode where every drawn ROI spawns its own per-ROI sub-form popup. For a task where the reader draws annotations and fills a form, use `"Form"` (or omit `studyFormWorkflow` entirely). `"Mixed"` will break the expected toolbar and form behavior.
 - **Missing `studyFormWorkflow: "Form"`** — required for subForms to activate
 - **`subForms` at root instead of inside `studyForm`** — must be nested inside `studyForm`
 - **Mixing flat and instructionSet styles on the same answer** — use one or the other; combining them produces undefined behavior

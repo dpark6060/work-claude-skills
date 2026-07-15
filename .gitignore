@@ -3,5 +3,8 @@
 # Per-skill runtime/generated state — see skills/shared/claude-skills-best-practices.md
 skills/*/*/cache/
 skills/*/cache/
+# Per-user skill config (never committed — templates/ ships, local/ is personal)
+skills/*/*/local/
+skills/*/local/
 docs/superpowers
 .DS_Store

@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Dimse
+description: Flywheel Core API (/api/) endpoint schemas covering DIMSE (DICOM network) services.
+tags: [flywheel, core-api, dimse]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — dimse
 
 Service: `core`  |  Tag: `dimse`  |  Generated from OpenAPI spec.

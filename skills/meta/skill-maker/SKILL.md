@@ -154,7 +154,7 @@ You are reviewing [X]. Your job is [goal]. You produce [output].
 ## What Good / Bad Looks Like — examples or heuristics
 ```
 
-**Reference files (if any):** write each to `skills/<name>/references/<guide-name>.md` as a focused standalone guide on its topic — not a summary of SKILL.md. SKILL.md points to it; it holds the detail. Structure every reference file per the OKF format below.
+**Reference files (if any):** write each to `skills/<name>/references/<guide-name>.md` as a focused standalone guide on its topic — not a summary of SKILL.md. SKILL.md points to it; it holds the detail. Structure every reference file per the OKF format below. Once the skill has **4+ reference files**, also write `references/index.md` (format below) and keep it current — SKILL.md can then point at the index instead of enumerating files inline.
 
 **Companion agent (if any):**
 ```
@@ -178,7 +178,9 @@ Keep the agent body short — the skill does the heavy lifting (the `skills:` ar
 
 ## Reference File Format (OKF)
 
-Reference files (Layer 1) follow the **Open Knowledge Format** — a domain-agnostic spec for knowledge concept documents. It applies *only* to files under `references/`. It does **not** touch `SKILL.md` or agent frontmatter: those keep the fields the Claude Code harness parses (`name`, `description`, control flags) exactly as §8 defines them. The harness never reads reference-file frontmatter, so OKF fields here are purely for discovery, indexing, and progressive disclosure.
+Reference files (Layer 1) follow the **Open Knowledge Format** — a domain-agnostic spec for knowledge concept documents. A skill's `references/` directory is treated as an OKF **bundle**: concept documents with frontmatter, an `index.md` per directory, optional `log.md`. OKF applies *only* to files under `references/`. It does **not** touch `SKILL.md` or agent frontmatter: those keep the fields the Claude Code harness parses (`name`, `description`, control flags) exactly as §8 defines them. The harness never reads reference-file frontmatter, so OKF fields here are purely for discovery, indexing, and progressive disclosure.
+
+Full spec (vendored): `~/.claude/skills/shared/okf-spec.md` — upstream: https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md
 
 **Frontmatter on each reference file** — YAML block at the top:
 
@@ -186,7 +188,7 @@ Reference files (Layer 1) follow the **Open Knowledge Format** — a domain-agno
 ---
 type: <concept kind>          # required, non-empty. e.g. "API Endpoint Schema", "Config Reference", "Example Set"
 title: <human-readable name>  # recommended
-description: <one sentence>    # recommended — feeds index.md and search snippets
+description: <one sentence>    # recommended — copied verbatim into index.md; keep it tight
 tags: [x, y, z]               # optional — cross-cutting categories
 timestamp: 2026-07-07T00:00:00Z  # optional — ISO 8601, last meaningful change
 resource: <uri>               # optional — the underlying asset; omit for abstract concepts
@@ -195,13 +197,30 @@ resource: <uri>               # optional — the underlying asset; omit for abst
 
 `type` is the only required field. Pick descriptive, self-explanatory values — it isn't a registered enum. Custom keys are allowed; consumers must preserve unknown keys.
 
-**Reserved filenames** (optional, per directory):
-- `references/index.md` — directory listing for progressive disclosure. **No frontmatter.** Markdown sections with bulleted links, each entry carrying the linked file's `description`. Add one once a skill has several reference files so the skill can point to the index instead of enumerating files inline.
-- `references/log.md` — change history, newest first. ISO `YYYY-MM-DD` date headings; entries are prose, optionally prefixed `Update` / `Creation` / `Deprecation`.
+**Index files** — the progressive-disclosure layer. Rules:
+
+- An `index.md` is required once a directory holds **4+ uncovered concept files** — its own files plus, recursively, those of any subdirectory *without* its own `index.md` (an indexed subdirectory covers its subtree and contributes zero; an unindexed one passes its files up to the parent's count). Four 2-file subdirs don't each need an index, but their parent sees 8 uncovered files and does — it lists the nested files directly by relative path. Below the threshold, SKILL.md routing suffices; an index is still legal anywhere.
+- **No frontmatter** in an index file. (Exception: the bundle root's `index.md` MAY carry a lone `okf_version: "0.1"` block.)
+- Body is nothing but sections of bulleted links. Concept files are grouped under a heading naming the group (often the shared `type`); subdirectories go under a `# Subdirectories` heading, each entry linking to the subdirectory's own `index.md`:
+
+```markdown
+# Endpoint Schemas
+
+* [Containers API](containers.md) - Request/response schemas for the container CRUD endpoints.
+* [Jobs API](jobs.md) - Schemas and state machine for the jobs endpoints.
+
+# Subdirectories
+
+* [examples](examples/index.md) - Worked request/response examples per endpoint.
+```
+
+- Entry format is exactly `* [Title](relative-path) - description`, alphabetical, where the description is the linked file's frontmatter `description` verbatim. Pointers only — never paste content into an index.
+
+**Cross-linking:** link related reference files with **file-relative** markdown paths (`[jobs](jobs.md)`, `[examples](../examples/curl.md)`). The spec also allows bundle-root-absolute `/...` links, but relative links render on GitHub and match Google's own reference bundles — use relative. A link to a not-yet-written file is legal, not an error.
+
+**Log file** (optional): `references/log.md` — change history, **newest first**. ISO `## YYYY-MM-DD` date headings; entries are prose bullets, conventionally prefixed `**Update**` / `**Creation**` / `**Deprecation**`.
 
 **Standard section headings** (conventional, use when they fit): `# Schema` (column/field descriptions), `# Examples` (concrete usage), `# Citations` (external sources backing the doc, at the end, numbered `[1] [text](url)`).
-
-Full spec: https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md
 
 ---
 

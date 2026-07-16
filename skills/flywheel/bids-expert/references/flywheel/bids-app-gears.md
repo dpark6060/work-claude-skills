@@ -1,11 +1,12 @@
 ---
 type: flywheel-gear
-title: BIDS-app gears (bids-mriqc, bids-fmriprep, …)
+title: "BIDS-app gears (bids-mriqc, bids-fmriprep, …)"
+description: "Downstream BIDS-app gears (bids-mriqc, bids-fmriprep, …): how they consume a curated dataset and the empty-/work/bids failure mode."
 tags: [flywheel, bids, bids-app, mriqc, fmriprep, downstream]
 source: bids-client flywheel_bids_app_toolkit 1.2.34 (context.py, prep.py, utils/query_flywheel.py)
 repo: https://gitlab.com/flywheel-io/scientific-solutions/gears/bids-apps
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # BIDS-app gears (bids-mriqc, bids-fmriprep, …)
 
 The gears that *consume* a curated BIDS dataset and run a containerized BIDS App (MRIQC,

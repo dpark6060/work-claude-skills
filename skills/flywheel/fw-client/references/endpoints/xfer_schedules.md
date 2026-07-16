@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Transfer API — Schedules
+description: Flywheel Transfer API (/xfer/) endpoint schemas covering scheduled import and export jobs.
+tags: [flywheel, xfer-api, schedules]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Transfer API (/xfer/) — Schedules
 
 Service: `xfer`  |  Tag: `Schedules`  |  Generated from OpenAPI spec.

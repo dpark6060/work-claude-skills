@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Annotations
+description: Flywheel Core API (/api/) endpoint schemas covering image and file annotations.
+tags: [flywheel, core-api, annotations]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — annotations
 
 Service: `core`  |  Tag: `annotations`  |  Generated from OpenAPI spec.

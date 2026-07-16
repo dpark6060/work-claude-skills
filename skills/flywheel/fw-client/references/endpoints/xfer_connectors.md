@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Transfer API — Connectors
+description: Flywheel Transfer API (/xfer/) endpoint schemas covering storage connectors.
+tags: [flywheel, xfer-api, connectors]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Transfer API (/xfer/) — Connectors
 
 Service: `xfer`  |  Tag: `Connectors`  |  Generated from OpenAPI spec.

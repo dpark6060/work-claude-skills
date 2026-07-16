@@ -1,13 +1,15 @@
 ---
 type: bids-datatype-reference
+title: "Anatomical Magnetic Resonance Imaging"
+description: "BIDS anatomical MRI (anat) datatype: suffix groups, allowed entities, legal extensions, and datatype-specific sidecar metadata."
 datatype: anat
 modality: mri
 display_name: Anatomical Magnetic Resonance Imaging
 tags: [anat, bids, mri]
 source: BIDS 1.11.2-dev / schema 1.3.0-dev
 generator: scripts/build_bids_reference.py
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # `anat` — Anatomical Magnetic Resonance Imaging
 
 Magnetic resonance imaging sequences designed to characterize static, anatomical features.

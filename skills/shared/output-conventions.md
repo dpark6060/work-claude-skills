@@ -1,3 +1,11 @@
+---
+type: Convention
+title: Output Conventions
+description: Where skills write their output files — the shared claude-work/ directory convention all skills must follow.
+tags: [skills, output, convention]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Output Conventions
 
 This file defines where skills write their output files. All skills must follow this convention — change it here, and all skills pick it up.

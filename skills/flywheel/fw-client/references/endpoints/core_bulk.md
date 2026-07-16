@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Bulk
+description: Flywheel Core API (/api/) endpoint schemas covering bulk operations (move, delete, tag) applied across containers.
+tags: [flywheel, core-api, bulk]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — bulk
 
 Service: `core`  |  Tag: `bulk`  |  Generated from OpenAPI spec.

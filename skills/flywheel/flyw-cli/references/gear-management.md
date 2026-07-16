@@ -1,3 +1,11 @@
+---
+type: CLI Reference
+title: Gear Management
+description: flyw gear commands for listing, uploading, exporting, installing, updating, and permissioning gears on a Flywheel site.
+tags: [flyw, cli, gear, management]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Gear Management
 
 Commands for listing, uploading, exporting, installing, updating, and permissioning gears on a Flywheel site.

@@ -1,13 +1,15 @@
 ---
 type: bids-datatype-reference
+title: "Intracranial electroencephalography"
+description: "BIDS intracranial EEG (ieeg) datatype: suffix groups, allowed entities, legal extensions, and datatype-specific sidecar metadata."
 datatype: ieeg
 modality: ieeg
 display_name: Intracranial electroencephalography
 tags: [bids, ieeg]
 source: BIDS 1.11.2-dev / schema 1.3.0-dev
 generator: scripts/build_bids_reference.py
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # `ieeg` — Intracranial electroencephalography
 
 Intracranial electroencephalography (iEEG) or electrocorticography (ECoG) data

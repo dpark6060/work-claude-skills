@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Storage
+description: Flywheel Core API (/api/) endpoint schemas covering storage backends.
+tags: [flywheel, core-api, storage]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — storage
 
 Service: `core`  |  Tag: `storage`  |  Generated from OpenAPI spec.

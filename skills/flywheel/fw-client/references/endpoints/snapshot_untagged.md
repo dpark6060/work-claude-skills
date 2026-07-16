@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Snapshot API — Untagged
+description: Flywheel Snapshot API (/snapshot/) endpoint schemas covering the project snapshot lifecycle (list, create, download, delete, access log).
+tags: [flywheel, snapshot-api, snapshots]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Snapshot API (/snapshot/) — untagged
 
 Service: `snapshot`  |  Tag: `untagged`  |  Generated from OpenAPI spec.

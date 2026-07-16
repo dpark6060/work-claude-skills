@@ -1,6 +1,10 @@
 ---
+type: Runbook
+title: Merge Conflict Resolution
 name: conflict-resolve
 description: How to detect, resolve, and push merge conflict fixes. Covers auto-resolve patterns and escalation for uncertain conflicts.
+tags: [pipeline, git, merge-conflict]
+timestamp: 2026-07-15T00:00:00Z
 ---
 
 # Merge Conflict Resolution

@@ -1,3 +1,11 @@
+---
+type: Endpoint Index
+title: Snapshot API Endpoints Index
+description: One-line-per-endpoint routing index for all Flywheel Snapshot API (/snapshot/) endpoints.
+tags: [flywheel, snapshot-api, index]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Snapshot API (/snapshot/) — Endpoints Index
 
 One line per endpoint. For full parameter details, read `endpoints/snapshot_<tag>.md`.

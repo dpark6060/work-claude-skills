@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Data View Executions
+description: Flywheel Core API (/api/) endpoint schemas covering data-view execution jobs.
+tags: [flywheel, core-api, data-view-executions]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — data_view_executions
 
 Service: `core`  |  Tag: `data_view_executions`  |  Generated from OpenAPI spec.

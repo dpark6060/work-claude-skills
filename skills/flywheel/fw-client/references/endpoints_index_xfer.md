@@ -1,3 +1,11 @@
+---
+type: Endpoint Index
+title: Transfer API Endpoints Index
+description: One-line-per-endpoint routing index for all Flywheel Transfer API (/xfer/) endpoints across 9 tags.
+tags: [flywheel, xfer-api, index]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Transfer API (/xfer/) — Endpoints Index
 
 One line per endpoint. For full parameter details, read `endpoints/xfer_<tag>.md`.

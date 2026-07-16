@@ -1,13 +1,15 @@
 ---
 type: bids-datatype-reference
+title: "Motion"
+description: "BIDS motion (motion) datatype: suffix groups, allowed entities, legal extensions, and datatype-specific sidecar metadata."
 datatype: motion
 modality: motion
 display_name: Motion
 tags: [bids, motion]
 source: BIDS 1.11.2-dev / schema 1.3.0-dev
 generator: scripts/build_bids_reference.py
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # `motion` — Motion
 
 Motion data from a tracking system

@@ -1,10 +1,12 @@
 ---
 type: bids-entity-glossary
+title: "BIDS entities (canonical order)"
+description: "Every BIDS entity with its key, format, meaning, and the canonical order it must appear in a filename."
 tags: [bids, entities, glossary]
 source: BIDS 1.11.2-dev / schema 1.3.0-dev
 generator: scripts/build_bids_reference.py
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # BIDS entities (canonical order)
 
 Every BIDS entity, in the order it must appear in a filename. Per-datatype pages say which of these are required/optional/forbidden for that datatype.

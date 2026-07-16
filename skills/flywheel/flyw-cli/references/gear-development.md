@@ -1,3 +1,11 @@
+---
+type: CLI Reference
+title: Gear Development
+description: flyw gear create/build/config/run/version commands covering the local gear development workflow from scaffold to upload.
+tags: [flyw, cli, gear, development]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Gear Development
 
 Local gear development workflow: create → build → config → run → debug → version bump → upload.

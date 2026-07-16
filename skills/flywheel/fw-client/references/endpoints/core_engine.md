@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Engine
+description: Flywheel Core API (/api/) endpoint schemas covering engine endpoints used by gear execution.
+tags: [flywheel, core-api, engine]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — engine
 
 Service: `core`  |  Tag: `engine`  |  Generated from OpenAPI spec.

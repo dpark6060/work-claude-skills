@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Resolve
+description: Flywheel Core API (/api/) endpoint schemas covering the container path resolver.
+tags: [flywheel, core-api, resolve]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — resolve
 
 Service: `core`  |  Tag: `resolve`  |  Generated from OpenAPI spec.

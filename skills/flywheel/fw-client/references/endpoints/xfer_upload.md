@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Transfer API — Upload
+description: Flywheel Transfer API (/xfer/) endpoint schemas covering transfer upload tickets.
+tags: [flywheel, xfer-api, upload]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Transfer API (/xfer/) — Upload
 
 Service: `xfer`  |  Tag: `Upload`  |  Generated from OpenAPI spec.

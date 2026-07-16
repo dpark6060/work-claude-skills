@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Viewer Configs
+description: Flywheel Core API (/api/) endpoint schemas covering viewer configurations.
+tags: [flywheel, core-api, viewer-configs]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — viewer_configs
 
 Service: `core`  |  Tag: `viewer_configs`  |  Generated from OpenAPI spec.

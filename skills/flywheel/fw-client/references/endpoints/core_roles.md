@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Roles
+description: Flywheel Core API (/api/) endpoint schemas covering site roles.
+tags: [flywheel, core-api, roles]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — roles
 
 Service: `core`  |  Tag: `roles`  |  Generated from OpenAPI spec.

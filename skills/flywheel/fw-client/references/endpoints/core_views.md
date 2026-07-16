@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Views
+description: Flywheel Core API (/api/) endpoint schemas covering data views.
+tags: [flywheel, core-api, views]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — views
 
 Service: `core`  |  Tag: `views`  |  Generated from OpenAPI spec.

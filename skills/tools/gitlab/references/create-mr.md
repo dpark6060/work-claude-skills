@@ -1,6 +1,10 @@
 ---
+type: Runbook
+title: Create GitLab MR
 name: gitlab-create-mr
 description: End-of-session workflow: run pre-commit, commit and push, create a draft GitLab MR with a description derived from the git diff.
+tags: [gitlab, mr, workflow]
+timestamp: 2026-07-15T00:00:00Z
 ---
 
 # Create GitLab MR

@@ -1,3 +1,11 @@
+---
+type: API Reference
+title: "API Reference: Forms, Form Responses & Viewer Configs"
+description: REST endpoints for reader task forms, form responses, and viewer configs (/api/forms, /api/formresponses, /api/viewerconfigs).
+tags: [reader-tasks, api, forms]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # API Reference: Forms, Form Responses & Viewer Configs
 
 Source: `fw-client` OpenAPI spec, tags `forms`, `form_responses`, `viewer_configs`.

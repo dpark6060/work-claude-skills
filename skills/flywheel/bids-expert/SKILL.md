@@ -36,8 +36,10 @@ it. The ground-truth hierarchy:
 
 ## Reference map — four areas
 
-Always begin with the master index (`references/INDEX.md`) — full file list + routing hints. The
-reference layer decomposes into four areas; load only what the task needs:
+Always begin with the reference index (`references/index.md`) — a progressive-disclosure listing
+of every file with a one-line description, plus links into the `bids/` and `flywheel/`
+subdirectory indexes. Use it to see what exists, then load only what the task needs. The reference
+layer decomposes into four areas:
 
 1. **Spec** (`references/bids/`) — the BIDS standard: per-datatype rules, entity glossary, filename
    grammar. Generated from the vendored schema; authoritative.
@@ -49,7 +51,26 @@ reference layer decomposes into four areas; load only what the task needs:
 4. **Code-debug depth** (`references/flywheel/code-index/` + `search_code.py`) — ground-truth source
    and real template rules when the overviews aren't enough.
 
-Read INDEX.md, pick the candidate pages, read only those, then answer with citations.
+Read `index.md`, pick the candidate pages, read only those, then answer with citations.
+
+### Routing quick-reference — question → files
+
+- "Is this a valid filename / what entities can X have?" → `bids/_filename-grammar.md` +
+  `bids/_entities.md` + the datatype page.
+- "What metadata does a T1w need?" → `bids/mri/anat.md` + `bids/mri/_common-metadata.md`.
+- "How do I rename acquisitions to curate?" → `flywheel/relabel-container-gear.md` +
+  `flywheel/curation-workflow.md` + `pull_relabel_skeleton.py`.
+- "Why didn't my file get curated?" → `flywheel/bids-client.md` (matching) +
+  `flywheel/curation-template.md`.
+- "How do I write/fix a curation template?" → `flywheel/authoring-templates.md` (+ `templates/` to
+  copy from, `search_code.py --kind template-rule` for real rules). **Always dry-run with
+  `simulate_template.py` before handing it over.**
+- "A whole project's curation failed / duplicate paths" → the diagnose-a-project playbook below +
+  `analyze_curation_report.py` + `fetch_deployed_template.py`.
+- "bids-mriqc / bids-fmriprep got an empty dataset" → `flywheel/bids-app-gears.md` (it's a
+  curation problem upstream — diagnose the project).
+- Deep "what does this function/rule actually do?" (overview not enough) →
+  `search_code.py "<terms>"` against the code index.
 
 ## Code depth — `search_code.py`
 
@@ -63,6 +84,12 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/search_code.py "<query>" [-k N] [--repo bids
 
 Prints ranked cards with location and source. Answer from the lean `.md` files first; drop
 into this only as a fallback.
+
+Scripts that hit a live instance (`pull_relabel_skeleton.py --project`,
+`fetch_deployed_template.py`) need the SDK — run them via
+`uv run --with flywheel-sdk [--with fw-client] [--with pandas] python ...`; the report-based and
+offline scripts are stdlib-only. Compose with `fw-client` / `flywheel-sdk` /
+`fw-instance-inspector` for auth.
 
 ## Task playbooks
 
@@ -82,7 +109,7 @@ For any live project, get the labels and current state from the cheapest source 
 Mining an existing report is free and carries curation context a fresh label pull doesn't.
 
 ### Answer a BIDS spec question
-INDEX → the datatype page (`references/bids/<modality>/<datatype>.md`) + `_entities.md` +
+index → the datatype page (`references/bids/<modality>/<datatype>.md`) + `_entities.md` +
 `_filename-grammar.md`. For metadata, also the modality `_common-metadata.md`. Cite the page.
 If it's an edge case the page doesn't cover, dig into `sources/bids-schema/`.
 

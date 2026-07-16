@@ -1,21 +1,24 @@
 ---
 name: project-init
 description: Scaffolds a new local "cowork-style" project directory in the current
-  working directory — sanctioned subdirectories (sources, notes, outputs, snippets,
-  scratch), a boilerplate CLAUDE.md with filing rules, an INDEX.md knowledge map for
-  lazy-loading sources and skills, and HANDOFF.md/WORKLOG.md for cross-session
-  continuity. Use whenever the user wants to start, set up, or
-  initialize a new project workspace for non-code work (research, docs, reports),
-  even if they don't say "project-init". MANDATORY TRIGGERS: new project, init a
-  project, set up a project, start a project, project directory, cowork project,
-  workspace for.
+  working directory, structured as an Open Knowledge Format (OKF) bundle — sanctioned
+  subdirectories (sources, notes, outputs, snippets, scratch) each with an index.md
+  for progressive disclosure, a boilerplate CLAUDE.md with OKF filing rules, a root
+  index.md knowledge map, and HANDOFF.md/log.md for cross-session continuity. Use
+  whenever the user wants to start, set up, or initialize a new project workspace for
+  non-code work (research, docs, reports), even if they don't say "project-init".
+  MANDATORY TRIGGERS: new project, init a project, set up a project, start a project,
+  project directory, cowork project, workspace for.
 ---
 
 # Project Init
 
 You are scaffolding a standardized "cowork-style" project directory: a terminal
 workspace for non-code work (source docs, summaries, snippets, reports) with a fixed
-structure and cross-session continuity files. All file content comes from
+structure and cross-session continuity files. The directory is an **OKF knowledge
+bundle** (spec: `~/.claude/skills/shared/okf-spec.md`): authored markdown files are
+concept documents with YAML frontmatter, every directory carries an `index.md`, and
+`log.md` records history. All file content comes from
 `${CLAUDE_SKILL_DIR}/references/templates.md` — read it before writing anything.
 
 ## Non-Negotiables
@@ -25,6 +28,8 @@ structure and cross-session continuity files. All file content comes from
 - Never overwrite: if `./<name>/` already exists, stop and tell the user.
 - Every scaffolded file is filled from the templates file. Don't improvise structure,
   add directories, or drop sections.
+- OKF reserved filenames are exact: `index.md` and `log.md`, lowercase. Index files
+  carry no frontmatter (the root `index.md` carries only `okf_version`).
 - No leftover `{{...}}` placeholders in any written file.
 - Always ask about git init (Step 5). Never assume either way.
 
@@ -37,7 +42,7 @@ You need two things. Ask only for what the invocation didn't already provide:
    the seed HANDOFF.md verbatim.
 
 Optionally: if the user named source material, relevant personal skills, or external
-references in the invocation, capture them — they become the first INDEX.md entries in
+references in the invocation, capture them — they become the first index entries in
 Step 4 instead of the `(none yet)` placeholders. Don't interrogate for them; only use
 what was volunteered.
 
@@ -52,20 +57,21 @@ what was volunteered.
 
 ```
 <name>/
-├── CLAUDE.md
-├── INDEX.md
-├── HANDOFF.md
-├── WORKLOG.md
+├── CLAUDE.md            # agent instructions (OKF concept, type: Agent Instructions)
+├── index.md             # bundle root index — the knowledge map
+├── HANDOFF.md           # OKF concept, type: Handoff
+├── log.md               # OKF update log, newest first
 ├── .gitignore
-├── sources/.gitkeep
-├── notes/.gitkeep
-├── outputs/.gitkeep
-├── snippets/.gitkeep
-└── scratch/.gitkeep
+├── sources/index.md
+├── notes/index.md
+├── outputs/index.md
+├── snippets/index.md
+└── scratch/.gitkeep     # scratch is never indexed
 ```
 
-Create the five subdirectories, each with a `.gitkeep` so git tracks the empty
-structure.
+Each content subdirectory gets its own `index.md` (which also keeps the empty
+directory tracked by git). Only `scratch/` uses a `.gitkeep` — it is disposable and
+never indexed.
 
 ## Step 4 — Write the files
 
@@ -79,8 +85,10 @@ project, filling the placeholders:
 | `{{DATE}}` | today, `YYYY-MM-DD` |
 
 If Step 1 captured initial sources, skills, or external references, write them as
-INDEX.md entries in the entry format the template defines, replacing the relevant
-`(none yet)` placeholders.
+index entries in the OKF entry format the templates define
+(`* [Title](path) - description. Load when: <trigger>.`), replacing the relevant
+`(none yet)` placeholders — sources into `sources/index.md`, skills and external
+references into the root `index.md`.
 
 ## Step 5 — Git
 
@@ -96,5 +104,5 @@ if they init later.
 ## Step 6 — Report
 
 Print the created tree and remind the user: start the next Claude session **inside**
-the new directory so its CLAUDE.md loads and the session protocol (read INDEX.md and
-HANDOFF.md, maintain WORKLOG.md) kicks in.
+the new directory so its CLAUDE.md loads and the session protocol (read index.md and
+HANDOFF.md, maintain the indexes and log.md) kicks in.

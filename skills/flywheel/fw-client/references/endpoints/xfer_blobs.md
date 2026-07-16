@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Transfer API — Blobs
+description: Flywheel Transfer API (/xfer/) endpoint schemas covering blob upload sessions and blob entries.
+tags: [flywheel, xfer-api, blobs]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Transfer API (/xfer/) — Blobs
 
 Service: `xfer`  |  Tag: `Blobs`  |  Generated from OpenAPI spec.

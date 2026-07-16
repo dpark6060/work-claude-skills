@@ -1,3 +1,11 @@
+---
+type: Runbook
+title: "Jira: Post End-of-Session Comment"
+description: Phased workflow for posting an end-of-session work-summary comment on the Jira ticket tied to the current branch.
+tags: [jira, comment, workflow]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Jira: Post End-of-Session Comment
 
 Post a work summary comment on the associated Jira ticket. Follow each phase in order.

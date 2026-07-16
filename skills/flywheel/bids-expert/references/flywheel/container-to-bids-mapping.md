@@ -1,10 +1,11 @@
 ---
 type: flywheel-concept
-title: Flywheel container ↔ BIDS mapping
+title: "Flywheel container ↔ BIDS mapping"
+description: "How Flywheel project/subject/session/acquisition/file containers map to BIDS and where info.BIDS metadata is stored."
 tags: [flywheel, bids, curation, containers, mapping]
 source: synthesized from bids-client 1.2.34 + curate-bids 2.2.20 + curation tutorial
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # Flywheel container ↔ BIDS mapping
 
 This is the bridge between the two models. Curation is the act of deciding, for every

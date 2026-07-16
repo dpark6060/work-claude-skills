@@ -1,11 +1,12 @@
 ---
 type: flywheel-gear
-title: curate-bids gear
+title: "curate-bids gear"
+description: "The curate-bids gear that runs bids-client curation across a project — inputs, config, outputs, and CSV reports."
 tags: [flywheel, bids, curation, gear, curate-bids]
 source: curate-bids 2.2.20 (bids-client 1.2.34) — /Users/davidparker/Documents/Flywheel/SSE/MyWork/Gears/Bids-Curator-gear/curate-bids
 repo: https://gitlab.com/flywheel-io/scientific-solutions/gears/curate-bids
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # curate-bids gear
 
 Runs [[bids-client]] curation across a Flywheel project (or subject/session, depending on where

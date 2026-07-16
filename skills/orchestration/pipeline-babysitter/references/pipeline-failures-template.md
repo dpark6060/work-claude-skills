@@ -1,6 +1,10 @@
 ---
+type: Template
+title: Pipeline Failures Template
 name: pipeline-failures-template
 description: Templates for creating pipeline_failures/ docs in a gear repo.
+tags: [pipeline, template, gear]
+timestamp: 2026-07-15T00:00:00Z
 ---
 
 # Pipeline Failures Template

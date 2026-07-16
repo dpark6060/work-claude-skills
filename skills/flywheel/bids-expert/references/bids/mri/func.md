@@ -1,13 +1,15 @@
 ---
 type: bids-datatype-reference
+title: "Task-Based Magnetic Resonance Imaging"
+description: "BIDS task-based / functional MRI (func) datatype: suffix groups, allowed entities, legal extensions, and datatype-specific sidecar metadata."
 datatype: func
 modality: mri
 display_name: Task-Based Magnetic Resonance Imaging
 tags: [bids, func, mri]
 source: BIDS 1.11.2-dev / schema 1.3.0-dev
 generator: scripts/build_bids_reference.py
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # `func` — Task-Based Magnetic Resonance Imaging
 
 Task (including resting state) imaging data

@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Collections
+description: Flywheel Core API (/api/) endpoint schemas covering collections — curated cross-project groupings of sessions and acquisitions.
+tags: [flywheel, core-api, collections]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — collections
 
 Service: `core`  |  Tag: `collections`  |  Generated from OpenAPI spec.

@@ -1,3 +1,11 @@
+---
+type: Config Reference
+title: instructionSet Reference
+description: The instructionSet config for attaching multiple independent annotation groups (labels, tools, instructions) to a single V2 form answer value.
+tags: [reader-tasks, v2, instructionset, annotations]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # instructionSet Reference
 
 `instructionSet` is an advanced alternative to the flat `requireMeasurements`/`measurementTools`

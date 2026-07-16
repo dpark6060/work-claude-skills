@@ -1,3 +1,11 @@
+---
+type: CLI Reference
+title: Admin Storage Commands
+description: flyw admin storage commands for registering, listing, and managing external cloud storages used by imports and exports (site admin only).
+tags: [flyw, cli, storage, admin]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Admin Storage Commands
 
 Manage external cloud storages registered for imports and exports. Requires site admin role.

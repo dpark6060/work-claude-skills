@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Transfer API — Rule Sets
+description: Flywheel Transfer API (/xfer/) endpoint schemas covering import rule sets.
+tags: [flywheel, xfer-api, rule-sets]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Transfer API (/xfer/) — Rule Sets
 
 Service: `xfer`  |  Tag: `Rule Sets`  |  Generated from OpenAPI spec.

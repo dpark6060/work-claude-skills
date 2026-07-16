@@ -1,3 +1,11 @@
+---
+type: Library Reference
+title: "fw-gear Basics: GearContext, Inputs, Outputs"
+description: The canonical run.py pattern and how to use GearContext for config, input files, destination container, outputs, logging, and the SDK client.
+tags: [fw-gear, gearcontext, gears, python]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # fw-gear Basics: GearContext, Inputs, Outputs
 
 ## Contents

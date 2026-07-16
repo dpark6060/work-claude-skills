@@ -1,13 +1,15 @@
 ---
 type: bids-datatype-reference
+title: "Diffusion-Weighted Imaging"
+description: "BIDS diffusion-weighted MRI (dwi) datatype: suffix groups, allowed entities, legal extensions, and datatype-specific sidecar metadata."
 datatype: dwi
 modality: mri
 display_name: Diffusion-Weighted Imaging
 tags: [bids, dwi, mri]
 source: BIDS 1.11.2-dev / schema 1.3.0-dev
 generator: scripts/build_bids_reference.py
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # `dwi` — Diffusion-Weighted Imaging
 
 Diffusion-weighted imaging (DWI).

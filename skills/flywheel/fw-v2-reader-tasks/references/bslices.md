@@ -1,3 +1,11 @@
+---
+type: Config Reference
+title: bSlices Reference
+description: The bSlices config that enables separate form responses per image slice in single-series DICOM V2 reader tasks, plus its limitations.
+tags: [reader-tasks, v2, bslices, dicom]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # bSlices Reference
 
 > **Before generating any bSlices config, confirm: is this a single-series DICOM task?**

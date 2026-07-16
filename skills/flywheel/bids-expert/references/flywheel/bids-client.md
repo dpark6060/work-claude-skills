@@ -1,11 +1,12 @@
 ---
 type: flywheel-tool
-title: bids-client (the matching engine)
+title: "bids-client (the matching engine)"
+description: "The bids-client matching engine — the curation algorithm, key source files, the upload/curate/export workflows, and gotchas."
 tags: [flywheel, bids, curation, bids-client, matching]
 source: bids-client 1.2.34 — /Users/davidparker/Documents/Flywheel/GitLab/public/bids-client
 repo: https://gitlab.com/flywheel-io/public/bids-client
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # bids-client (the matching engine)
 
 The library that actually does curation. It walks a Flywheel project, applies a

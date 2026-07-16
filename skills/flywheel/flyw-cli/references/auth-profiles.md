@@ -1,3 +1,11 @@
+---
+type: CLI Reference
+title: Authentication & Profiles
+description: flyw auth login/status/logout commands and profile management for switching between multiple Flywheel instances without re-authenticating.
+tags: [flyw, cli, auth, profiles]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Authentication & Profiles
 
 ## `auth login`

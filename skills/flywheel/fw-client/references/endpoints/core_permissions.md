@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Permissions
+description: Flywheel Core API (/api/) endpoint schemas covering container permissions and role assignment.
+tags: [flywheel, core-api, permissions]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — permissions
 
 Service: `core`  |  Tag: `permissions`  |  Generated from OpenAPI spec.

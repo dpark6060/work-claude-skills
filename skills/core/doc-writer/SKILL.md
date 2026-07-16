@@ -55,6 +55,17 @@ These are handled by the `code-writer` skill. If you find undocumented code whil
 
 ---
 
+## Knowledge Documents Follow OKF
+
+When the deliverable is a curated knowledge artifact — a reference doc, knowledge-base
+page, skill reference file, or any markdown corpus meant for agents to navigate — it
+follows the Open Knowledge Format: frontmatter with `type`, `title`, one-sentence
+`description`; an `index.md` per directory of docs. Spec:
+`~/.claude/skills/shared/okf-spec.md` — read it before writing that kind of output.
+READMEs, docstrings, and docs living inside a code repo are exempt.
+
+---
+
 ## Before Writing
 
 1. Read the code you're documenting — do not write docs from a description alone.

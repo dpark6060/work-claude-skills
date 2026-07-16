@@ -1,3 +1,11 @@
+---
+type: CLI Reference
+title: Job Commands
+description: flyw job commands for listing, running, and monitoring gear jobs on a Flywheel site.
+tags: [flyw, cli, job, gear]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Job Commands
 
 ## `job ls` — List Jobs

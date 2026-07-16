@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Tree
+description: Flywheel Core API (/api/) endpoint schemas covering container-tree traversal.
+tags: [flywheel, core-api, tree]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — tree
 
 Service: `core`  |  Tag: `tree`  |  Generated from OpenAPI spec.

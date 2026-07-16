@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Upload
+description: Flywheel Core API (/api/) endpoint schemas covering upload endpoints (label, UID, and reaper uploads).
+tags: [flywheel, core-api, upload]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — upload
 
 Service: `core`  |  Tag: `upload`  |  Generated from OpenAPI spec.

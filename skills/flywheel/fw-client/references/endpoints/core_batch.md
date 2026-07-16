@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Batch
+description: Flywheel Core API (/api/) endpoint schemas covering batch gear job runs across many containers.
+tags: [flywheel, core-api, batch]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — batch
 
 Service: `core`  |  Tag: `batch`  |  Generated from OpenAPI spec.

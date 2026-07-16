@@ -1,3 +1,11 @@
+---
+type: Viewer Config Reference
+title: V3 Viewer Configuration Reference (OHIF_V3)
+description: The V3 viewer config controlling the OHIF_V3 image viewer, embedded in protocol JSON or created as a standalone ViewerConfig object.
+tags: [reader-tasks, v3, viewer-config, ohif]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # V3 Viewer Configuration Reference (OHIF_V3)
 
 The V3 viewer config controls the OHIF_V3 image viewer appearance and behavior. It can be

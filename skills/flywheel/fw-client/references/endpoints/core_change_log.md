@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Change Log
+description: Flywheel Core API (/api/) endpoint schemas covering change-log history records.
+tags: [flywheel, core-api, change-log]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — change_log
 
 Service: `core`  |  Tag: `change_log`  |  Generated from OpenAPI spec.

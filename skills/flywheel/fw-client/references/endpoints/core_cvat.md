@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Cvat
+description: Flywheel Core API (/api/) endpoint schemas covering CVAT annotation-tool integration.
+tags: [flywheel, core-api, cvat]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — cvat
 
 Service: `core`  |  Tag: `cvat`  |  Generated from OpenAPI spec.

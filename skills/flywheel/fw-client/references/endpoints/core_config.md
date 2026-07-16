@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Config
+description: Flywheel Core API (/api/) endpoint schemas covering instance configuration.
+tags: [flywheel, core-api, config]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — config
 
 Service: `core`  |  Tag: `config`  |  Generated from OpenAPI spec.

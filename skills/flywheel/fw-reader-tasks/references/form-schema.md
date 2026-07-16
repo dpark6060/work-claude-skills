@@ -1,3 +1,11 @@
+---
+type: Form Schema Reference
+title: Form Schema Reference
+description: JSON schema for reader task forms in both V2 (formio) and V3 (Tasks Manager) generations, how to tell them apart, and how to migrate V2 to V3.
+tags: [reader-tasks, form-schema, v2, v3]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Form Schema Reference
 
 This document covers the JSON schema for reader task forms in both format generations.

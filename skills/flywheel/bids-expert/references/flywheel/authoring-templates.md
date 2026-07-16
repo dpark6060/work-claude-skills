@@ -1,10 +1,11 @@
 ---
 type: flywheel-howto
-title: Authoring a custom curation template
+title: "Authoring a custom curation template"
+description: "How to build or fix a custom curation template — the relabel-vs-template decision, extends:reproin plus rules, a worked example, disambiguation, and the test loop."
 tags: [flywheel, bids, curation, template, authoring, reproin]
 source: bids-client 1.2.34 templates (reproin.json, default.json) + supporting_files/templates.py, rule_check.py
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # Authoring a custom curation template
 
 The **how-to** for building/fixing a curation template. For *what the pieces are* (top-level keys,

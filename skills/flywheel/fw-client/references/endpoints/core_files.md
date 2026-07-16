@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Files
+description: Flywheel Core API (/api/) endpoint schemas covering file metadata, upload, download, and classification.
+tags: [flywheel, core-api, files]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — files
 
 Service: `core`  |  Tag: `files`  |  Generated from OpenAPI spec.

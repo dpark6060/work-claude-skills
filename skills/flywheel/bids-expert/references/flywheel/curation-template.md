@@ -1,10 +1,11 @@
 ---
 type: flywheel-concept
-title: The BIDS curation template
+title: "The BIDS curation template"
+description: "The curation template JSON structure — rules, definitions, where/initialize, and auto_update interpolation."
 tags: [flywheel, bids, curation, template, reproin]
 source: bids-client 1.2.34 (supporting_files/templates.py) + curation tutorial (dev_bids_template_file.md, dev_bids_template_engine.md)
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # The BIDS curation template
 
 A JSON document that tells the curation engine how to turn Flywheel container/file properties

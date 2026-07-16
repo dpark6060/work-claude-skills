@@ -1,3 +1,11 @@
+---
+type: Viewer Config Reference
+title: V2 Viewer Configuration Reference (Legacy OHIF Viewer)
+description: The separate viewer config JSON that controls the OHIF V2 image viewer's appearance and behavior for reader task viewer protocols.
+tags: [reader-tasks, v2, viewer-config, ohif]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # V2 Viewer Configuration Reference (Legacy OHIF Viewer)
 
 The V2 viewer config is a **separate JSON file** uploaded alongside the form when creating

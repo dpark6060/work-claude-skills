@@ -1,13 +1,15 @@
 ---
 type: bids-datatype-reference
+title: "Behavioral Data"
+description: "BIDS behavioral (beh) datatype: suffix groups, allowed entities, legal extensions, and datatype-specific sidecar metadata."
 datatype: beh
 modality: beh
 display_name: Behavioral Data
 tags: [beh, bids]
 source: BIDS 1.11.2-dev / schema 1.3.0-dev
 generator: scripts/build_bids_reference.py
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # `beh` — Behavioral Data
 
 Behavioral data.

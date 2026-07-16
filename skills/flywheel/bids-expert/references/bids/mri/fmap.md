@@ -1,13 +1,15 @@
 ---
 type: bids-datatype-reference
+title: "Field maps"
+description: "BIDS field map (fmap) datatype: suffix groups, allowed entities, legal extensions, and datatype-specific sidecar metadata."
 datatype: fmap
 modality: mri
 display_name: Field maps
 tags: [bids, fmap, mri]
 source: BIDS 1.11.2-dev / schema 1.3.0-dev
 generator: scripts/build_bids_reference.py
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # `fmap` — Field maps
 
 MRI scans for estimating B0 inhomogeneity-induced distortions.

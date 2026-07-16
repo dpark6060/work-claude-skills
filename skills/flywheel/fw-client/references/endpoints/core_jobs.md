@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Jobs
+description: Flywheel Core API (/api/) endpoint schemas covering gear jobs — querying, state changes, logs, and cancellation.
+tags: [flywheel, core-api, jobs]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — jobs
 
 Service: `core`  |  Tag: `jobs`  |  Generated from OpenAPI spec.

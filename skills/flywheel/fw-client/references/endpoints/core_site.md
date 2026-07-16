@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Site
+description: Flywheel Core API (/api/) endpoint schemas covering site-level settings and storage/compute providers.
+tags: [flywheel, core-api, site]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — site
 
 Service: `core`  |  Tag: `site`  |  Generated from OpenAPI spec.

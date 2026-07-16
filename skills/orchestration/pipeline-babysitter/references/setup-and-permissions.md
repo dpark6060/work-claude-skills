@@ -1,3 +1,11 @@
+---
+type: Setup Guide
+title: Pipeline Babysitter Setup & Permissions
+description: Permissions and directories to pre-approve so the pipeline babysitter loop runs without pausing for approval on every command.
+tags: [pipeline, permissions, setup]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Pipeline Babysitter — Setup & Permissions Guide
 
 The babysitter runs a polling loop and invokes shell tools, git, glab, and

@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: okf-lint
+        name: OKF conformance (skill references)
+        entry: python3 scripts/okf_lint.py
+        language: system
+        pass_filenames: false
+        files: ^skills/.*\.md$

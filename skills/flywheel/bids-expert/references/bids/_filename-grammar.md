@@ -1,10 +1,11 @@
 ---
 type: bids-concept
-title: BIDS filename grammar & dataset structure
+title: "BIDS filename grammar & dataset structure"
+description: "The general BIDS filename syntax — label vs index, directory structure, the inheritance principle, and sidecars."
 tags: [bids, filename, grammar, entities, structure]
 source: BIDS spec common principles (vendored schema rules/common_principles)
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # BIDS filename grammar & dataset structure
 
 The rules every BIDS filename and directory follows. Per-datatype pages say *which* entities and

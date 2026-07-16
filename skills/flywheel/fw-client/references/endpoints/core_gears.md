@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Gears
+description: Flywheel Core API (/api/) endpoint schemas covering gear definitions and the gear registry.
+tags: [flywheel, core-api, gears]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — gears
 
 Service: `core`  |  Tag: `gears`  |  Generated from OpenAPI spec.

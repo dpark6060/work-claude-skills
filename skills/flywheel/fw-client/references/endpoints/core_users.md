@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Users
+description: Flywheel Core API (/api/) endpoint schemas covering user accounts.
+tags: [flywheel, core-api, users]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — users
 
 Service: `core`  |  Tag: `users`  |  Generated from OpenAPI spec.

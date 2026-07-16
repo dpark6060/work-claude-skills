@@ -1,3 +1,11 @@
+---
+type: Format Specification
+title: Meeting Tickets Draft File Format
+description: Format of the dated draft file that meeting-tickets sweep writes and review reads back.
+tags: [meeting-tickets, draft, format]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Draft file format
 
 Both modes share this. `sweep` writes it, `review` reads it and writes ticket keys back.

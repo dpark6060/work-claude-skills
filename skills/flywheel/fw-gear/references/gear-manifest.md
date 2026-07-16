@@ -1,3 +1,11 @@
+---
+type: Library Reference
+title: fw-gear Manifest (manifest.json)
+description: The manifest.json structure — name rules, config and input fields, runtime directory layout, and the output metadata spec.
+tags: [fw-gear, manifest, gears]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # fw-gear Manifest (manifest.json)
 
 ## Contents

@@ -1,3 +1,11 @@
+---
+type: Runbook
+title: "Jira: Create a New Ticket"
+description: Phased workflow for creating a new ticket on the GEAR board, from gathering required fields to submission.
+tags: [jira, ticket, workflow]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Jira: Create a New Ticket
 
 Create a new ticket on the GEAR board. Follow each phase in order.

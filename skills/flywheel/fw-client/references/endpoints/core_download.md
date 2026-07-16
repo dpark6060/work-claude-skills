@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Download
+description: Flywheel Core API (/api/) endpoint schemas covering download tickets and bulk download.
+tags: [flywheel, core-api, download]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — download
 
 Service: `core`  |  Tag: `download`  |  Generated from OpenAPI spec.

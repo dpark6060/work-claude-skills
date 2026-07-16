@@ -1,3 +1,11 @@
+---
+type: Form Schema Reference
+title: V2 Form Schema Reference (Legacy)
+description: JSON schema for V2 (legacy) reader task forms using the formio studyForm.components structure rendered in the OHIF V2 viewer.
+tags: [reader-tasks, v2, form-schema, formio]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # V2 Form Schema Reference (Legacy — `studyForm.components`)
 
 This document covers the JSON schema for V2 (legacy) reader task forms. These use the

@@ -1,13 +1,15 @@
 ---
 type: bids-datatype-reference
+title: "Electromyography"
+description: "BIDS EMG (emg) datatype: suffix groups, allowed entities, legal extensions, and datatype-specific sidecar metadata."
 datatype: emg
 modality: emg
 display_name: Electromyography
 tags: [bids, emg]
 source: BIDS 1.11.2-dev / schema 1.3.0-dev
 generator: scripts/build_bids_reference.py
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # `emg` — Electromyography
 
 Measurements of muscular activity.

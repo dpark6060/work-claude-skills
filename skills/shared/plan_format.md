@@ -1,3 +1,11 @@
+---
+type: Plan Format
+title: Architecture Plan Format
+description: Canonical template for architecture plan files produced by code-architect and change-planner and consumed by code-architect-reviewer.
+tags: [architecture, plan, template]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Architecture Plan Format
 
 This is the canonical template for architecture plan files produced by the `code-architect` and `change-planner` skills and consumed by the `code-architect-reviewer` skill. All three must treat this as the source of truth.

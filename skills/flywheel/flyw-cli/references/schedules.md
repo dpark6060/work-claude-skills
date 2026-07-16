@@ -1,3 +1,11 @@
+---
+type: CLI Reference
+title: Import & Export Schedules
+description: flyw import/export schedule commands for running imports and exports once at a future time or periodically via cron.
+tags: [flyw, cli, schedules, cron]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Import & Export Schedules
 
 Both import and export support scheduling — run once at a future time or periodically via cron.

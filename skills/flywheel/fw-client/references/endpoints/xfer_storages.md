@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Transfer API — Storages
+description: Flywheel Transfer API (/xfer/) endpoint schemas covering transfer storage definitions.
+tags: [flywheel, xfer-api, storages]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Transfer API (/xfer/) — Storages
 
 Service: `xfer`  |  Tag: `Storages`  |  Generated from OpenAPI spec.

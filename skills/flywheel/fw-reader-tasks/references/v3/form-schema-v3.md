@@ -1,3 +1,11 @@
+---
+type: Form Schema Reference
+title: V3 Form Schema Reference (Tasks Manager)
+description: JSON schema for V3 reader task forms using the form.fields structure for the Tasks Manager and OHIF_V3 viewer.
+tags: [reader-tasks, v3, form-schema, tasks-manager]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # V3 Form Schema Reference (Tasks Manager — `form.fields`)
 
 This document covers the JSON schema for V3 reader task forms used with the Tasks Manager

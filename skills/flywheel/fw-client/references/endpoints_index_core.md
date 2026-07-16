@@ -1,3 +1,11 @@
+---
+type: Endpoint Index
+title: Core API Endpoints Index
+description: One-line-per-endpoint routing index for all Flywheel Core API (/api/) endpoints across 48 tags.
+tags: [flywheel, core-api, index]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — Endpoints Index
 
 One line per endpoint. For full parameter details, read `endpoints/core_<tag>.md`.

@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Custom Filters
+description: Flywheel Core API (/api/) endpoint schemas covering saved custom search filters.
+tags: [flywheel, core-api, custom-filters]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — custom_filters
 
 Service: `core`  |  Tag: `custom_filters`  |  Generated from OpenAPI spec.

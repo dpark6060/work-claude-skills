@@ -1,11 +1,12 @@
 ---
 type: flywheel-gear
-title: relabel-container gear (precuration)
+title: "relabel-container gear (precuration)"
+description: "The relabel-container precuration gear — renaming subject/session/acquisition labels via CSV so the template matches."
 tags: [flywheel, bids, curation, gear, relabel, precuration]
 source: relabel-container 0.6.1 — /Users/davidparker/Documents/Flywheel/SSE/MyWork/Gears/Bids_precurate_Gitlab/relabel-container
 repo: https://gitlab.com/flywheel-io/scientific-solutions/gears/relabel-container
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # relabel-container gear (precuration)
 
 Renames Flywheel container labels (subjects, sessions, acquisitions) so they match the naming a

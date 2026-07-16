@@ -1,9 +1,13 @@
 ---
+type: Reference
+title: Flywheel Gear Repo Conventions
 name: gear-repo-conventions
 description: >
   Flywheel gear repository structure, pre-commit hooks, CI patterns, and
   common pipeline failure causes. Load this on first check to understand
   the repo you're babysitting.
+tags: [pipeline, gear, conventions]
+timestamp: 2026-07-15T00:00:00Z
 ---
 
 # Flywheel Gear Repo Conventions

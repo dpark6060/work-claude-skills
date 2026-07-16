@@ -1,3 +1,11 @@
+---
+type: Best Practices Guide
+title: Claude Skills Best Practices
+description: Canonical rulebook for authoring skills — token efficiency, lean SKILL.md, progressive disclosure, and consistent behavior.
+tags: [skills, best-practices, tokens]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Claude Skills Best Practices
 ### Minimizing Token Usage & Creating Consistent Behavior
 
@@ -83,8 +91,8 @@ subdirectories. All are optional — add one only when the skill needs it. Don't
 
 | Subdir | Holds | Loading | Index? |
 |---|---|---|---|
-| `references/` | Detailed agent-ready markdown, split by topic/domain | Lazy — zero tokens until read | Only past ~8–10 files |
-| `sources/` | Raw data (API dumps, large JSON/CSV) too costly to load casually | Lazy — high token cost, dig in only when needed | Only past ~8–10 files |
+| `references/` | Detailed agent-ready markdown, split by topic/domain | Lazy — zero tokens until read | OKF `index.md` at 4+ uncovered files |
+| `sources/` | Raw data (API dumps, large JSON/CSV) too costly to load casually | Lazy — high token cost, dig in only when needed | OKF `index.md` at 4+ uncovered files |
 | `scripts/` | Executable code Claude **runs**, not reads | Token-free — executed, never loaded | **Never** — describe at call site |
 | `server/` | Long-running / hosted processes (e.g. MCP servers) | Started, not loaded | **Never** — describe at call site |
 | `cache/` | Runtime/generated state a script writes and later reads | Not loaded — runtime only | n/a — gitignored, never committed |
@@ -93,9 +101,9 @@ subdirectories. All are optional — add one only when the skill needs it. Don't
 ```
 skills/<category>/<skill-name>/
 ├── SKILL.md            # the only file in the base dir
-├── references/         # topic docs, lazy-loaded; index.md only past ~8–10 files
+├── references/         # OKF concept docs, lazy-loaded; index.md at 4+ uncovered files
 │   └── <topic>.md
-├── sources/            # raw data; high token cost; index.md only past ~8–10 files
+├── sources/            # raw data; high token cost; index.md at 4+ uncovered files
 ├── scripts/            # run via ${CLAUDE_SKILL_DIR}/scripts/...; never indexed
 ├── server/             # long-running processes (MCP servers); never indexed
 ├── cache/              # runtime state a script generates; gitignored, never committed
@@ -109,13 +117,33 @@ what loads — per §3, only the SKILL.md body loads on trigger, references/sour
 until read, and scripts/server never load. The subdirs buy authoring consistency, not fewer
 tokens. The one real token lever is `index.md`, and it cuts both ways (below).
 
-**`index.md` — `references/` and `sources/` only, and only at scale.** SKILL.md is the index by
-default: it lists the files and says *when* to load each ("writing a new gear? load
-gear-basics.md"). Add an `index.md` only once a folder grows past ~8–10 files and enumerating
-them inline would bloat SKILL.md. Below that, an index is a redundant read hop and a second
-thing to keep in sync. Keep it a pure pointer list (filename + one line) — an index that holds
-content Claude actually needs creates the `SKILL.md → index.md → file` two-hop that §5 and §11
-warn against.
+**Reference files follow OKF (Open Knowledge Format).** A skill's `references/` directory is an
+OKF knowledge bundle. Full spec is vendored at `~/.claude/skills/shared/okf-spec.md`; the rules
+that matter here:
+
+- Every reference file starts with YAML frontmatter: `type` (required, e.g. `Config Reference`,
+  `API Endpoint Schema`), plus `title` and a **one-sentence** `description` — the description is
+  copied verbatim into `index.md`, so keep it tight. Optional: `tags`, `timestamp`, `resource`.
+  This applies *only* under `references/` — `SKILL.md` and agent frontmatter keep the harness
+  fields (`name`, `description`, control flags) exactly as §8 defines.
+- A directory needs an `index.md` once it holds **4+ uncovered concept files** — its own files
+  plus, recursively, those of any subdirectory *without* its own `index.md` (an indexed
+  subdirectory covers its subtree and contributes zero; an unindexed one passes its files up to
+  the parent's count). So four 2-file subdirs don't each need an index, but their parent sees 8
+  uncovered files and does — listing the nested files directly by relative path. Below the
+  threshold, SKILL.md routing suffices; an index is still legal anywhere. Index format: **no
+  frontmatter**, body is nothing but headings with `* [Title](relative-path) - description`
+  bullets, alphabetical. Concepts group under a heading naming the group; indexed subdirectories
+  go under `# Subdirectories`, each linking to the subdirectory's own `index.md`.
+- Optional `log.md` per directory for change history: `## YYYY-MM-DD` headings, newest first.
+- Cross-link related reference files with file-relative markdown links; conventional section
+  headings are `# Schema`, `# Examples`, `# Citations` (numbered `[1] [text](url)`, at the end).
+
+**`index.md` is an enumeration layer, not a routing layer.** SKILL.md still owns routing: it
+says *when* to load which reference ("writing a new gear? load gear-basics.md") and can point
+at `references/index.md` instead of enumerating a large folder inline. Keep every index a pure
+pointer list — an index that holds content Claude actually needs creates the
+`SKILL.md → index.md → file` two-hop that §5 and §11 warn against.
 
 **`scripts/` and `server/` are described at their call site, never indexed.** The caller doesn't
 browse to pick a script — it needs the invocation contract (args in, what it writes/returns, exit

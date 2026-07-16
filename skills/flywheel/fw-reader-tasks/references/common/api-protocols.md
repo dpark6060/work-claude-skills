@@ -1,3 +1,11 @@
+---
+type: API Reference
+title: "API Reference: Read Task Protocols"
+description: REST endpoints for read task protocols (/api/read_task_protocols), the unit that joins a form and viewer config and that tasks are created from.
+tags: [reader-tasks, api, protocols]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # API Reference: Read Task Protocols (`/api/read_task_protocols`)
 
 Source: `fw-client` OpenAPI spec, tag `read_task_protocols`.

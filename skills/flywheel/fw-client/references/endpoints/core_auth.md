@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Auth
+description: Flywheel Core API (/api/) endpoint schemas covering authentication — login, API keys, tokens, and status.
+tags: [flywheel, core-api, auth]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — auth
 
 Service: `core`  |  Tag: `auth`  |  Generated from OpenAPI spec.

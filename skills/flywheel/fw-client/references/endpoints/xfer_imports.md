@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Transfer API — Imports
+description: Flywheel Transfer API (/xfer/) endpoint schemas covering data import jobs.
+tags: [flywheel, xfer-api, imports]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Transfer API (/xfer/) — Imports
 
 Service: `xfer`  |  Tag: `Imports`  |  Generated from OpenAPI spec.

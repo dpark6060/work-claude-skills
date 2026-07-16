@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Transfer API — Conflicts
+description: Flywheel Transfer API (/xfer/) endpoint schemas covering import/export conflict resolution.
+tags: [flywheel, xfer-api, conflicts]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Transfer API (/xfer/) — Conflicts
 
 Service: `xfer`  |  Tag: `Conflicts`  |  Generated from OpenAPI spec.

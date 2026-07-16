@@ -94,6 +94,16 @@ Follow these phases in order. Use the Task tool to track progress through each p
     - Review findings and how they were resolved
     - Open questions or items the user should verify
 
+## Knowledge Corpora Follow OKF
+
+When the deliverable is a knowledge corpus for agents or internal reference (not pages
+for a docs platform with its own format rules), the output follows the Open Knowledge
+Format — spec: `~/.claude/skills/shared/okf-spec.md`. Each page gets YAML frontmatter
+(`type` required, `title`, one-sentence `description`), each output directory gets an
+`index.md` of `* [Title](path) - description` entries. Include these requirements in
+the sub-agent prompts and verify them in the Phase 5 coherence review. Published
+user-docs (Flywheel docs site, MkDocs/portal content) keep their platform's format.
+
 ## Domain Skill Detection
 
 Scan the task content for keywords to determine which domain skills each section needs. When a skill is needed, read its SKILL.md and the specific reference files relevant to the section, then include key patterns in the sub-agent prompt.

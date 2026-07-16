@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Jupyterlab Servers
+description: Flywheel Core API (/api/) endpoint schemas covering JupyterLab server sessions.
+tags: [flywheel, core-api, jupyterlab-servers]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — jupyterlab_servers
 
 Service: `core`  |  Tag: `jupyterlab_servers`  |  Generated from OpenAPI spec.

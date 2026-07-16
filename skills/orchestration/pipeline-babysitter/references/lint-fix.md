@@ -1,9 +1,13 @@
 ---
+type: Runbook
+title: Lint & Export Fix
 name: lint-fix
 description: >
   How to fix linting and export failures in a Flywheel gear pipeline.
   All linting AND requirements/pyproject exports are pre-commit hooks —
   a single pre-commit run handles everything.
+tags: [pipeline, lint, pre-commit]
+timestamp: 2026-07-15T00:00:00Z
 ---
 
 # Lint & Export Fix

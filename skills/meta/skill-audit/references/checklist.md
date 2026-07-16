@@ -1,3 +1,11 @@
+---
+type: Checklist
+title: Skill Audit Checklist
+description: Category-by-category checklist for auditing a skill's description, token efficiency, progressive disclosure, and behavioral consistency.
+tags: [skill, audit, checklist]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Skill Audit Checklist
 
 Work through every category. Only flag genuine issues — a well-written section
@@ -175,6 +183,40 @@ These aren't in the official docs but come from real usage at scale.
 **🟢 Flag if:** Skill clearly benefits from learnings capture (external APIs, variable failure modes, repeated runs with non-obvious behavior). Skip for simple/deterministic skills.
 **🟡 Flag if:** MCP tools referenced without server prefix.
 **🟢 Flag if:** Skill covers multiple distinct domains and could be profitably split.
+
+---
+
+## 7. OKF conformance (references/ and sources/)
+
+Reference files follow the Open Knowledge Format — spec vendored at
+`~/.claude/skills/shared/okf-spec.md`, summary in best-practices §2. Applies only
+under `references/` (and `sources/` indexes); SKILL.md and agent frontmatter are
+exempt (the harness owns those fields).
+
+**Check:**
+- [ ] Does every `references/*.md` (except `index.md`/`log.md`) open with YAML
+      frontmatter carrying a non-empty `type`?
+- [ ] Do concepts have `title` and a one-sentence `description`? (The description
+      feeds index entries verbatim — flag multi-sentence or missing ones.)
+- [ ] Does every directory with 4+ uncovered concept files have an `index.md`?
+      (Uncovered = own files plus, recursively, files of subdirectories lacking
+      their own index — an indexed subdirectory contributes zero. Run
+      `python3 <repo>/scripts/okf_lint.py` rather than counting by hand.)
+- [ ] Are index files clean: no frontmatter, only headings +
+      `* [Title](relative-path) - description` bullets, subdirectories under
+      `# Subdirectories` linking to `subdir/index.md`?
+- [ ] Do index entry descriptions match the linked files' frontmatter descriptions?
+- [ ] Is `log.md` (if present) newest-first with `## YYYY-MM-DD` headings?
+- [ ] Are cross-links file-relative (not absolute filesystem paths)?
+- [ ] Legacy artifacts: an uppercase `INDEX.md`, or index files carrying content
+      instead of pointers?
+
+**🔴 Flag if:** Reference files have no frontmatter at all, or an `INDEX.md`/index
+              exists in a non-OKF format.
+**🟡 Flag if:** Frontmatter exists but `type` is missing/empty, or a directory
+              over the 4-uncovered-file threshold has no `index.md`.
+**🟢 Flag if:** Descriptions are missing/multi-sentence, or index entries have
+              drifted from frontmatter descriptions.
 
 ---
 

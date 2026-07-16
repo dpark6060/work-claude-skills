@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Projects
+description: Flywheel Core API (/api/) endpoint schemas covering project containers.
+tags: [flywheel, core-api, projects]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — projects
 
 Service: `core`  |  Tag: `projects`  |  Generated from OpenAPI spec.

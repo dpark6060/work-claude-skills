@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Forms
+description: Flywheel Core API (/api/) endpoint schemas covering form definitions.
+tags: [flywheel, core-api, forms]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — forms
 
 Service: `core`  |  Tag: `forms`  |  Generated from OpenAPI spec.

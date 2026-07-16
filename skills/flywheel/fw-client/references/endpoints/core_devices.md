@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Devices
+description: Flywheel Core API (/api/) endpoint schemas covering devices and device keys.
+tags: [flywheel, core-api, devices]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — devices
 
 Service: `core`  |  Tag: `devices`  |  Generated from OpenAPI spec.

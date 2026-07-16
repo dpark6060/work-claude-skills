@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Reader Tasks
+description: Flywheel Core API (/api/) endpoint schemas covering reader tasks (task-based workflows).
+tags: [flywheel, core-api, reader-tasks]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — reader_tasks
 
 Service: `core`  |  Tag: `reader_tasks`  |  Generated from OpenAPI spec.

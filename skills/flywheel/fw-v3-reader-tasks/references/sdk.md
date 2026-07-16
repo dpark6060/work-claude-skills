@@ -1,3 +1,11 @@
+---
+type: SDK Reference
+title: V3 Reader Tasks — SDK & API Reference
+description: Querying and managing V3 reader task protocols and tasks programmatically via the Flywheel Python SDK (protocols_api and reader tasks).
+tags: [reader-tasks, v3, sdk, python]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # V3 Reader Tasks — SDK & API Reference
 
 Querying and working with reader tasks and protocols programmatically via the Flywheel Python SDK.

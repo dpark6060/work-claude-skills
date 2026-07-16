@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Sessions
+description: Flywheel Core API (/api/) endpoint schemas covering session containers.
+tags: [flywheel, core-api, sessions]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — sessions
 
 Service: `core`  |  Tag: `sessions`  |  Generated from OpenAPI spec.

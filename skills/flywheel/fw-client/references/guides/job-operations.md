@@ -1,3 +1,11 @@
+---
+type: Operation Guide
+title: Job Operations
+description: Multi-step patterns for querying, filtering, and bulk-modifying Flywheel jobs via fw-client (filters, bulk cancel, batch cancel, pagination).
+tags: [flywheel, jobs, guide]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Job Operations Guide
 
 Reference for querying, filtering, and bulk-modifying Flywheel jobs via fw-client.

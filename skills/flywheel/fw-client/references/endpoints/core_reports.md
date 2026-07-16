@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Reports
+description: Flywheel Core API (/api/) endpoint schemas covering reports (usage, access, and site activity).
+tags: [flywheel, core-api, reports]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — reports
 
 Service: `core`  |  Tag: `reports`  |  Generated from OpenAPI spec.

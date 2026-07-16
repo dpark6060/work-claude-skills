@@ -1,3 +1,10 @@
+---
+type: flywheel-reference
+title: "Vendored base curation templates"
+description: "The full shipped reproin/bids-v1/default curation templates, with version caveats for grounding against a live instance."
+tags: [flywheel, bids, curation, templates]
+timestamp: 2026-07-15T00:00:00Z
+---
 # Vendored base curation templates
 
 The full, shipped BIDS curation templates from `bids-client`, copied here so the real files are

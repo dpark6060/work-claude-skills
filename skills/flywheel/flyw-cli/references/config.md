@@ -1,3 +1,11 @@
+---
+type: CLI Reference
+title: CLI Configuration
+description: flyw config commands, the configuration source priority order, and the full catalog of CLI configuration options.
+tags: [flyw, cli, config]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # CLI Configuration
 
 ## Configuration Sources (priority order)

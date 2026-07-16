@@ -1,3 +1,11 @@
+---
+type: API Reference
+title: "API Reference: Reader Tasks"
+description: REST endpoints for reader tasks (/api/readertasks) — listing, filtering, and managing task assignments and status.
+tags: [reader-tasks, api, tasks]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # API Reference: Reader Tasks (`/api/readertasks`)
 
 Source: `fw-client` OpenAPI spec, tag `reader_tasks`.

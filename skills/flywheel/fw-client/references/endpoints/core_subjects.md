@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Subjects
+description: Flywheel Core API (/api/) endpoint schemas covering subject containers.
+tags: [flywheel, core-api, subjects]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — subjects
 
 Service: `core`  |  Tag: `subjects`  |  Generated from OpenAPI spec.

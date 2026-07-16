@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Read Task Protocols
+description: Flywheel Core API (/api/) endpoint schemas covering reader-task protocols.
+tags: [flywheel, core-api, read-task-protocols]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — read_task_protocols
 
 Service: `core`  |  Tag: `read_task_protocols`  |  Generated from OpenAPI spec.

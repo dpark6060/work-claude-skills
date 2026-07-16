@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Modalities
+description: Flywheel Core API (/api/) endpoint schemas covering imaging modalities.
+tags: [flywheel, core-api, modalities]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — modalities
 
 Service: `core`  |  Tag: `modalities`  |  Generated from OpenAPI spec.

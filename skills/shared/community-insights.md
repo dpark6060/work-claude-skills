@@ -1,3 +1,11 @@
+---
+type: Field Notes
+title: "Community Insights: Real-World Skill Patterns"
+description: Field reports and practitioner-discovered patterns for building, optimizing, and debugging skills — companion to the canonical best-practices guide.
+tags: [skills, community, optimization]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Community Insights: Real-World Skill Patterns
 
 > Companion to `claude-skills-best-practices.md`. That doc is the canonical rulebook (official

@@ -1,6 +1,10 @@
 ---
+type: Runbook
+title: Pipeline Status & Failure Classification
 name: pipeline-status
 description: How to check pipeline status, retrieve job logs, and classify failure types.
+tags: [pipeline, gitlab, diagnostics]
+timestamp: 2026-07-15T00:00:00Z
 ---
 
 # Pipeline Status & Failure Classification

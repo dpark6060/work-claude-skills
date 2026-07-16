@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Containers
+description: Flywheel Core API (/api/) endpoint schemas covering generic operations that work across any container type.
+tags: [flywheel, core-api, containers]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — containers
 
 Service: `core`  |  Tag: `containers`  |  Generated from OpenAPI spec.

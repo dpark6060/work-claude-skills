@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Groups
+description: Flywheel Core API (/api/) endpoint schemas covering group containers.
+tags: [flywheel, core-api, groups]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — groups
 
 Service: `core`  |  Tag: `groups`  |  Generated from OpenAPI spec.

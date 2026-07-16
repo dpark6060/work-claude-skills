@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Analyses
+description: Flywheel Core API (/api/) endpoint schemas covering analysis containers and their inputs, outputs, and notes.
+tags: [flywheel, core-api, analyses]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — analyses
 
 Service: `core`  |  Tag: `analyses`  |  Generated from OpenAPI spec.

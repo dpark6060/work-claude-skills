@@ -1,3 +1,11 @@
+---
+type: Viewer Config Reference
+title: V3 Viewer Configuration Reference
+description: Reference for viewer_config in V3 reader task protocols — labels, file browser, and where the config lives for protocols versus projects.
+tags: [reader-tasks, v3, viewer-config]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # V3 Viewer Configuration Reference
 
 Reference for `viewer_config` in V3 reader task protocols.

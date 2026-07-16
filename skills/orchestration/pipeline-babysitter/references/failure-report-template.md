@@ -1,9 +1,13 @@
 ---
+type: Template
+title: Failure Report Template
 name: failure-report-template
 description: >
   Format definition for the failure-report.md written by the babysitter
   before dispatching to a sub-agent. Sub-agents read this file as their
   sole source of context.
+tags: [pipeline, template, sub-agent]
+timestamp: 2026-07-15T00:00:00Z
 ---
 
 # Failure Report Template

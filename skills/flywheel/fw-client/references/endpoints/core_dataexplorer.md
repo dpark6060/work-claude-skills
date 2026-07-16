@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Dataexplorer
+description: Flywheel Core API (/api/) endpoint schemas covering Data Explorer search.
+tags: [flywheel, core-api, dataexplorer]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — dataexplorer
 
 Service: `core`  |  Tag: `dataexplorer`  |  Generated from OpenAPI spec.

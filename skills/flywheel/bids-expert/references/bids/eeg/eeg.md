@@ -1,13 +1,15 @@
 ---
 type: bids-datatype-reference
+title: "Electroencephalography"
+description: "BIDS EEG (eeg) datatype: suffix groups, allowed entities, legal extensions, and datatype-specific sidecar metadata."
 datatype: eeg
 modality: eeg
 display_name: Electroencephalography
 tags: [bids, eeg]
 source: BIDS 1.11.2-dev / schema 1.3.0-dev
 generator: scripts/build_bids_reference.py
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # `eeg` — Electroencephalography
 
 Electroencephalography

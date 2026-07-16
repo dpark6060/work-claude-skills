@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Acquisitions
+description: Flywheel Core API (/api/) endpoint schemas covering acquisition containers — list, create, update, delete, and manage the lowest-level data container.
+tags: [flywheel, core-api, acquisitions]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — acquisitions
 
 Service: `core`  |  Tag: `acquisitions`  |  Generated from OpenAPI spec.

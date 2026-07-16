@@ -1,3 +1,11 @@
+---
+type: Library Reference
+title: fw-gear Utils
+description: fw-gear utility helpers — exec_command, ZIP archives, SDK retry, launching child gears, FreeSurfer license, resource monitoring, and Nipype integration.
+tags: [fw-gear, utils, gears]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # fw-gear Utils
 
 ## Contents

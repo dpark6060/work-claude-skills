@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Audit Trail
+description: Flywheel Core API (/api/) endpoint schemas covering audit-trail activity records.
+tags: [flywheel, core-api, audit-trail]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — audit_trail
 
 Service: `core`  |  Tag: `audit_trail`  |  Generated from OpenAPI spec.

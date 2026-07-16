@@ -1,9 +1,10 @@
 ---
 type: maintainer-notes
-title: bids-expert — maintenance notes, design decisions, known gaps
+title: "bids-expert — maintenance notes, design decisions, known gaps"
+description: "Maintainer notes for the skill: v1 design decisions, known gaps, and how to regenerate the spec pages and code index."
 tags: [maintenance, roadmap, internal]
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # bids-expert — maintenance notes
 
 Internal notes for whoever maintains this skill. Not part of the answer path — the skill

@@ -1,3 +1,11 @@
+---
+type: CLI Reference
+title: Export Commands
+description: flyw export commands for exporting project data to external cloud storage, covering rules, snapshots, rule sets, and output behavior.
+tags: [flyw, cli, export]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Export Commands
 
 Export data from a Flywheel project to external cloud storage. Exports run server-side via the connector service.

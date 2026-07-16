@@ -1,3 +1,11 @@
+---
+type: API Endpoint Schema
+title: Core API — Uids
+description: Flywheel Core API (/api/) endpoint schemas covering DICOM UID mapping.
+tags: [flywheel, core-api, uids]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # Flywheel Core API (/api/) — uids
 
 Service: `core`  |  Tag: `uids`  |  Generated from OpenAPI spec.

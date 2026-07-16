@@ -1,3 +1,11 @@
+---
+type: Library Reference
+title: fw-gear Metadata
+description: Writing metadata back to Flywheel containers and files via .metadata.json (no SDK) and SDK methods, including QC results and file tags.
+tags: [fw-gear, metadata, qc, gears]
+timestamp: 2026-07-15T00:00:00Z
+---
+
 # fw-gear Metadata
 
 ## Contents

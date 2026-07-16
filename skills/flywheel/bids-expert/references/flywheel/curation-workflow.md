@@ -1,11 +1,12 @@
 ---
 type: flywheel-workflow
-title: End-to-end BIDS curation workflow
+title: "End-to-end BIDS curation workflow"
+description: "The end-to-end BIDS curation pipeline on Flywheel: prep, precurate, curate, and validate."
 tags: [flywheel, bids, curation, workflow, pipeline]
 source: curation tutorial — /Users/davidparker/Documents/Flywheel/GitLab/product/documentation/docs/Developer_Guides/bids
 repo: https://gitlab.com/flywheel-io/product/documentation/-/tree/master/docs/Developer_Guides/bids
+timestamp: 2026-07-15T00:00:00Z
 ---
-
 # End-to-end BIDS curation workflow
 
 The full pipeline to get a Flywheel project into BIDS: **prep → (precurate) → curate → validate**.

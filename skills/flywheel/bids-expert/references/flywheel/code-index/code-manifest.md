@@ -1,3 +1,10 @@
+---
+type: Code Manifest
+title: "Flywheel code index — provenance"
+description: "Provenance for the code index — source repos, commit SHAs, card counts, and how to regenerate."
+tags: [flywheel, code-index, provenance]
+timestamp: 2026-07-15T00:00:00Z
+---
 # Flywheel code index — provenance
 
 Total cards: **487**. Ground-truth source/template snippets, no LLM paraphrase.

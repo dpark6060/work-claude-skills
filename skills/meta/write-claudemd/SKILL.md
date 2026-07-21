@@ -13,6 +13,21 @@ a vague overview.
 Read the entire codebase before writing. Do not guess or generalize. Every claim in the file must
 be verifiable from the code, config files, or project metadata.
 
+## The first-line rule (highest priority)
+
+The **primary purpose of the project must be stated in the first line(s) of the file**, immediately
+under the `# <title>` heading, before anything else. State it specifically enough that a reader
+knows what the project *is* and could catch a misread in one sentence. A vague label is a failure —
+it is worse than nothing, because it looks like an answer.
+
+- Good: `A Flywheel gear that converts DICOM series to NIfTI and writes BIDS-valid filenames back to
+  the acquisition.`
+- Bad: `DICOM tool.` — or the repo name restated, or a category with no scope.
+
+This is the single fact a reader is most likely to need and most likely to get wrong by inference
+if it's missing. It leads the file for that reason. (Downstream skills that generate other flavors
+of CLAUDE.md — e.g. `project-init` for cowork projects — inherit this rule.)
+
 ## Required sources to read
 
 Before writing anything, explore and read ALL of the following:
@@ -51,7 +66,9 @@ understand the business logic without reading the code.
 
 Must include:
 
-- **One-line summary**: What this thing is (not marketing copy — a factual description).
+- **One-line summary**: What this thing is (not marketing copy — a factual description). This is
+  the first-line-rule statement above; it must literally be the first line under the title, not
+  buried later in the section.
 - **What it does**: Numbered list of the full pipeline/workflow steps. Be specific:
   - Name the exact data sources (e.g., "reads from `session.info['series-metadata']`" not just
     "extracts metadata")
@@ -168,3 +185,5 @@ Do NOT include:
 7. **The data flow diagram is mandatory and non-negotiable**. This is the single highest-value
    piece of the document. Trace the real call chain from entry point to completion. Every method
    name must exist in the code.
+8. **Purpose leads the file**. The first line under the title states the project's primary purpose,
+   specifically. See "The first-line rule" above — this is non-negotiable.

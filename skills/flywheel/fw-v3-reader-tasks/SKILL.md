@@ -39,7 +39,19 @@ Once created, the protocol is edited in the **UI protocol editor**, which works 
 | `completion_tags` | Tags applied to container on task completion |
 | `workflow` | Optional — single or adjudication |
 
-`label`, `task_type`, `group_id`, and `protocol_config` (including `longitudinal`) are **not part of the editor JSON** — they are set separately via the UI or API at protocol creation time.
+`label`, `task_type`, and `group_id` are set at creation time (UI dialog or API) and are not edited in the JSON editor.
+
+`protocol_config` **is** editable in the JSON editor, but it exists almost entirely as the wrapper for `viewer_config` — that is the only field inside it that does anything. See the note below on `longitudinal`.
+
+### `longitudinal` / `protocol_config` — set but inert (verified against source, 2026-07)
+
+`protocol_config` holds `{ adjudication, longitudinal, viewer_config }`. Two of those three are traps:
+
+- **`longitudinal` is a required boolean that is not wired to any behavior.** Traced across every Flywheel repo: it is defined and persisted in `core-api` (`core/workflows/protocols/_models.py:172`), mirrored as a TypeScript type in `fw-ohif-v3` (`protocols.ts`), required-present by the Monaco editor's JSON schema (`monaco-editor` `app.component.ts:~520-589`), and **hardcoded to `false`** by the main web app on protocol creation (`frontend` `group-protocols.component.ts:~395`). No code anywhere reads its value to change what loads, what a task spans, or how a read behaves. Every read path deliberately destructures around it to pull out `viewer_config`. Do not expect setting `longitudinal: true` to do anything.
+- **What actually sets a task's container level is `parent_ref` at task-creation time**, not `longitudinal`. Tasks are created with `parent_ref: { type, id }` plus a `parents` block. The valid `type` values are restricted to **`session`, `acquisition`, or `file`** — there is **no subject-level or project-level reader task** (`core-api` `core/models/reader_tasks.py`: `VALID_TASK_PARENT_CONTAINER_TYPES = (session, acquisition, file)`; a bad type returns 422). Session is therefore the coarsest scope; one task cannot span a subject / multiple sessions. Cross-session comparison must be handled by curating the data into a single session upstream, not by task scope.
+- The MR history confirms intent: every `protocol_config` MR (FLYW-32530, FLYW-33421, FLYW-42267) was about surfacing `viewer_config`; none touched `longitudinal` as a feature.
+
+**Practical takeaway:** the only lever that changes cross-session visibility in the viewer is `viewer_config.fileBrowser` (see the viewer config reference). `longitudinal` is not a substitute and is currently a no-op.
 
 ---
 
@@ -135,7 +147,11 @@ The `visible` field controls whether a field is shown. It accepts:
 ]
 ```
 
-When a field is hidden, **its value is automatically reset to its default**.
+When a field is hidden, the renderer assigns its **default** back into form state (verified against source + tested, 2026-07): `FormLayout.tsx` `updateHidden()` runs `form.state.values[key] = defaults[key]`. Tested behavior:
+- **Concrete default set** → the reader's entered value is overwritten with the default when the field is hidden (and stays overwritten when re-shown).
+- **Null / empty / absent default** → the entered value persists (the assignment doesn't clobber).
+
+So a field's `default` doubles as its **on-hide reset value**. Set a concrete default only when you *want* a hidden field cleared/reset to it. For data-entry fields whose values must survive a hide→re-show (e.g. gated measurement fields), leave the default `null`/empty.
 
 ### OR logic (show if any condition matches)
 
@@ -457,7 +473,7 @@ Do not load this file for questions about protocol authoring, form fields, or co
 - **Missing key in `defaults`** — every non-display field needs a default. Missing defaults cause unpredictable form state on re-open.
 - **Using `phone` type** — defined in schema but not rendered in the UI; use `text` instead.
 - **`visible: true` (bare boolean)** — valid but rarely needed; omitting `visible` entirely has the same effect.
-- **Forgetting that hidden fields reset to default** — do not rely on the value of a hidden field persisting.
+- **Not realizing `defaults` double as on-hide reset values** — hiding a field writes its default back over the entered value. A concrete default overwrites reader input on hide; a null/empty default preserves it. Only set concrete defaults on fields you want wiped/reset when hidden.
 - **Empty `options` array** for select/radio/checkbox — the field renders but has nothing to pick.
 - **`requiredWhenVisible: [...]` with AND logic** — wrap in a single `"and"` rule; the array is OR'd.
 - **`validation` logic that references a missing key** — `var` on an undefined key returns `null`; test your logic carefully.

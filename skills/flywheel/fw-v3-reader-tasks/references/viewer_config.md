@@ -74,6 +74,18 @@ Controls whether users can load additional images from outside their initially l
 
 > **Task workflow note:** In task-based workflows, the file browser is **disabled by default** and must be explicitly enabled by setting `enabled: true` in the protocol's `viewer_config`. In non-task workflows, the file browser is available by default.
 
+#### `scope` is browse-on-demand, not auto-load (verified against source, 2026-07)
+
+Confirmed against `fw-ohif-v3`:
+
+- Schema + defaults: `extensions/flywheel-core/src/schemas/viewerConfigSchema.ts:60-79` (`enabled` defaults `false`, default object is `{ enabled: false, scope: 'subject' }`).
+- Behavior: `extensions/flywheel-ui/src/components/SubjectSessionsBrowser/SubjectSessionsBrowser.tsx:71-91` reads `viewerConfig.fileBrowser?.enabled` and `?.scope || 'subject'`, then — **only when `scope === 'session'`** — filters the session list down to the current session; otherwise it keeps all of the subject's sessions.
+
+Two things this pins down:
+
+- `scope: "subject"` populates an **opt-in browse dialog** with all the subject's sessions. It does **not** auto-load every session into viewports — the reader opens the file browser and pulls in what they want.
+- This is the **only** property in the reader-task config with real cross-session behavior. It is independent of the task's container level (`parent_ref` at task creation) and of `protocol_config.longitudinal` (which is inert — see SKILL.md). If the goal is "let the reader see all of the subject's sessions," this is the lever: `fileBrowser: { enabled: true, scope: "subject" }`.
+
 ---
 
 ## Combining options

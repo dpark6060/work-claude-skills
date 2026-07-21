@@ -235,6 +235,11 @@ fw.delete(f"/api/readertasks/{task_id}")
 
 ## Get annotations for a task
 
+> **V2 / legacy only.** `GET /api/readertasks/{task_id}/annotations` belongs to the legacy
+> reader-task store. It 404s for **V3 Tasks Manager** tasks (`/api/tasks/reader`) — verified on
+> pp2dg4 22.1.6: it returns `404 Could not find resource reader_task:<id>` for a valid V3 task id,
+> and 422s on any non-24-hex id. For V3 annotations use `/api/v3/annotations` (see below).
+
 ```
 GET /api/readertasks/{task_id}/annotations
 ```
@@ -250,6 +255,36 @@ annotations = fw.get(f"/api/readertasks/{task_id}/annotations").results
 for ann in annotations:
     print(ann.data.location, ann.data.toolType)
 ```
+
+### V3 annotations / measurements (the working path)
+
+For a V3 reader task, pull the reader's drawn measurements from the **v3 annotation store**,
+filtering by the reader task's 24-hex `_id`:
+
+```python
+task_id = "6a591ae418aa8b7e52831930"   # the reader task _id (== viewer URL taskId=)
+anns = fw.get(
+    "/api/v3/annotations",
+    params={"filter": f"task_id={task_id}", "limit": 100},
+).results
+for ann in anns:
+    for el in ann.elements:              # one per drawn measurement
+        print(el.type, el.label, el.metrics)   # e.g. Bidirectional ivh {length, width, units}
+```
+
+**`task_id` here is the reader task `_id`** (24-hex, matches `^[0-9a-fA-F]{24}$`) — **not** the
+task object's human-readable `task_id` field (e.g. `"R-13-3"`). Passing the `R-13-3` form 422s.
+
+Each annotation carries: `elements[]` (`type`, `label`, `color`, `metrics` with `length` / `width`
+/ `units.spatial`), `parents` (project→file, incl. `file.file_id` + `version`), `origin` (the reader),
+`state` (`LOCKED` once submitted), stored as a DICOM `SR`. A `Bidirectional` gives two in-plane axes
+(length + width) only — no through-plane / slice dimension.
+
+**Do NOT use the v1 `GET /api/annotations` for V3 task annotations.** It won't contain them —
+returns `200` with **0 rows** even when filtered by the correct 24-hex `file_ref.file_id`. And it
+wants that 24-hex `file_id` specifically: pass a file's storage **uuid** instead and it fails with a
+misleading `500 Unexpected error during deserialization` rather than a clean 4xx. (All verified on
+pp2dg4 22.1.6, 2026-07-17.)
 
 ---
 

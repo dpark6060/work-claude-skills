@@ -11,6 +11,12 @@ Entry format:
 
 ---
 
+## [2026-07-16] | Priority: MED | Status: RESOLVED
+**Area:** create-mr / glab mr create
+**Summary:** `glab mr create` fails with "not a git repository" unless cwd is inside the repo clone — `-R` alone is not enough.
+**Details:** Unlike `glab mr view`/`glab api`, `glab mr create` reads the source branch and remote from the local git context, so it must be run from within the checkout. Running it from a scratch parent dir with `-R OWNER/REPO` and `--source-branch` still errored `Fatal: not a git repository`. Fix: wrap in a subshell `(cd repo && glab mr create --source-branch <b> --target-branch master --draft --no-editor ...)`.
+**Suggested action:** create-mr.md already assumes a local checkout; consider noting the subshell pattern for multi-repo sessions where cwd resets between commands.
+
 ## [2026-04-13] | Priority: MED | Status: RESOLVED
 **Area:** MR API calls
 **Summary:** Always use `iid` (not `id`) for MR numbers in API calls

@@ -24,7 +24,7 @@ description: Session protocol and filing rules for the {{PROJECT_NAME}} workspac
 
 # {{PROJECT_NAME}}
 
-{{PURPOSE}}
+**Purpose:** {{PURPOSE}}
 
 This is a cowork-style project workspace, not a code repo. Work products are files;
 every file gets filed by the rules below. The directory is an **Open Knowledge Format

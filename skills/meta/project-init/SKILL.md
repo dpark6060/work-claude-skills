@@ -31,6 +31,9 @@ concept documents with YAML frontmatter, every directory carries an `index.md`, 
 - OKF reserved filenames are exact: `index.md` and `log.md`, lowercase. Index files
   carry no frontmatter (the root `index.md` carries only `okf_version`).
 - No leftover `{{...}}` placeholders in any written file.
+- The Step 1 purpose must be specific and must land as the labeled first line of
+  CLAUDE.md under the title (per the template). A vague one-line label is a failure —
+  see Step 1.
 - Always ask about git init (Step 5). Never assume either way.
 
 ## Step 1 — Gather inputs
@@ -38,8 +41,20 @@ concept documents with YAML frontmatter, every directory carries an `index.md`, 
 You need two things. Ask only for what the invocation didn't already provide:
 
 1. **Project name** — normalize to kebab-case (`Gear Audit Q2` → `gear-audit-q2`).
-2. **Purpose** — one line describing what the project is for. Goes into CLAUDE.md and
-   the seed HANDOFF.md verbatim.
+2. **Purpose** — one line stating *specifically* what the project is for. It goes
+   verbatim into the first line of CLAUDE.md (under the title) and the seed
+   HANDOFF.md `GOAL:`, so it must stand alone as *the* description of the project.
+   **Reject vague labels.** If the purpose wouldn't distinguish this project from a
+   differently-scoped project that happens to share a name, push back and get a real
+   one before scaffolding.
+   - Bad: `Cloud art reference project` — a category label, not a purpose. A later
+     session read it as an *edible*-clouds project because nothing in CLAUDE.md,
+     HANDOFF, or the log said otherwise.
+   - Good: `Recreate the visual look of billowing cumulus clouds inside a jar via a
+     polymer cloud-point effect — an art project, not edible.`
+   This is the cowork-project form of the `write-claudemd` skill's "first-line rule"
+   (primary purpose stated specifically in the first line of CLAUDE.md); read that
+   rule if you need the rationale.
 
 Optionally: if the user named source material, relevant personal skills, or external
 references in the invocation, capture them — they become the first index entries in

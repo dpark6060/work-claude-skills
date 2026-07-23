@@ -39,9 +39,26 @@ hooks/  scripts/  misc/    # supporting material, not linked
   at the `~/.claude/skills/` level, so every skill directory name must be globally unique
 - symlinks `skills/shared/` explicitly (it has no SKILL.md)
 - symlinks each `agents/*.md` → `~/.claude/agents/<name>.md`
+- symlinks every file in `hooks/` → `~/.claude/hooks/<name>` (any file type, not just `.md`)
 
-Re-run it after adding a new skill, agent, or rule subdir. Existing symlinks pick up edits and
-`git pull`s automatically. The script never clobbers a real (non-symlink) file at a target.
+Re-run it after adding a new skill, agent, rule subdir, or hook. Existing symlinks pick up edits
+and `git pull`s automatically. The script never clobbers a real (non-symlink) file at a target.
+
+**Default run** creates only *missing* links; an existing symlink is left alone (so a stale one
+pointing at an old path is **not** repaired). **`--reset`** removes each existing symlink and
+re-creates it pointing at this repo — use it after moving/renaming the repo, when the links in
+`~/.claude/` still point at the old location. Real (non-symlink) files are never touched in
+either mode.
+
+```bash
+bash link_to_main_claude.sh          # create missing links only
+bash link_to_main_claude.sh --reset  # re-point stale links after moving the repo
+```
+
+The Personal Claude config repo ships a near-identical `link_to_main_claude.sh`. The two are kept
+byte-identical apart from their header comment and one block: the Personal script links the global
+`~/.claude/CLAUDE.md` (it owns it), this one does not. A `WORK-vs-PERSONAL DIFFERENCE` comment marks
+that spot in both — keep the shared machinery in sync when editing either.
 
 ## Conventions
 

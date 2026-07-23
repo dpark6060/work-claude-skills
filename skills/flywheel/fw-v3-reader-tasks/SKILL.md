@@ -450,10 +450,13 @@ This is the shape of the JSON edited in the UI protocol editor (not the full API
 
 ## Viewer Configuration
 
-`viewer_config` is a top-level key in the editor JSON. Pass `{}` when no viewer configuration is needed. Available options:
+`viewer_config` is a top-level key in the editor JSON. Pass `{}` when no viewer configuration is needed. Validated by `ViewerConfigSchema` (a Zod `strictObject`) in `fw-ohif-v3` — https://gitlab.com/flywheel-io/public/fw-ohif-v3, at `extensions/flywheel-core/src/schemas/viewerConfigSchema.ts`. The schema accepts exactly three optional keys; any other key fails validation:
 
+- **`toolbar`** — `hideTagBrowser` (boolean, hide the tag browser button; default `false`).
 - **`labels`** — annotation label list shown when measuring: `items` (array of `{value, label, color?}`), `labelOnMeasure` (boolean, auto-prompt on create), `exclusive` (boolean, disallow custom labels).
 - **`fileBrowser`** — `enabled` (boolean, default `true` for non-task; **default `false` for task protocols** — must explicitly set `true` to enable), `scope` (`"subject"` or `"session"`).
+
+**Not configurable:** there is no hanging-protocol / default-layout, window-level-preset, or viewport-arrangement option. You cannot preset a side-by-side hanging (e.g. index CT left, CTA right) — that's a net-new viewer feature request, not a config change. (GEAR-14866 is a related but unowned window-preset request.)
 
 If the user's question involves viewer configuration in depth, read the additional reference file before responding: `~/.claude/skills/fw-v3-reader-tasks/references/viewer_config.md`
 

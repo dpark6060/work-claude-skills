@@ -193,9 +193,13 @@ Apply my edits to the in-file draft before creating.
 **Run this for every approved draft before creating anything.** This is what stops the
 same action item becoming a duplicate ticket across separate meetings/runs.
 
-For each approved draft, pull 2–4 distinctive terms from its summary + "what I'm on the
-hook for" (concrete nouns — customer names, systems, project names — not filler like
-"create" or "ticket") and `searchJiraIssuesUsingJql` against the **tracker project**:
+For each approved draft, run **two passes** and judge overlap from both. Pass 1 catches
+dups anywhere in the project; Pass 2 catches the ones terse or inconsistent ticket
+titles hide — same-epic work that shares no keywords with the draft.
+
+**Pass 1 — keyword search across the project.** Pull 2–4 distinctive terms from the
+draft's summary + "what I'm on the hook for" (concrete nouns — customer names, systems,
+project names — not filler like "create" or "ticket") and `searchJiraIssuesUsingJql`:
 
 ```
 project = <tracker project> AND statusCategory != Done
@@ -205,9 +209,28 @@ project = <tracker project> AND statusCategory != Done
 
 - Don't scope to assignee/reporter — a duplicate someone else already filed still counts.
 - If that returns nothing, widen once (drop to a single strongest term). If still
-  nothing, it's clear.
-- Read the candidate summaries (and descriptions if a title is close) and judge real
-  overlap — same work, not just a shared keyword.
+  nothing, Pass 1 is clear.
+
+**Pass 2 — scan the parent epic's open children (required whenever the draft has a
+candidate epic).** Keyword search misses a dup when the existing ticket's title shares
+no words with the draft — terse or inconsistent naming defeats `summary ~`. The epic is
+the reliable cluster. Once R3b has identified the candidate epic(s) (run R3b's epic
+search first, or alongside this), list every uncompleted child and check it by hand:
+
+```
+parent = <EPIC-KEY> AND statusCategory != Done ORDER BY created DESC
+```
+
+- Check the child **summaries** first for an obvious match.
+- Then, for any child even *remotely* related, **read its description** — do not trust
+  the title. This is the step that catches a badly-named dup (e.g. a child titled
+  "Outline gear based on requirements doc" is the same work as a draft titled "Decompose
+  the tech spec into tickets" — zero shared keywords, identical deliverable).
+- If several candidate epics fit, scan the children of each.
+
+Judge real overlap from both passes — same *work*, not just a shared keyword or a shared
+epic. Sibling tickets under one epic are supposed to differ; a dup means the deliverable
+is the same, not merely that they live under the same epic.
 
 For each draft, present the outcome before creating:
 - **No match** → create normally (R4).
@@ -236,6 +259,9 @@ project = <tracker project> AND issuetype = Epic
 - Present the top candidate(s) (key + summary) for each draft in R2. If several fit,
   let me choose; if none fit, ask whether to create a new epic or leave it standalone.
   Never guess the epic silently.
+- **This step feeds R3 Pass 2.** The candidate epic(s) you find here are what the
+  epic-scoped dup scan enumerates children of — so in practice run this search before
+  (or together with) R3, even though it's documented after it.
 
 ### R4 — Create
 For each approved draft, `createJiraIssue` per `local/tracker.md`:

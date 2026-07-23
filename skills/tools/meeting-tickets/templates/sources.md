@@ -61,3 +61,33 @@ name doubles as the dedupe-id prefix. Every entry declares the same fields:
 - **caveats:** fidelity notes, empty-transcript handling ("empty counts as no
   transcript — fall through to the next source"), and anything the next person
   needs to know before trusting it.
+
+### Worked example — Zoom (two paths, best first)
+
+Zoom has no API/transcript connector here (the "Zoom" MCP tool is ZoomInfo, unrelated), so
+you reach it two ways. Prefer the local saved transcript; fall back to the summary email.
+
+**A. Local saved transcript (verbatim + attributed — the good one).** When you save a
+transcript / closed captions, Zoom writes a folder like
+`~/Documents/Zoom/YYYY-MM-DD HH.MM.SS <Topic>/meeting_saved_closed_caption.txt`.
+- **speaker_attribution:** yes — every line is `[Speaker] HH:MM:SS` + utterance. Real.
+- **detect:** find `meeting_saved_closed_caption.txt` under the Zoom dir; match by same day
+  + topic (the folder carries the real invite subject). The folder timestamp is its
+  creation time (≈ meeting *end*, not start), so tie-break against the event's `end`.
+- **fetch:** `Read` the file as-is — already a clean attributed transcript.
+- **dedupe_id:** `zoom-local:<folder name>`.
+- **caveats:** only exists if you actually saved it (not automatic); live-CC meetings may
+  use `closed_caption.txt` instead — check both.
+
+**B. AI Companion summary email (fallback — summary-grade, not verbatim).** If your org
+runs AI Companion, Zoom emails a **"Meeting Summary"** into your mailbox.
+- **speaker_attribution:** yes, summary-grade — the *Next Steps* bullets name people ("Alex
+  will…") so name-based "is this mine?" works, but there are no verbatim quotes.
+- **detect:** Outlook email `sender = no-reply@zoom.us`, `subject = "Meeting Summary for
+  <topic>"`; match by same day + fuzzy subject + received-time near event `end`.
+- **fetch:** `read_resource` on the mail uri; `body.content` is HTML — strip tags, take the
+  **Summary** paragraphs (context) and **Next Steps** bullets (action items).
+- **dedupe_id:** `zoom-email:<internetMessageId>`.
+- **caveats:** host-only by default (you get it for meetings YOU host; others' only if the
+  account shares summaries with participants or the host forwards); lands ~5–15 min late;
+  AI-generated, so flag drafts as paraphrased-from-summary.

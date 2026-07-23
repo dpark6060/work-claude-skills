@@ -68,6 +68,9 @@ Load the relevant guide(s) based on your task:
   pattern, accessing config options and input files, writing output files, work directory
 - **[gear-metadata.md](references/gear-metadata.md)** - Writing `.metadata.json`, updating
   container and file metadata, adding QC results and file tags, SDK-enabled metadata methods
+- **[metadata-capability-matrix.md](references/metadata-capability-matrix.md)** - Decision
+  reference: what `context.metadata` CAN/CANNOT write (per-field file-vs-container matrix),
+  the 0.3.1 api-key requirement, and the destination-and-up hierarchy rule
 - **[gear-utils.md](references/gear-utils.md)** - Running external commands (`exec_command`),
   ZIP archive utilities, SDK retry handlers, launching child gears (`setup_gear_run`),
   Nipype integration, resource/FD monitoring
@@ -79,6 +82,8 @@ Load the relevant guide(s) based on your task:
 **Writing a new gear or run.py?** Load gear-basics.md first.
 
 **Writing output metadata or QC results?** Load gear-metadata.md.
+
+**Deciding whether `context.metadata` can even do what you need (fields, api-key, hierarchy)?** Load metadata-capability-matrix.md.
 
 **Calling an external binary or subprocess?** Load gear-utils.md.
 

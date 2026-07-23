@@ -22,11 +22,26 @@ timestamp: 2026-07-15T00:00:00Z
 
 Gears can write metadata back to Flywheel containers and files. There are two mechanisms:
 
-1. **`.metadata.json`** (no SDK required) — updates destination container hierarchy on
-   job completion. Handled by `context.metadata`.
+1. **`.metadata.json`** — updates the destination container hierarchy on job completion.
+   Handled by `context.metadata`.
 2. **SDK methods** — can update any container. Requires `api-key` input.
 
 Always prefer the `.metadata.json` approach when only updating the destination hierarchy.
+
+> **OPEN QUESTION (fw-gear 0.3.x): does `context.metadata` need an `api-key` input?
+> Code and docs disagree — needs a live engine run to settle. Don't assert either way.**
+> Every write path (`update_container`, `update_file_metadata`, `add_file_tags`,
+> `add_qc_result`) calls `_validate_container_type`, which does a **client-side**
+> `config.get_destination_container()` *before* writing the file — and that raises
+> `RuntimeError: ... Requires authenticated API key` when there's no client, which only
+> an `api-key` input provides. So the **code path** needs a key. But fw-gear's own
+> `getting_started.md` presents these same metadata writes as **keyless**, separate from
+> the api-key-gated SDK-client pattern — the **documented intent** is no key. The strict
+> validation was added in 0.3.0 and is still on main unchanged. It **can't be reproduced
+> locally** (`get_destination_container()` is a live call). **Resolve it on the engine:
+> run keyless, write a tag, read the log for `Requires authenticated API key`.** Safe
+> default meanwhile: include the `api-key` input. Full write-up:
+> [metadata-capability-matrix.md](metadata-capability-matrix.md).
 
 ---
 
@@ -139,6 +154,43 @@ context.metadata.add_file_tags(file_obj, "processed")
 # Multiple tags
 context.metadata.add_file_tags(file_obj, ["processed", "reviewed"])
 ```
+
+`add_file_tags` read-merges: it reads the file's existing tags and unions the new ones,
+so pre-existing tags are preserved.
+
+---
+
+## Add Tags to a Container (No SDK)
+
+There is **no `add_container_tags` helper** — `add_file_tags` is file-only. To tag a
+container (e.g. the destination acquisition), pass `tags=` to `update_container`:
+
+```python
+# Tag the destination acquisition. The engine schema (AcquisitionMetaInput.tags,
+# SessionMetaInput.tags, etc.) accepts a top-level `tags` list per container.
+context.metadata.update_container("acquisition", tags=["SCANQC-PASS", "SCAN-MRI"])
+```
+
+Two differences from `add_file_tags`:
+
+1. **No read-merge.** `update_container` does not read the container's current tags — it
+   writes the list you pass (deep-merged into whatever else you've set on that container
+   this run). Reading the acquisition's existing tags to union them would require the
+   SDK client, so via `.metadata.json` alone you can only set your own tags, not append
+   to the container's pre-existing set.
+2. **Destination-and-up only.** `update_container` validates the target against the
+   destination hierarchy: you can tag the destination container and its parents, never a
+   child. A gear whose destination is the acquisition can tag that acquisition (and the
+   session/subject/project above it) but not sibling/child acquisitions. This validation
+   is why the write needs an `api-key` input (see the gotcha at the top of this file).
+
+**Destination footgun:** for a file-triggered gear, the destination level is set by which
+file/container is selected *first* at launch. Selecting a session-level file first pins
+the destination to the session, and a later `update_container("acquisition", ...)` or
+`add_file_tags` on an acquisition file then fails with
+`ValueError: Container type acquisition is outside the hierarchy that can be updated via
+.metadata.json`. Launch on the intended container (or via a gear rule / the SDK) so the
+destination is what you expect.
 
 ---
 

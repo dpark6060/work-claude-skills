@@ -12,6 +12,18 @@ Reference for `viewer_config` in V3 reader task protocols.
 
 > **Note:** The V3 viewer currently supports fewer configuration options than V2. Additional options are being added over time. For missing V2 features, contact your Flywheel representative for roadmap prioritization.
 
+**Source of truth:** `fw-ohif-v3` — https://gitlab.com/flywheel-io/public/fw-ohif-v3. The config is validated by `ViewerConfigSchema` in `extensions/flywheel-core/src/schemas/viewerConfigSchema.ts`, a Zod `strictObject` — any key not in the schema fails validation.
+
+## What is NOT configurable
+
+The schema accepts exactly three keys: `toolbar`, `labels`, `fileBrowser` (all optional). There is **no** option for:
+
+- **Hanging protocol / default layout** — you cannot preset a viewport arrangement (e.g. "load index CT left, CTA right side by side"). The reader arranges viewports manually; the file browser can pull in additional series but not preset their placement.
+- **Window-level presets** — no custom W/L presets (open request: GEAR-14866, which as of 2026-07 is an unowned INBOX ticket flagged for deletion — do not treat it as delivering this).
+- **Viewport count, orientation, or initial series assignment.**
+
+Any of these is a net-new V3 viewer feature request, not a config change.
+
 ---
 
 ## Where viewer_config lives
@@ -23,6 +35,24 @@ For a **project** (non-task workflows), viewer config is stored in a file named 
 ---
 
 ## Configuration Options
+
+### Toolbar
+
+Property name: `toolbar`
+
+```json
+"viewer_config": {
+  "toolbar": {
+    "hideTagBrowser": true
+  }
+}
+```
+
+| Property | Type | Description |
+|---|---|---|
+| `hideTagBrowser` | boolean | When `true`, hides the tag browser button in the viewer toolbar. Defaults to `false`. |
+
+---
 
 ### Labels
 

@@ -3,6 +3,7 @@ type: Specification
 title: Open Knowledge Format (OKF) v0.1
 description: Vendored copy of the OKF v0.1 spec — markdown-plus-frontmatter knowledge bundles, concept documents, index.md and log.md conventions.
 resource: https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md
+okf_version: "0.1"
 tags: [okf, spec, knowledge-format]
 timestamp: 2026-07-15T00:00:00Z
 ---

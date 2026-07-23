@@ -35,20 +35,19 @@ and be an expert on the project, loading documents lazily as questions demand.
 
 ## OKF rules (how every file is written)
 
-- Every markdown document you author here is an OKF **concept**: it starts with YAML
-  frontmatter carrying `type` (required — e.g. `Note`, `Analysis`, `Report`,
-  `Meeting Notes`, `Snippet`, `Handoff`), plus `title`, a **one-sentence**
-  `description`, optional `tags`, and a `timestamp`. The `description` is copied
-  verbatim into index files, so keep it tight and informative.
-- `index.md` and `log.md` are **reserved** — they are not concepts and carry no
-  frontmatter (the root `index.md` carries only `okf_version`).
-- Ingested files in `sources/` are read-only evidence — never inject frontmatter into
-  them. Their `description` and load trigger live in `sources/index.md` instead.
-- Cross-link related documents with normal relative markdown links
-  (`[orders analysis](../notes/2026-07-01-orders-analysis.md)`). A link to a
-  not-yet-written document is fine.
-- Cite external sources that back a document's claims under a `# Citations` heading
-  at the bottom, numbered: `[1] [Title](url)`.
+The authoritative rules are the OKF spec: `~/.claude/skills/shared/okf-spec.md`. Read it
+for anything beyond the basics below, and don't reproduce its rules elsewhere — it is the
+single source of truth. The `okf-lint` skill enforces them; run it before wrapping up.
+
+Day-to-day essentials (a convenience summary, not the authority):
+
+- Every document you author is an OKF **concept**: YAML frontmatter with a required
+  `type` (`Note`, `Analysis`, `Report`, `Snippet`, `Handoff`, …), plus `title` and a
+  one-sentence `description` (copied verbatim into indexes — keep it tight).
+- `index.md` and `log.md` are **reserved**: no frontmatter (root `index.md` carries only
+  `okf_version`).
+- Cross-link with relative markdown links; cite external sources under a `# Citations`
+  heading. Links to not-yet-written documents are fine.
 
 ## Session startup protocol
 
@@ -82,15 +81,19 @@ When wrapping up a work session (or whenever the user says to wrap up / hand off
    heading (reuse today's if it exists) with `* **Update**: ...` /
    `* **Creation**: ...` bullets. Human readable, a few lines: what was done, what
    was decided.
+4. **Verify OKF conformance** — run the `okf-lint` skill (or
+   `python3 ~/.claude/skills/okf-lint/scripts/okf_lint.py .`) and clear any findings.
+   It catches unindexed files, missing `type`, and malformed `index.md`/`log.md` before
+   they become drift. `--fix` generates any missing indexes; the rest you fix by hand.
 
 ## Filing rules
 
 | Directory | What goes there |
 |---|---|
-| `sources/` | Anything ingested from outside — PDFs, exports, transcripts, pasted docs. READ-ONLY: never edit these, treat them as evidence. Every file added here gets a `sources/index.md` entry at the same time. |
-| `notes/` | Intermediate thinking — summaries, analyses, meeting notes. Editable, kept, written as OKF concepts. Index every file. |
+| `sources/` | Anything ingested from outside — PDFs, exports, transcripts, pasted docs. READ-ONLY: never edit these and never inject frontmatter into them — their `description` and load trigger live in `sources/index.md` instead. Every file added here gets a `sources/index.md` entry at the same time. Exception: a dataset, cloned repo, or other multi-file directory ingested whole gets **one** index entry for the directory, not per-file entries. Add large binary data to `.gitignore`. |
+| `notes/` | Intermediate thinking — summaries, analyses, meeting notes. Editable, kept, written as OKF concepts. Index every file. Generated working artifacts (rendered previews, intermediate JSON) don't belong here — keep them in `scratch/` until they're part of a deliverable in `outputs/`. |
 | `outputs/` | Finished work products only. If it isn't shareable as-is, it isn't done — it belongs in `notes/` or `scratch/`. Never save files directly at the top level of `outputs/`: every deliverable goes in a descriptively-named subdirectory (e.g. `outputs/2026-q2-gear-audit/report.md`). A subdirectory with more than one file gets its own `index.md`, listed under `# Subdirectories` in `outputs/index.md`. |
-| `snippets/` | Reusable fragments that outlive one task — code blocks, boilerplate text, queries. Written as OKF concepts, indexed. |
+| `scripts/` | Runnable helper scripts and reusable fragments that outlive one task — build/deploy/scrape tools, code blocks, boilerplate text, queries. Non-markdown files never get frontmatter — their description and load trigger live in `scripts/index.md`, like sources. Index every file. |
 | `scratch/` | Disposable workspace — temp files, experiments, half-baked drafts. May be wiped at any time; never reference scratch files from other documents. Never indexed, no frontmatter needed. |
 
 ## Conventions
@@ -116,7 +119,7 @@ okf_version: "0.1"
 * [sources](sources/index.md) - Ingested external material — read-only evidence.
 * [notes](notes/index.md) - Intermediate thinking: summaries, analyses, meeting notes.
 * [outputs](outputs/index.md) - Finished deliverables, one subdirectory each.
-* [snippets](snippets/index.md) - Reusable fragments that outlive one task.
+* [scripts](scripts/index.md) - Runnable helper scripts and reusable fragments that outlive one task.
 
 # Project Documents
 
@@ -159,10 +162,10 @@ URLs, dashboards, tickets, drives — things that live outside this directory.
 * (none yet)
 ````
 
-## snippets/index.md
+## scripts/index.md
 
 ````markdown
-# Snippets
+# Scripts
 
 * (none yet)
 ````

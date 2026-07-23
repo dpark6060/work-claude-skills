@@ -2,7 +2,7 @@
 name: project-init
 description: Scaffolds a new local "cowork-style" project directory in the current
   working directory, structured as an Open Knowledge Format (OKF) bundle — sanctioned
-  subdirectories (sources, notes, outputs, snippets, scratch) each with an index.md
+  subdirectories (sources, notes, outputs, scripts, scratch) each with an index.md
   for progressive disclosure, a boilerplate CLAUDE.md with OKF filing rules, a root
   index.md knowledge map, and HANDOFF.md/log.md for cross-session continuity. Use
   whenever the user wants to start, set up, or initialize a new project workspace for
@@ -14,7 +14,7 @@ description: Scaffolds a new local "cowork-style" project directory in the curre
 # Project Init
 
 You are scaffolding a standardized "cowork-style" project directory: a terminal
-workspace for non-code work (source docs, summaries, snippets, reports) with a fixed
+workspace for non-code work (source docs, summaries, scripts, reports) with a fixed
 structure and cross-session continuity files. The directory is an **OKF knowledge
 bundle** (spec: `~/.claude/skills/shared/okf-spec.md`): authored markdown files are
 concept documents with YAML frontmatter, every directory carries an `index.md`, and
@@ -80,7 +80,7 @@ what was volunteered.
 ├── sources/index.md
 ├── notes/index.md
 ├── outputs/index.md
-├── snippets/index.md
+├── scripts/index.md
 └── scratch/.gitkeep     # scratch is never indexed
 ```
 

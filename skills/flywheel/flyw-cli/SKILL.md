@@ -11,6 +11,47 @@ You are using the Flywheel CLI (`flyw`).
 
 The Flywheel CLI manages data and site configuration on the Flywheel Biomedical Research Data Platform. It handles authentication, data browsing, gear development/management, job control, data import/export with external cloud storage, and admin operations.
 
+## Verify Flags Against `--help`, Not Memory
+
+The CLI self-versions per site: pointing `flyw` at a site silently swaps the binary to the build
+matching that site's Flywheel version. So the same `flyw` on disk has different flags depending on
+which `--profile` you last used, and options in these reference files can be right for one site
+and wrong for another.
+
+**Before writing a command into a doc, script, or answer, run `flyw <cmd> --help`.** It is one
+cheap call and it is authoritative.
+
+Two caveats on `--help`, both of which have caused wrong answers:
+
+- **`--help` is not a complete flag list.** Deprecated options are hidden from it but still
+  parse. `import run` / `export run` take inline rule flags (`--include`, `--exclude`, `--path`,
+  `--mapping`, `--type`, `--zip`, `--dicom-*`, `--rules-file`) that appear nowhere in `--help`.
+  They are deprecated in favour of `--rule-set` — **write new commands with `--rule-set`** — but
+  do not tell anyone their existing inline-flag script is invalid. It isn't. See the deprecated
+  sections in `references/import.md` and `references/export.md`.
+- **A flag missing from `--help` is not proof it's unsupported.** Check the versioned docs at
+  `flywheel-io.gitlab.io/tools/app/cli/<version>/` before claiming something doesn't exist.
+
+To discover valid enum values or field names, send a deliberately bogus one and read the 422 — the
+server usually enumerates the whole allowed set. To test whether a flag parses, compare it against
+a genuinely fake flag: unknown options fail with `Invalid argument '<flag>'`. Supply every required
+option when doing this, or the missing-argument check fires first and masks the result.
+
+## Doc URLs
+
+Never guess a `docs.flywheel.io` path; the site has been reorganized and the plausible-looking
+guesses are 404s (`/user/export/`, `/user/bulk_export/`,
+`/admin/external_storage/admin_external-storage_how-to-configure-an-external-storage/`). Verified
+entry points:
+
+- Import: <https://docs.flywheel.io/data_transfer/inbound/bulk_import/>
+- Export: <https://docs.flywheel.io/data_transfer/outbound/bulk_export/>
+- Rule sets / filters / patterns: <https://docs.flywheel.io/data_transfer/patterns/rule-sets/>
+- External storage (admin): <https://docs.flywheel.io/admin/external_storage/>
+- Generated CLI reference: <https://flywheel-io.gitlab.io/tools/app/cli/main/flyw/>
+
+Per-topic link tables live at the bottom of each `references/` file.
+
 ## Command Tree
 
 ```

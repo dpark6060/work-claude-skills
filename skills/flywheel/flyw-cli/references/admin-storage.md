@@ -57,6 +57,10 @@ flyw admin storage create --provider <PROVIDER_ID>
 | **Google Cloud** | `gs://bucket[/prefix]` | `application_credentials` (path to JSON) |
 | **Azure Blob** | `az://account/container[/prefix]` | `access_key` |
 | | | OR `tenant_id`, `client_id`, `client_secret` |
+| **AWS HealthImaging** | `ahi://datastore_id` | `access_key_id`, `secret_access_key` |
+
+The Azure `account` may be either the bare account name or the full
+`<account>.blob.core.windows.net` host; existing registrations show the FQDN form.
 
 ### Credential Sources
 
@@ -148,3 +152,43 @@ flyw admin storage create --provider <PROVIDER_ID>
 ```
 
 3. Import with this storage — files are referenced, not copied.
+
+## Finding a Storage in the Web App
+
+Site Admin only. `External Storages` is not visible to non-admins at all.
+
+1. Left menu, **ADMIN** section → **Interfaces** → **External Storages** tab.
+2. Click a storage to open its detail page. The **Connection** card holds the **Storage ID** —
+   the value `-s/--storage` wants.
+3. **+ New Storage Provider** to register one: Storage Name → provider tile → **Provider
+   Details** (Azure Account / Azure Container / Azure Prefix) → **Data Access Control**
+   (**Allow Importing** / **Allow Exporting**, at least one required; optional Malware
+   Scanning) → **Authentication Details** (Access Key *or* Client Credentials) →
+   **Visibility** (Site / Group / Project) → **Save**, which runs a connection test.
+
+CLI equivalent: `flyw admin storage list`.
+
+## Reading Storage Health
+
+`admin storage get <ID> -o json` returns the fields worth checking:
+
+- `status_check` — `success` means the last connection test passed
+- `last_status_check` / `next_status_check` — re-checked roughly every 4 hours, so a bucket
+  that breaks shows up in `admin storage list` without anyone running a transfer
+- `imports_enabled` / `exports_enabled` — set by `-m/--mode`. Omitting `--mode` at creation
+  leaves **both** enabled; passing it restricts to one direction.
+- `config.access_key` masked as `**********`, `connector_creds` false when using explicit keys
+
+## Docs
+
+Verified 200 as of 2026-07-27. Do not guess these paths — the
+`admin_external-storage_how-to-configure-an-external-storage/` form is a 404.
+
+| Page | URL |
+|---|---|
+| External Storage overview | <https://docs.flywheel.io/admin/external_storage/> |
+| How to configure a storage | <https://docs.flywheel.io/admin/external_storage/how-to-configure-external-storage/> |
+| Locating a storage ID | <https://docs.flywheel.io/admin/external_storage/external-storage-id/> |
+| Admin-provided credentials | <https://docs.flywheel.io/admin/external_storage/external-storage-preconfigured-creds-option/> |
+| Amazon HealthImaging | <https://docs.flywheel.io/admin/external_storage/external-storage-amazon-healthimaging/> |
+| CLI command reference | <https://flywheel-io.gitlab.io/tools/app/cli/main/flyw/admin/storage/create/> |

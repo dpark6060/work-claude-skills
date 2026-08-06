@@ -65,6 +65,10 @@ def delete_projects(
 def delete_gears(fw: t.Any, run_id: str, dry_run: bool) -> t.List[str]:
     """Delete gears whose name contains the run id.
 
+    Asks for all_versions because /gears returns only each gear's latest version
+    by default, and a run that uploads a probe gear twice must not leave the
+    older version behind for the next cleanup to miss.
+
     Args:
         fw: Flywheel SDK client.
         run_id: Run id that a gear name must contain to be deleted.
@@ -74,7 +78,7 @@ def delete_gears(fw: t.Any, run_id: str, dry_run: bool) -> t.List[str]:
         list[str]: names of deleted (or would-delete, in dry-run) gears.
     """
     deleted = []
-    for gear in fw.gears.iter_find():
+    for gear in fw.gears.iter_find(all_versions=True):
         if run_id not in gear.gear.name:
             continue
         deleted.append(gear.gear.name)

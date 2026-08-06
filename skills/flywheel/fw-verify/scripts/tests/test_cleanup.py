@@ -72,6 +72,18 @@ def test_delete_gears_deletes_only_matching_names():
     fw.delete_gear.assert_called_once_with(kill.id)
 
 
+def test_delete_gears_asks_for_every_gear_version():
+    # Arrange
+    fw = mock.MagicMock()
+    fw.gears.iter_find.return_value = iter([])
+
+    # Act
+    delete_gears(fw, "fwv-0806-a3f2", dry_run=False)
+
+    # Assert
+    fw.gears.iter_find.assert_called_once_with(all_versions=True)
+
+
 @mock.patch("cleanup.flywheel.Client")
 @mock.patch("cleanup.get_site_config")
 def test_main_rejects_bad_run_id(mock_cfg, mock_client):

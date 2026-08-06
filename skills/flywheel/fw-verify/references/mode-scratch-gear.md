@@ -50,8 +50,13 @@ cd "${CLAUDE_SKILL_DIR}/cache/<run-id>-probe"
 
    Payload prints go through `print("[fwv] ...")` so evidence greps cleanly. The
    template's own plumbing prints under the distinct `[fwv-probe]` prefix, so
-   grepping the literal `[fwv]` gets payload lines only, `[fwv-probe]` gets the
-   fixed echo lines only, and `[fwv` gets both.
+   `[fwv]` selects payload lines only, `[fwv-probe]` the fixed echo lines only,
+   and `[fwv` both. **Match these as fixed strings, not regexes** — `rg '[fwv]'`
+   is a bracket character class that matches any `f`, `w`, or `v` in the log. Use
+   `rg -F '[fwv]'`, or extract in Python the way
+   [mode-file-curator.md](mode-file-curator.md) step 5 does
+   (`[ln for ln in logs.splitlines() if "[fwv]" in ln]`), which is the canonical
+   form since you're already holding the log text there.
 
 3. Build and upload (requires Docker running and `flyw` logged in to the target
    site):
@@ -67,7 +72,7 @@ flyw gear upload .
 gear = fw.lookup("gears/<run-id>-probe")
 job_id = gear.run(destination=project, config={"exit_code": 1, "run_id": "<run-id>"})
 # poll fw.get_job(job_id).state; then pull logs via /api/jobs/{id}/logs/text
-# setup and log-pull snippets: see [mode-file-curator.md](mode-file-curator.md) steps 2 and 5.
+# setup, poll, and log-pull snippets: see [mode-file-curator.md](mode-file-curator.md) steps 2, 4, and 5.
 ```
 
    The claim's evidence is the (exit_code → job.state) pair plus `[fwv]` log lines.
@@ -83,5 +88,5 @@ If `flyw gear build/upload` rejects the template after a CLI or spec upgrade:
 2. Diff the generated manifest/Dockerfile against `assets/probe-gear/`; adopt the
    new required fields.
 3. Re-apply: the FWV-PAYLOAD markers in run.py, the `exit_code`/`run_id`/`debug`
-   config block, and the runtime-echo plumbing.
+   config block, the optional `input-file` input, and the runtime-echo plumbing.
 4. Record what changed in `.learnings/LEARNINGS.md`.

@@ -39,20 +39,21 @@ print(f"site={fw.get_config().site.api_url}")
 
 # --- probe ---
 result = fw.sessions.find('label="20201224"')
-print(f"observed: {len(result)} results, type={type(result).__name__}")
+print(f"observed: n={len(result)} type={type(result).__name__}")
+print(f"first={result[0].label if result else None!r}")   # repr, so '' vs None is visible
 ```
 
 Rules:
 - Print `repr()` of values so types are unambiguous (`'None'` vs `None`).
 - Record the SDK version and site in every script's output — verdicts without
   versions are worthless later.
-- Read `rules/flywheel_specific/sdk/FinderBehaviors.md` before writing any finder
-  query.
+- Read `~/.claude/rules/flywheel_specific/sdk/FinderBehaviors.md` before writing any
+  finder query.
 
 ## Source cross-check
 
 Observed behavior is half the evidence; the other half is what the installed code
-says (per `rules/flywheel_specific/sdk/SdkUse.md`):
+says (per `~/.claude/rules/flywheel_specific/sdk/SdkUse.md`):
 
 ```bash
 python -c "import flywheel, pathlib; print(pathlib.Path(flywheel.__file__).parent)"

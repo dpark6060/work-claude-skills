@@ -87,6 +87,12 @@ uv run "${CLAUDE_SKILL_DIR}/scripts/build_project.py" --spec <spec.json> [--run-
    `"real"` when something must actually parse the file. Setup problems (missing
    config, unset key env var, bad spec) print `Setup error: ...` to stderr and exit
    non-zero — fix the setup, don't reinterpret it as evidence.
+   The script deletes every gear rule on the project before uploading anything, so the
+   site's own gears never run on the fixture. Without that, file-classifier replaces the
+   classification the spec asked for and adds `qc`/`header` keys of its own — metadata
+   that can confound the claim under test. A fixture project is therefore NOT
+   representative of a normal project's gear behavior; if a claim depends on ingest gears
+   firing, say so and test it a different way.
 4. **Pending uploads pause.** If `pending_uploads` is non-empty, list each waiting
    path to the user, ask them to upload, and WAIT for confirmation before running
    claims that need those files.

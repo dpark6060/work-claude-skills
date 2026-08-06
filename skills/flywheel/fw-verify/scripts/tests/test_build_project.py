@@ -11,6 +11,7 @@ from build_project import (
     Target,
     add_containers,
     add_file,
+    delete_project_rules,
     get_or_add_group,
     is_classification_applied,
     main,
@@ -28,6 +29,13 @@ def _parent_reading_back(classification):
     parent = mock.MagicMock()
     parent.reload.return_value.get_file.return_value.classification = classification
     return parent
+
+
+@pytest.fixture(autouse=True)
+def mock_sleep():
+    """Patch the classification settle waits — every write path now sleeps."""
+    with mock.patch("build_project.time.sleep") as patched:
+        yield patched
 
 
 @pytest.fixture
@@ -293,6 +301,42 @@ def test_process_metadata_file_entry_sets_modality_before_classification():
     assert called.index("update_file") < called.index("update_file_classification")
 
 
+def _rule(rule_id):
+    rule = mock.MagicMock()
+    rule.id = rule_id
+    return rule
+
+
+def test_delete_project_rules_removes_every_rule():
+    # Arrange
+    fw = mock.MagicMock()
+    fw.get_project_rules.return_value = [_rule("rule-1"), _rule("rule-2")]
+
+    # Act
+    removed = delete_project_rules(fw, "000123456789abcdefABCDEF")
+
+    # Assert
+    assert removed == ["rule-1", "rule-2"]
+    fw.get_project_rules.assert_called_once_with("000123456789abcdefABCDEF")
+    assert fw.remove_project_rule.call_args_list == [
+        mock.call("000123456789abcdefABCDEF", "rule-1"),
+        mock.call("000123456789abcdefABCDEF", "rule-2"),
+    ]
+
+
+def test_delete_project_rules_no_rules_removes_nothing():
+    # Arrange - a reused project that was already stripped.
+    fw = mock.MagicMock()
+    fw.get_project_rules.return_value = []
+
+    # Act
+    removed = delete_project_rules(fw, "000123456789abcdefABCDEF")
+
+    # Assert
+    assert removed == []
+    fw.remove_project_rule.assert_not_called()
+
+
 def test_set_file_classification_returns_true_when_the_write_survives():
     # Arrange
     parent = _parent_reading_back({"Intent": ["Structural"]})
@@ -308,13 +352,12 @@ def test_set_file_classification_returns_true_when_the_write_survives():
     )
 
 
-@mock.patch("build_project.time.sleep")
-def test_set_file_classification_rewrites_until_the_value_sticks(mock_sleep):
+def test_set_file_classification_rewrites_until_the_value_sticks():
     # Arrange - the ingest gears wipe the first two writes.
     parent = mock.MagicMock()
     fresh = parent.reload.return_value.get_file.return_value
     type(fresh).classification = mock.PropertyMock(
-        side_effect=[{}, {}, {"Intent": ["Structural"]}]
+        side_effect=[{}, {}, {"Intent": ["Structural"]}, {"Intent": ["Structural"]}]
     )
     target = Target(kind="file", container=parent, filename="image.dcm")
 
@@ -324,13 +367,32 @@ def test_set_file_classification_rewrites_until_the_value_sticks(mock_sleep):
     # Assert
     assert applied is True
     assert parent.update_file_classification.call_count == 3
-    assert mock_sleep.call_count == 2
 
 
-@mock.patch("build_project.time.sleep")
-def test_set_file_classification_gives_up_and_warns_after_last_attempt(
-    mock_sleep, capsys
-):
+def test_set_file_classification_rejects_a_write_the_gears_clobber_later():
+    # Arrange - the value reads back, then file-classifier wipes it, which is
+    # exactly the live failure a single confirming read cannot see.
+    parent = mock.MagicMock()
+    fresh = parent.reload.return_value.get_file.return_value
+    type(fresh).classification = mock.PropertyMock(
+        side_effect=[
+            {"Intent": ["Structural"]},
+            {},
+            {"Intent": ["Structural"]},
+            {"Intent": ["Structural"]},
+        ]
+    )
+    target = Target(kind="file", container=parent, filename="image.dcm")
+
+    # Act
+    applied = set_file_classification(target, {"Intent": ["Structural"]})
+
+    # Assert
+    assert applied is True
+    assert parent.update_file_classification.call_count == 2
+
+
+def test_set_file_classification_gives_up_and_warns_after_last_attempt(capsys):
     # Arrange
     parent = _parent_reading_back({})
     target = Target(kind="file", container=parent, filename="image.dcm")
@@ -512,6 +574,22 @@ def test_orchestrate_build_creates_project_under_group(mock_fw):
     assert isinstance(result, BuildResult)
     assert result.project_label == "fwv-0806-a3f2-t"
     assert result.run_id == "fwv-0806-a3f2"
+
+
+def test_orchestrate_build_strips_gear_rules_before_uploading(mock_fw):
+    # Arrange - order matters: a rule still live when the file lands queues the
+    # site's gears against it, and file-classifier then wipes classification.
+    project = mock_fw.get_group.return_value.add_project.return_value
+    mock_fw.get_project_rules.return_value = [_rule("rule-1")]
+    spec = {"project": "{run_id}-t", "items": ["readme.txt"]}
+
+    # Act
+    orchestrate_build(mock_fw, "fw-verify", spec, "fwv-0806-a3f2")
+
+    # Assert
+    mock_fw.remove_project_rule.assert_called_once_with(str(project.id), "rule-1")
+    assert mock_fw.remove_project_rule.call_count == 1
+    project.upload_file.assert_called_once()
 
 
 def test_orchestrate_build_collects_pending_uploads(mock_fw):

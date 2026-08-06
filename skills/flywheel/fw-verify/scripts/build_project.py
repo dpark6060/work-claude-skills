@@ -226,6 +226,7 @@ def _apply_container_meta(target: Target, meta: dict) -> None:
 
 FILE_ATTRS = ("type", "modality")
 CLASSIFICATION_ATTEMPTS = 4
+CLASSIFICATION_CONFIRMS = 2
 CLASSIFICATION_WAIT_SECONDS = 6
 
 
@@ -266,18 +267,41 @@ def set_file_classification(target: Target, classification: dict) -> bool:
             every attempt was overwritten — the caller warns, because a fixture
             with silently missing metadata is worse than a slow build.
     """
-    for attempt in range(CLASSIFICATION_ATTEMPTS):
+    for _ in range(CLASSIFICATION_ATTEMPTS):
         target.container.update_file_classification(target.filename, classification)
-        if is_classification_applied(target, classification):
+        if is_classification_durable(target, classification):
             return True
-        if attempt < CLASSIFICATION_ATTEMPTS - 1:
-            time.sleep(CLASSIFICATION_WAIT_SECONDS)
     print(
         f"Warning: classification on {target.filename!r} keeps getting overwritten "
         f"by the site's ingest gears; it is not set.",
         file=sys.stderr,
     )
     return False
+
+
+def is_classification_durable(target: Target, classification: dict) -> bool:
+    """Confirm a classification write is still there once the gears have run.
+
+    Reading straight back after the write proves nothing. Observed live on a
+    22.3.9 site: the read-back confirmed, then file-classifier finished a few
+    seconds later and replaced classification with what it derived — for a
+    placeholder DICOM with no readable header, nothing at all. So wait before
+    reading, and demand two agreeing reads a wait apart, which is the only
+    thing that actually distinguishes "the write stuck" from "the gear has not
+    clobbered it yet".
+
+    Args:
+        target: The file target to re-read.
+        classification: The classification that was requested.
+
+    Returns:
+        bool: True if both delayed reads show the requested classification.
+    """
+    for _ in range(CLASSIFICATION_CONFIRMS):
+        time.sleep(CLASSIFICATION_WAIT_SECONDS)
+        if not is_classification_applied(target, classification):
+            return False
+    return True
 
 
 def is_classification_applied(target: Target, classification: dict) -> bool:
@@ -354,6 +378,32 @@ def get_or_add_project(fw: t.Any, group_id: str, label: str) -> t.Any:
     return group.add_project(label=label)
 
 
+def delete_project_rules(fw: t.Any, project_id: str) -> t.List[str]:
+    """Remove every gear rule on the project so no site gear touches the fixture.
+
+    A new project inherits the site's default gear rules, so uploading a file
+    queues the instance's own gears against it. file-classifier is the one that
+    hurts: it owns file classification and REPLACES it when it finishes, and
+    what it derives from a placeholder DICOM with no readable header is nothing
+    at all. The build's classification write then vanishes seconds after it was
+    confirmed. Strip the rules and the race does not exist.
+
+    Runs on reused projects too — listing an already-stripped project returns an
+    empty list and nothing is deleted, so it is safe to repeat.
+
+    Args:
+        fw: Flywheel client.
+        project_id: Project to strip.
+
+    Returns:
+        list[str]: ids of the removed rules (empty if there were none).
+    """
+    rules = fw.get_project_rules(project_id)
+    for rule in rules:
+        fw.remove_project_rule(project_id, rule.id)
+    return [str(rule.id) for rule in rules]
+
+
 def orchestrate_build(fw: t.Any, group_id: str, spec: dict, run_id: str) -> BuildResult:
     """Build the full dummy project described by the spec.
 
@@ -363,11 +413,15 @@ def orchestrate_build(fw: t.Any, group_id: str, spec: dict, run_id: str) -> Buil
         spec: The loaded hierarchy spec.
         run_id: Namespacing run id (must already carry the fwv- prefix).
 
+    The project's gear rules are stripped before anything is uploaded, so the
+    site's own gears never run on the fixture and cannot rewrite its metadata.
+
     Returns:
         BuildResult: project identifiers and pending manual uploads.
     """
     label, items = parse_spec(spec, run_id)
     project = get_or_add_project(fw, group_id, label)
+    delete_project_rules(fw, str(project.id))
     registry: t.Dict[str, Target] = {}
     pending: t.List[str] = []
     for item in items:

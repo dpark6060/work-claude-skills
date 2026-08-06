@@ -23,13 +23,23 @@ nothing, and it writes that nothing over the `Intent` we set seconds earlier. Th
 own `info.qc.file-classifier` records the run (`classification_not_set: true`,
 `is_mr: true`), which is how the overwrite was traced.
 
+**Root cause: the new project's own gear rules.** A project inherits the site's default
+rules at creation, and those rules are what queue the gears. `build_project.py` now calls
+`delete_project_rules` immediately after project creation, before any upload, and the
+problem disappears at the source: a fresh stripped project spawns **zero** gear jobs, the
+classification survives on the first attempt, and `image.dcm`'s `info` carries only the
+`SeriesDescription` the spec asked for instead of the gears' `header` and `qc` keys. See
+LEARNINGS.md for the before/after measurements.
+
 The retry loop that was supposed to prevent this did not, because it read the value back
 *immediately* after writing — before the gear had run — and returned on the first
 confirm. **A read-back straight after a write proves nothing on a container that has
-ingest gears pending.** Fixed with `is_classification_durable`: sleep, read, sleep, read
-again, and accept only when both delayed reads agree; up to 4 write attempts. A fresh
-build (`fwv-0806-0003`) then takes ~32s and `classification.Intent == ["Structural"]`
-survives, re-verified after the fact.
+ingest gears pending.** Fixed first with `is_classification_durable`: sleep, read, sleep,
+read again, and accept only when both delayed reads agree; up to 4 write attempts. A fresh
+build (`fwv-0806-0003`) then took ~32s and `classification.Intent == ["Structural"]`
+survived, re-verified after the fact. That treats the symptom — the rule strip above
+removes the cause — and it stays in place as a safety net for a site whose rules fire
+independently of the project's, or a key that cannot remove them.
 
 ## 2026-08-06 — `fw.gears.iter_find` never terminates; `delete_gears` hung forever
 

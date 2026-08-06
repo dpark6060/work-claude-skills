@@ -1,6 +1,7 @@
 import json
 from unittest import mock
 
+import flywheel
 import pytest
 
 from build_project import (
@@ -10,13 +11,23 @@ from build_project import (
     Target,
     add_containers,
     add_file,
+    get_or_add_group,
+    is_classification_applied,
     main,
     orchestrate_build,
     parse_item,
     parse_spec,
     process_metadata,
+    set_file_classification,
 )
 from fwv_common import SiteConfig
+
+
+def _parent_reading_back(classification):
+    """Container mock whose fresh read reports this file classification."""
+    parent = mock.MagicMock()
+    parent.reload.return_value.get_file.return_value.classification = classification
+    return parent
 
 
 @pytest.fixture
@@ -231,13 +242,14 @@ def test_process_metadata_container_entry_updates_info():
 
 def test_process_metadata_file_entry_sets_info_classification_and_type():
     # Arrange
-    parent = mock.MagicMock()
+    parent = _parent_reading_back({"Intent": ["Structural"]})
     registry = {
         "sub-01/image.dcm": Target(kind="file", container=parent, filename="image.dcm")
     }
     meta = {
         "sub-01/image.dcm": {
             "type": "dicom",
+            "modality": "MR",
             "content": "fake-dicom",
             "info": {"SeriesDescription": "T1w"},
             "classification": {"Intent": ["Structural"]},
@@ -248,13 +260,122 @@ def test_process_metadata_file_entry_sets_info_classification_and_type():
     process_metadata(registry, meta)
 
     # Assert
-    parent.update_file_info.assert_called_once_with(
-        "image.dcm", {"SeriesDescription": "T1w"}
+    parent.update_file.assert_called_once_with(
+        "image.dcm", {"type": "dicom", "modality": "MR"}
     )
     parent.update_file_classification.assert_called_once_with(
         "image.dcm", {"Intent": ["Structural"]}
     )
-    parent.update_file.assert_called_once_with("image.dcm", {"type": "dicom"})
+    parent.update_file_info.assert_called_once_with(
+        "image.dcm", {"SeriesDescription": "T1w"}
+    )
+
+
+def test_process_metadata_file_entry_sets_modality_before_classification():
+    # Arrange - the API rejects non-Custom classification keys on a file whose
+    # modality is unset, so this ordering is a correctness requirement.
+    parent = _parent_reading_back({"Intent": ["Structural"]})
+    registry = {
+        "sub-01/image.dcm": Target(kind="file", container=parent, filename="image.dcm")
+    }
+    meta = {
+        "sub-01/image.dcm": {
+            "modality": "MR",
+            "classification": {"Intent": ["Structural"]},
+        }
+    }
+
+    # Act
+    process_metadata(registry, meta)
+
+    # Assert
+    called = [name for name, _, _ in parent.mock_calls]
+    assert called.index("update_file") < called.index("update_file_classification")
+
+
+def test_set_file_classification_returns_true_when_the_write_survives():
+    # Arrange
+    parent = _parent_reading_back({"Intent": ["Structural"]})
+    target = Target(kind="file", container=parent, filename="image.dcm")
+
+    # Act
+    applied = set_file_classification(target, {"Intent": ["Structural"]})
+
+    # Assert
+    assert applied is True
+    parent.update_file_classification.assert_called_once_with(
+        "image.dcm", {"Intent": ["Structural"]}
+    )
+
+
+@mock.patch("build_project.time.sleep")
+def test_set_file_classification_rewrites_until_the_value_sticks(mock_sleep):
+    # Arrange - the ingest gears wipe the first two writes.
+    parent = mock.MagicMock()
+    fresh = parent.reload.return_value.get_file.return_value
+    type(fresh).classification = mock.PropertyMock(
+        side_effect=[{}, {}, {"Intent": ["Structural"]}]
+    )
+    target = Target(kind="file", container=parent, filename="image.dcm")
+
+    # Act
+    applied = set_file_classification(target, {"Intent": ["Structural"]})
+
+    # Assert
+    assert applied is True
+    assert parent.update_file_classification.call_count == 3
+    assert mock_sleep.call_count == 2
+
+
+@mock.patch("build_project.time.sleep")
+def test_set_file_classification_gives_up_and_warns_after_last_attempt(
+    mock_sleep, capsys
+):
+    # Arrange
+    parent = _parent_reading_back({})
+    target = Target(kind="file", container=parent, filename="image.dcm")
+
+    # Act
+    applied = set_file_classification(target, {"Intent": ["Structural"]})
+
+    # Assert
+    assert applied is False
+    assert parent.update_file_classification.call_count == 4
+    assert "keeps getting overwritten" in capsys.readouterr().err
+
+
+def test_is_classification_applied_ignores_keys_added_by_the_ingest_gears():
+    # Arrange
+    parent = _parent_reading_back({"Intent": ["Structural"], "Features": ["Derived"]})
+    target = Target(kind="file", container=parent, filename="image.dcm")
+
+    # Act & Assert
+    assert is_classification_applied(target, {"Intent": ["Structural"]}) is True
+
+
+def test_is_classification_applied_missing_file_is_false():
+    # Arrange
+    parent = mock.MagicMock()
+    parent.reload.return_value.get_file.return_value = None
+    target = Target(kind="file", container=parent, filename="image.dcm")
+
+    # Act & Assert
+    assert is_classification_applied(target, {"Intent": ["Structural"]}) is False
+
+
+def test_process_metadata_file_entry_without_type_or_modality_skips_update_file():
+    # Arrange
+    parent = mock.MagicMock()
+    registry = {
+        "sub-01/notes.txt": Target(kind="file", container=parent, filename="notes.txt")
+    }
+
+    # Act
+    process_metadata(registry, {"sub-01/notes.txt": {"info": {"a": 1}}})
+
+    # Assert
+    parent.update_file.assert_not_called()
+    parent.update_file_info.assert_called_once_with("notes.txt", {"a": 1})
 
 
 def test_process_metadata_unknown_path_raises_valueerror():
@@ -332,6 +453,48 @@ def test_process_metadata_applies_info_to_intermediate_container_from_chain():
 
     # Assert
     subject.update_info.assert_called_once_with({"cohort": "A"})
+
+
+def test_get_or_add_group_existing_group_is_returned_without_creating():
+    # Arrange
+    fw = mock.MagicMock()
+
+    # Act
+    group = get_or_add_group(fw, "fw-verify")
+
+    # Assert
+    assert group is fw.get_group.return_value
+    fw.get_group.assert_called_once_with("fw-verify")
+    fw.add_group.assert_not_called()
+
+
+def test_get_or_add_group_missing_group_is_created_then_fetched():
+    # Arrange
+    fw = mock.MagicMock()
+    created = mock.MagicMock()
+    fw.get_group.side_effect = [flywheel.ApiException(status=404), created]
+
+    # Act
+    group = get_or_add_group(fw, "fw-verify")
+
+    # Assert
+    assert group is created
+    fw.add_group.assert_called_once()
+    body = fw.add_group.call_args.args[0]
+    assert body.id == "fw-verify"
+    assert body.label == "fw-verify"
+
+
+def test_get_or_add_group_non_404_error_is_reraised():
+    # Arrange
+    fw = mock.MagicMock()
+    fw.get_group.side_effect = flywheel.ApiException(status=403)
+
+    # Act & Assert
+    with pytest.raises(flywheel.ApiException):
+        get_or_add_group(fw, "fw-verify")
+
+    fw.add_group.assert_not_called()
 
 
 def test_orchestrate_build_creates_project_under_group(mock_fw):

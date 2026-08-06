@@ -25,6 +25,11 @@ SETUP_ERRORS = (KeyError, FileNotFoundError, RuntimeError)
 RUN_ID_FORMAT = f"{RUN_ID_PREFIX}MMDD-xxxx"
 RUN_ID_PATTERN = re.compile(rf"{re.escape(RUN_ID_PREFIX)}\d{{4}}-[0-9a-f]{{4}}")
 
+# A site with audit-trail enabled rejects container deletes that carry no
+# reason (400 "Need to have delete reason while audit-trail is enabled").
+# Sites without it ignore the parameter, so it is always sent.
+DELETE_REASON = flywheel.ContainerDeleteReason.TEST_DATA
+
 
 def validate_run_id(run_id: str) -> None:
     """Reject anything that is not a whole, well-formed fw-verify run id.
@@ -68,7 +73,7 @@ def delete_projects(
             continue
         deleted.append(project.label)
         if not dry_run:
-            fw.delete_project(project.id)
+            fw.delete_project(project.id, delete_reason=DELETE_REASON)
     return deleted
 
 

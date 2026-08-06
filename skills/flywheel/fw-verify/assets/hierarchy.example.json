@@ -11,6 +11,7 @@
     "sub-01": {"info": {"cohort": "A"}},
     "sub-01/ses-01/acq-01/image.dcm": {
       "type": "dicom",
+      "modality": "MR",
       "content": "fake-dicom",
       "info": {"SeriesDescription": "T1w"},
       "classification": {"Intent": ["Structural"]}

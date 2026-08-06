@@ -15,6 +15,7 @@ import argparse
 import io
 import json
 import sys
+import time
 import typing as t
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -223,16 +224,79 @@ def _apply_container_meta(target: Target, meta: dict) -> None:
         target.container.update_info(meta["info"])
 
 
+FILE_ATTRS = ("type", "modality")
+CLASSIFICATION_ATTEMPTS = 4
+CLASSIFICATION_WAIT_SECONDS = 6
+
+
 def _apply_file_meta(target: Target, meta: dict) -> None:
-    """Apply info/classification/type metadata to a file via its parent."""
+    """Apply type/modality, then classification, then info to a file.
+
+    The order is load-bearing. Classification keys are validated against the
+    file's modality, and a file with no modality accepts only "Custom" — send
+    "Intent" first and the API answers 422 "Unknown modalities can only use the
+    custom attribute". The API also clears classification whenever modality
+    changes, so classification has to land after both attributes are set.
+    """
+    attrs = {key: meta[key] for key in FILE_ATTRS if key in meta}
+    if attrs:
+        target.container.update_file(target.filename, attrs)
+    if "classification" in meta:
+        set_file_classification(target, meta["classification"])
     if "info" in meta:
         target.container.update_file_info(target.filename, meta["info"])
-    if "classification" in meta:
-        target.container.update_file_classification(
-            target.filename, meta["classification"]
-        )
-    if "type" in meta:
-        target.container.update_file(target.filename, {"type": meta["type"]})
+
+
+def set_file_classification(target: Target, classification: dict) -> bool:
+    """Write a file's classification and confirm it survived the ingest gears.
+
+    Uploading a file makes the site spawn its own gears — on a stock instance
+    file-metadata-importer then file-classifier. file-classifier owns
+    classification and replaces whatever is there when it finishes, so a write
+    that lands while it is still queued is silently thrown away: the PATCH
+    returns modified=1 and the value is gone seconds later. Write, re-read, and
+    write again until it sticks.
+
+    Args:
+        target: The file target to classify.
+        classification: Classification dict to apply.
+
+    Returns:
+        bool: True if the classification was observed on the file. False means
+            every attempt was overwritten — the caller warns, because a fixture
+            with silently missing metadata is worse than a slow build.
+    """
+    for attempt in range(CLASSIFICATION_ATTEMPTS):
+        target.container.update_file_classification(target.filename, classification)
+        if is_classification_applied(target, classification):
+            return True
+        if attempt < CLASSIFICATION_ATTEMPTS - 1:
+            time.sleep(CLASSIFICATION_WAIT_SECONDS)
+    print(
+        f"Warning: classification on {target.filename!r} keeps getting overwritten "
+        f"by the site's ingest gears; it is not set.",
+        file=sys.stderr,
+    )
+    return False
+
+
+def is_classification_applied(target: Target, classification: dict) -> bool:
+    """Check whether every requested classification key is on the file now.
+
+    Args:
+        target: The file target to re-read from the server.
+        classification: The classification that was requested.
+
+    Returns:
+        bool: True if a fresh read shows every requested key and value. The
+            check is a subset test — the ingest gears add keys of their own and
+            those are not a failure.
+    """
+    fresh = target.container.reload().get_file(target.filename)
+    if fresh is None:
+        return False
+    current = dict(fresh.classification or {})
+    return all(current.get(key) == value for key, value in classification.items())
 
 
 @dataclass
@@ -243,6 +307,33 @@ class BuildResult:
     project_label: str
     run_id: str
     pending_uploads: t.List[str] = field(default_factory=list)
+
+
+def get_or_add_group(fw: t.Any, group_id: str) -> t.Any:
+    """Return the namespace group, creating it if the site does not have it.
+
+    The configured group is a namespace this skill owns, so a site that has
+    never run fw-verify simply does not have it yet. Only a 404 is treated as
+    "absent" — a 403 means the key cannot read groups, which is a real setup
+    problem and must not be papered over by trying to create one.
+
+    Args:
+        fw: Flywheel client.
+        group_id: Group id from the site config.
+
+    Returns:
+        t.Any: the existing or newly created group container.
+
+    Raises:
+        flywheel.ApiException: the lookup failed for any reason other than 404.
+    """
+    try:
+        return fw.get_group(group_id)
+    except flywheel.ApiException as exc:
+        if exc.status != 404:
+            raise
+    fw.add_group(flywheel.GroupInput(id=group_id, label=group_id))
+    return fw.get_group(group_id)
 
 
 def get_or_add_project(fw: t.Any, group_id: str, label: str) -> t.Any:
@@ -259,7 +350,7 @@ def get_or_add_project(fw: t.Any, group_id: str, label: str) -> t.Any:
     existing = fw.projects.find_first(f'group._id={group_id},label="{label}"')
     if existing is not None:
         return existing
-    group = fw.get_group(group_id)
+    group = get_or_add_group(fw, group_id)
     return group.add_project(label=label)
 
 

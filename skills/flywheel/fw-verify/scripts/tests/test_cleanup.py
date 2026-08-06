@@ -3,7 +3,13 @@ from unittest import mock
 
 import pytest
 
-from cleanup import delete_gears, delete_projects, main, validate_run_id
+from cleanup import (
+    DELETE_REASON,
+    delete_gears,
+    delete_projects,
+    main,
+    validate_run_id,
+)
 from fwv_common import SiteConfig, get_run_id
 
 
@@ -58,7 +64,7 @@ def test_delete_projects_deletes_only_matching_labels():
 
     # Assert
     assert deleted == ["fwv-0806-a3f2-exit-codes"]
-    fw.delete_project.assert_called_once_with(kill.id)
+    fw.delete_project.assert_called_once_with(kill.id, delete_reason=DELETE_REASON)
 
 
 def test_delete_projects_dry_run_deletes_nothing():

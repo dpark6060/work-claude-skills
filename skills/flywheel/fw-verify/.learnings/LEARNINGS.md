@@ -2,6 +2,44 @@
 
 Patterns that worked, non-obvious behaviors, workflow adjustments. Append-only; newest first.
 
+## 2026-08-06 — gear version discovery: `include_invalid` is mandatory, `disabled` is a timestamp
+
+Mode 3 reuses one fixed-name gear (`claude-test-gear`) and uploads a new version per run,
+deactivating it afterwards. That makes "what versions already exist?" a correctness
+question, and the default answer is wrong.
+
+`GET /gears` **hides deactivated versions** unless you pass `include_invalid=True`.
+Measured live on 22.3.9:
+
+| Query | Result |
+|---|---|
+| `get_all_gears(all_versions=True)` | 1081 |
+| `get_all_gears(all_versions=True, include_invalid=True)` | 1124 |
+| `filter="gear.name=dicom-qc"` | 11 versions |
+| same + `include_invalid=True` | 16 versions (`0.6.0-rc0`…`rc4` were hidden) |
+
+Since every run deactivates the version it used, the *visible* list is precisely the
+list that excludes our own history — compute "next version" from it and you re-mint an
+existing version and the upload fails. The verified discovery call is
+`fw.get_all_gears(all_versions=True, include_invalid=True, filter=f"gear.name={name}")`,
+wrapped as `get_gear_versions` in `cleanup.py`. Server-side filtering, so it returns one
+gear's versions instead of all 1124, and `[]` for a name that has never been uploaded.
+
+Two more traps in the same area:
+
+- **`disabled` is a datetime or `None`, not a boolean.** All 43 hidden versions carried a
+  disable timestamp; every visible one had `None`. `if gear.disabled:` is correct, but
+  anything expecting `True`/`False` (a `== True`, a JSON dump, a schema) gets a datetime.
+- **`fw.delete_gear` is a disable, not a delete.** Its own SDK docstring reads "Delete a
+  gear (not recommended) / Disable a gear by id", and the 43 disabled-but-still-returned
+  versions are consistent with that. Source-verified; not yet executed by this skill, so
+  the first mode-3 run must confirm the version goes `disabled` rather than vanishing.
+
+Naming note: manifest gear names allow only lowercase letters, numbers and hyphens, so
+the gear is `claude-test-gear` and never `claude_test_gear`. The `[fwv-probe]` log prefix
+in the template's `run.py` is deliberately left alone — it is a log namespace for
+separating plumbing lines from `[fwv]` payload lines, not the gear name.
+
 ## 2026-08-06 — strip a new project's gear rules; otherwise the site rewrites your fixture
 
 A new project inherits the site's default gear rules, so the first upload queues the

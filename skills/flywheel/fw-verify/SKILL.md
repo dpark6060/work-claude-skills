@@ -60,7 +60,10 @@ print(flywheel.Client(os.environ[cfg["api_key_env"]]).get_current_user().email)
      arbitrary Python can observe) → read
      `${CLAUDE_SKILL_DIR}/references/mode-file-curator.md`
    - **Mode 3 — probe gear** (manifest/exit-code/engine semantics ARE the subject)
-     → read `${CLAUDE_SKILL_DIR}/references/mode-scratch-gear.md`
+     → read `${CLAUDE_SKILL_DIR}/references/mode-scratch-gear.md`. One fixed gear
+     name, `claude-test-gear`, reused across runs: each run uploads the next unused
+     *version* and deactivates that version in cleanup. The run id rides in the
+     `run_id` config value, not the gear name.
 3. **Generate a run id.** Every run needs one — it names the report directory and is
    the only thing cleanup matches on — so mint it even when no provisioning happens:
 
@@ -107,7 +110,7 @@ uv run "${CLAUDE_SKILL_DIR}/scripts/build_project.py" --spec <spec.json> [--run-
 7. **Cleanup:**
 
 ```bash
-uv run "${CLAUDE_SKILL_DIR}/scripts/cleanup.py" --run-id <id> [--site <name>] [--dry-run]
+uv run "${CLAUDE_SKILL_DIR}/scripts/cleanup.py" --run-id <id> [--gear-version <ver>] [--site <name>] [--dry-run]
 ```
 
    Run it unless the user asked to keep artifacts. It deletes ONLY artifacts whose
@@ -115,6 +118,9 @@ uv run "${CLAUDE_SKILL_DIR}/scripts/cleanup.py" --run-id <id> [--site <name>] [-
    format (`fwv-MMDD-xxxx`) — a truncated id would match far more than one run.
    Run `--dry-run` first and read the list; on a shared site that is the norm, since
    it's the last chance to notice you're about to delete someone else's project.
+   After a mode-3 run add `--gear-version <ver>` with the version that run uploaded:
+   the probe gear's name is fixed, so the run-id match cannot find it, and this
+   deactivates that one version by exact name and version.
 
 ## Verdict report
 

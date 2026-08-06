@@ -1,5 +1,5 @@
 {
-  "name": "fwv-probe",
+  "name": "claude-test-gear",
   "label": "fw-verify probe gear",
   "description": "Minimal probe gear used by the fw-verify skill to empirically test gear/engine semantics. Not for production use.",
   "version": "0.1.0",
@@ -14,7 +14,7 @@
   "custom": {
     "gear-builder": {
       "category": "utility",
-      "image": "fwv-probe:0.1.0"
+      "image": "claude-test-gear:0.1.0"
     }
   },
   "inputs": {

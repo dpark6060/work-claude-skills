@@ -160,7 +160,9 @@ def test_main_rejects_bad_run_id(mock_cfg, mock_client):
 def test_main_prints_deletion_summary_json(mock_cfg, mock_client, monkeypatch, capsys):
     # Arrange
     monkeypatch.setenv("FW_DEV_API", "site:key")
-    mock_cfg.return_value = mock.MagicMock(api_key_env="FW_DEV_API", group="fw-verify")
+    mock_cfg.return_value = SiteConfig(
+        api_key_env="FW_DEV_API", group="fw-verify", label="dev"
+    )
     fw = mock_client.return_value
     fw.projects.iter_find.return_value = iter([])
     fw.get_all_gears.return_value = []
@@ -186,7 +188,9 @@ def test_main_dry_run_reports_matches_without_deleting(
 ):
     # Arrange
     monkeypatch.setenv("FW_DEV_API", "site:key")
-    mock_cfg.return_value = mock.MagicMock(api_key_env="FW_DEV_API", group="fw-verify")
+    mock_cfg.return_value = SiteConfig(
+        api_key_env="FW_DEV_API", group="fw-verify", label="dev"
+    )
     fw = mock_client.return_value
     fw.projects.iter_find.return_value = iter([_project("fwv-0806-a3f2-exit-codes")])
     fw.get_all_gears.return_value = list([_gear("fwv-0806-a3f2-probe")])

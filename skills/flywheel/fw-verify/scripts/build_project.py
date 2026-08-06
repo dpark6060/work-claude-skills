@@ -75,6 +75,22 @@ def parse_item(entry: str, metadata: dict) -> ItemSpec:
     )
 
 
+def get_project_label(spec: dict, run_id: str) -> str:
+    """Resolve the spec's project label without creating anything.
+
+    Args:
+        spec: The loaded hierarchy spec JSON.
+        run_id: The run id substituted for "{run_id}".
+
+    Returns:
+        str: the resolved project label.
+
+    Raises:
+        KeyError: the spec has no "project" value.
+    """
+    return spec["project"].replace("{run_id}", run_id)
+
+
 def parse_spec(spec: dict, run_id: str) -> t.Tuple[str, t.List[ItemSpec]]:
     """Parse a raw spec dict into a project label and resolved items.
 
@@ -85,7 +101,7 @@ def parse_spec(spec: dict, run_id: str) -> t.Tuple[str, t.List[ItemSpec]]:
     Returns:
         Tuple of (project label, list of ItemSpec).
     """
-    label = spec["project"].replace("{run_id}", run_id)
+    label = get_project_label(spec, run_id)
     metadata = spec.get("metadata", {})
     items = [parse_item(entry, metadata) for entry in spec.get("items", [])]
     return label, items
@@ -491,6 +507,33 @@ def get_arg_parser() -> argparse.ArgumentParser:
 BUILD_ERRORS = SETUP_ERRORS + (ValueError,)
 
 
+def get_orphan_hint(run_id: str, label: t.Optional[str]) -> t.List[str]:
+    """Build the stderr lines that point cleanup at a half-built project.
+
+    Some spec errors only surface after the project exists — process_metadata
+    raises on a key matching nothing, and by then containers and files are
+    already on the instance. Printing just the message leaves an orphan whose
+    run id the user has no way to recover, because a generated run id is never
+    echoed on the failure path. So name both the run id and the resolved label.
+
+    Args:
+        run_id: This run's id.
+        label: The resolved project label, or None if the failure happened
+            before the spec could be read (nothing was created, so no hint).
+
+    Returns:
+        list[str]: stderr lines to print after the error, empty when there is
+            nothing that could have been built.
+    """
+    if label is None:
+        return []
+    return [
+        f"Run id: {run_id} | project label: {label}",
+        f"Anything already created is an orphan. Clean it up with: "
+        f"cleanup.py --run-id {run_id} --dry-run",
+    ]
+
+
 def main(argv: t.Optional[t.List[str]] = None) -> int:
     """CLI entrypoint: build the project and print the result as JSON.
 
@@ -499,7 +542,10 @@ def main(argv: t.Optional[t.List[str]] = None) -> int:
     are semantically wrong — prints the underlying message and exits 1 rather
     than dumping a traceback. The build itself is inside the guarded block for
     that last case: a too-deep path, a metadata key matching nothing, or a label
-    without the run id are all the user's spec to fix, not bugs.
+    without the run id are all the user's spec to fix, not bugs. Once the spec
+    has been read the error also names the run id and project label, because a
+    metadata failure fires after the project exists and a generated run id is
+    otherwise never echoed — the user would be left with an unfindable orphan.
 
     Args:
         argv: Command line arguments (defaults to sys.argv[1:]).
@@ -509,13 +555,17 @@ def main(argv: t.Optional[t.List[str]] = None) -> int:
     """
     args = get_arg_parser().parse_args(argv)
     run_id = args.run_id or get_run_id()
+    label = None
     try:
         cfg = get_site_config(args.site)
         fw = flywheel.Client(get_api_key(cfg))
         spec = json.loads(Path(args.spec).read_text())
+        label = get_project_label(spec, run_id)
         result = orchestrate_build(fw, cfg.group, spec, run_id)
     except BUILD_ERRORS as exc:
-        print(f"Setup error: {get_error_message(exc)}", file=sys.stderr)
+        lines = [f"Setup error: {get_error_message(exc)}"]
+        lines.extend(get_orphan_hint(run_id, label))
+        print("\n".join(lines), file=sys.stderr)
         return 1
     print(json.dumps(asdict(result), indent=2))
     return 0

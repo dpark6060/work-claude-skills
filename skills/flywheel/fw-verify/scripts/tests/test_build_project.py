@@ -13,6 +13,7 @@ from build_project import (
     add_file,
     delete_project_rules,
     get_or_add_group,
+    get_orphan_hint,
     is_classification_applied,
     main,
     orchestrate_build,
@@ -683,13 +684,67 @@ def test_main_bad_spec_prints_setup_error_instead_of_tracebacking(
 
 @mock.patch("build_project.flywheel.Client")
 @mock.patch("build_project.get_site_config")
+def test_main_post_creation_spec_error_names_the_orphan(
+    mock_get_cfg, mock_client, tmp_path, monkeypatch, capsys
+):
+    # Arrange - a metadata key matching nothing raises only after the project,
+    # containers and files exist, so the message has to say what to clean up.
+    monkeypatch.setenv("FW_DEV_API", "site:key")
+    mock_get_cfg.return_value = SiteConfig(
+        api_key_env="FW_DEV_API", group="fw-verify", label="dev"
+    )
+    mock_client.return_value.projects.find_first.return_value = None
+    spec_path = tmp_path / "spec.json"
+    spec_path.write_text(
+        '{"project": "{run_id}-t", "items": [], "metadata": {"ghost/f.txt": {}}}'
+    )
+
+    # Act
+    rc = main(["--spec", str(spec_path), "--run-id", "fwv-0806-beef"])
+
+    # Assert
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "fwv-0806-beef" in err
+    assert "fwv-0806-beef-t" in err
+    assert "cleanup.py" in err
+
+
+@mock.patch("build_project.get_site_config")
+def test_main_setup_error_before_the_spec_loads_has_no_orphan_hint(
+    mock_get_cfg, tmp_path, monkeypatch, capsys
+):
+    # Arrange - nothing can have been created yet, so pointing at cleanup would
+    # only be noise.
+    monkeypatch.delenv("FW_MISSING_API", raising=False)
+    mock_get_cfg.return_value = SiteConfig(
+        api_key_env="FW_MISSING_API", group="fw-verify", label="dev"
+    )
+    spec_path = tmp_path / "spec.json"
+    spec_path.write_text('{"project": "{run_id}-t", "items": []}')
+
+    # Act
+    rc = main(["--spec", str(spec_path), "--run-id", "fwv-0806-beef"])
+
+    # Assert
+    assert rc == 1
+    assert "cleanup.py" not in capsys.readouterr().err
+
+
+def test_get_orphan_hint_without_a_label_returns_no_lines():
+    # Act & Assert
+    assert get_orphan_hint("fwv-0806-beef", None) == []
+
+
+@mock.patch("build_project.flywheel.Client")
+@mock.patch("build_project.get_site_config")
 def test_main_prints_result_json(
     mock_get_cfg, mock_client, tmp_path, monkeypatch, capsys
 ):
     # Arrange
     monkeypatch.setenv("FW_DEV_API", "site:key")
-    mock_get_cfg.return_value = mock.MagicMock(
-        api_key_env="FW_DEV_API", group="fw-verify"
+    mock_get_cfg.return_value = SiteConfig(
+        api_key_env="FW_DEV_API", group="fw-verify", label="dev"
     )
     fw = mock_client.return_value
     fw.projects.find_first.return_value = None

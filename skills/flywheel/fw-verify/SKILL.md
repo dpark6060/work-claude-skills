@@ -42,6 +42,10 @@ print(flywheel.Client(os.environ[cfg["api_key_env"]]).get_current_user().email)
 ' "${CLAUDE_SKILL_DIR}/cache/config.json"
 ```
 
+   This validates `default_site`. On a `--site <name>` run, check that site's
+   `api_key_env` instead — a key that works for the default site proves nothing
+   about the other one.
+
 ## Workflow
 
 1. **Intake.** Collect claims from the MR/doc/message. Number each one and restate
@@ -57,7 +61,18 @@ print(flywheel.Client(os.environ[cfg["api_key_env"]]).get_current_user().email)
      `${CLAUDE_SKILL_DIR}/references/mode-file-curator.md`
    - **Mode 3 — probe gear** (manifest/exit-code/engine semantics ARE the subject)
      → read `${CLAUDE_SKILL_DIR}/references/mode-scratch-gear.md`
-3. **Generate a run id** and provision if any claim needs instance data:
+3. **Generate a run id.** Every run needs one — it names the report directory and is
+   the only thing cleanup matches on — so mint it even when no provisioning happens:
+
+```bash
+uv run --no-project python -c "import sys; sys.path.insert(0, '${CLAUDE_SKILL_DIR}/scripts'); from fwv_common import get_run_id; print(get_run_id())"
+```
+
+   `build_project.py` mints one automatically when `--run-id` is omitted; if you
+   provision, reuse the `run_id` it reports rather than generating a second one. The
+   format is `fwv-MMDD-xxxx` — cleanup accepts nothing else.
+
+   **Provision** if any claim needs instance data:
 
 ```bash
 uv run "${CLAUDE_SKILL_DIR}/scripts/build_project.py" --spec <spec.json> [--run-id <id>] [--site <name>]
@@ -66,8 +81,8 @@ uv run "${CLAUDE_SKILL_DIR}/scripts/build_project.py" --spec <spec.json> [--run-
    Writes a JSON result to stdout: `project_id`, `project_label`, `run_id`,
    `pending_uploads`. Write the spec JSON yourself following
    `${CLAUDE_SKILL_DIR}/assets/hierarchy.example.json` (path depth = level;
-   trailing `/` = empty container; per-path `metadata` sets info/classification/
-   type/content for containers AND files). Content choices: omit for placeholder
+   trailing `/` = empty container; per-path `metadata` sets `info` on containers;
+   `info`/`classification`/`type`/`content` on files). Content choices: omit for placeholder
    text; `"fake-dicom"` when only routing/metadata/type-matching is under test;
    `"real"` when something must actually parse the file. Setup problems (missing
    config, unset key env var, bad spec) print `Setup error: ...` to stderr and exit
@@ -87,6 +102,8 @@ uv run "${CLAUDE_SKILL_DIR}/scripts/cleanup.py" --run-id <id> [--site <name>] [-
    Run it unless the user asked to keep artifacts. It deletes ONLY artifacts whose
    label/name contains the run id, and refuses ids not matching the `fwv-` run-id
    format (`fwv-MMDD-xxxx`) — a truncated id would match far more than one run.
+   Run `--dry-run` first and read the list; on a shared site that is the norm, since
+   it's the last chance to notice you're about to delete someone else's project.
 
 ## Verdict report
 

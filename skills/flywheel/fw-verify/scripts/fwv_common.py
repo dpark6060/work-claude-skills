@@ -39,7 +39,7 @@ def get_site_config(
 
     Raises:
         FileNotFoundError: config.json is missing.
-        KeyError: the named site is not present.
+        KeyError: the named site is not present; the message lists the available names.
     """
     if not config_path.exists():
         raise FileNotFoundError(
@@ -47,8 +47,14 @@ def get_site_config(
             f"cache/config.json and fill in your site details."
         )
     data = json.loads(config_path.read_text())
-    entry = data["default_site"] if site is None else data["sites"][site]
-    return SiteConfig(**entry)
+    if site is None:
+        return SiteConfig(**data["default_site"])
+    sites = data["sites"]
+    if site not in sites:
+        raise KeyError(
+            f"Site {site!r} not found in config. Available sites: {sorted(sites)}"
+        )
+    return SiteConfig(**sites[site])
 
 
 def get_api_key(cfg: SiteConfig) -> str:

@@ -45,6 +45,12 @@ def test_get_site_config_unknown_site_raises_keyerror(config_file):
         get_site_config(site="nope", config_path=config_file)
 
 
+def test_get_site_config_unknown_site_keyerror_lists_available_sites(config_file):
+    # Act & Assert
+    with pytest.raises(KeyError, match="Available sites.*alt"):
+        get_site_config(site="nope", config_path=config_file)
+
+
 def test_get_api_key_env_set_returns_value(monkeypatch):
     # Arrange
     monkeypatch.setenv("FW_DEV_API", "site.example.io:secret")

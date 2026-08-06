@@ -12,6 +12,7 @@ the fw-verify skill is allowed to use.
 
 import argparse
 import json
+import re
 import sys
 import typing as t
 
@@ -21,20 +22,29 @@ from build_project import get_error_message
 from fwv_common import RUN_ID_PREFIX, get_api_key, get_site_config
 
 SETUP_ERRORS = (KeyError, FileNotFoundError, RuntimeError)
+RUN_ID_FORMAT = f"{RUN_ID_PREFIX}MMDD-xxxx"
+RUN_ID_PATTERN = re.compile(rf"{re.escape(RUN_ID_PREFIX)}\d{{4}}-[0-9a-f]{{4}}")
 
 
 def validate_run_id(run_id: str) -> None:
-    """Reject run ids that don't carry the fw-verify namespace prefix.
+    """Reject anything that is not a whole, well-formed fw-verify run id.
+
+    The prefix alone is not enough. A bare "fwv-" or a truncated "fwv-0806"
+    is a substring of every run id in its namespace, so accepting one would
+    turn a typo into a delete-everything sweep. Only the exact shape
+    get_run_id() emits is allowed.
 
     Args:
         run_id: The run id to check.
 
     Raises:
-        ValueError: run_id does not start with "fwv-".
+        ValueError: run_id is not a complete fwv-MMDD-xxxx run id.
     """
-    if not run_id.startswith(RUN_ID_PREFIX):
+    if not RUN_ID_PATTERN.fullmatch(run_id):
         raise ValueError(
-            f"Refusing cleanup: {run_id!r} does not start with {RUN_ID_PREFIX!r}."
+            f"Refusing cleanup: {run_id!r} is not a complete run id. "
+            f"Expected the {RUN_ID_PREFIX!r} format {RUN_ID_FORMAT!r} "
+            f"(e.g. 'fwv-0806-a3f2')."
         )
 
 

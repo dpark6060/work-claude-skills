@@ -41,7 +41,15 @@ cp -r "${CLAUDE_SKILL_DIR}/assets/probe-gear" "${CLAUDE_SKILL_DIR}/cache/<run-id
 cd "${CLAUDE_SKILL_DIR}/cache/<run-id>-probe"
 ```
 
-2. **Find the next unused version.** `include_invalid=True` is mandatory: without
+2. **Find the next unused version.** Quick look from the shell first — this is the
+   canonical discovery step, and `-a -d` (all versions, disabled included) is the
+   CLI spelling of `include_invalid`:
+
+```bash
+flyw --profile <site> gear list --filter gear.name=claude-test-gear -a -d
+```
+
+   Then compute the next version in Python. `include_invalid=True` is mandatory: without
    it the endpoint hides deactivated versions, and since every previous run
    deactivates the version it used, the visible list is exactly the wrong list to
    compute from — you would re-mint a version that already exists and the upload
@@ -107,12 +115,20 @@ flyw gear upload .
 
 ```python
 gear = fw.lookup("gears/claude-test-gear")   # resolves the latest active version
-job_id = gear.run(destination=project, config={"exit_code": 1, "run_id": "<run-id>"})
-# poll fw.get_job(job_id).state; then pull logs via /api/jobs/{id}/logs/text
+job_id = gear.run(
+    destination=project,
+    config={"exit_code": 1, "run_id": "<run-id>"},
+    tags=["static"],   # ALWAYS: routes the job to the static engine
+)
+# poll fw.get_job(job_id).state; then pull logs with fw.get_job_logs(job_id)
 # setup, poll, and log-pull snippets: see [mode-file-curator.md](mode-file-curator.md) steps 2, 4, and 5.
 ```
 
    The claim's evidence is the (exit_code → job.state) pair plus `[fwv]` log lines.
+
+   Without the `static` tag a job on latest/alatest can sit `pending` for minutes
+   waiting for a dynamic engine (measured: 5.5 min untagged vs 15 s tagged on the
+   same day). Add `tags=["static"]` to every probe launch.
 
 6. Cleanup deactivates the exact version this run uploaded:
 
@@ -130,11 +146,12 @@ uv run "${CLAUDE_SKILL_DIR}/scripts/cleanup.py" --run-id <run-id> --gear-version
    gear (not recommended) / **Disable a gear by id**" — it is a soft disable, not a
    removal: the version keeps existing and comes back from the API with a
    `disabled` timestamp, which is why step 2 must ask for invalid versions. Note
-   `disabled` is a **timestamp or `None`**, not a boolean. The disable path is
-   source-verified and consistent with the 43 disabled versions observed on the
-   test site, but has not yet been executed by this skill — **confirm at the first
-   real mode-3 run** that the version goes `disabled` rather than vanishing, and
-   that the next run's version calculation still sees it.
+   `disabled` is a **timestamp or `None`**, not a boolean, and it lives on the
+   gear *document* (`gear.disabled`), not the manifest (`gear.gear` has no
+   `disabled`). Live-confirmed on 22.3.9 (runs fwv-0806-d340 and fwv-0806-fc9d):
+   the version goes `disabled` rather than vanishing, the next run's version
+   calculation still sees it, and `fw.delete_gear` needs no `delete_reason` even
+   on an audit-trail site.
 
 ## Template maintenance
 

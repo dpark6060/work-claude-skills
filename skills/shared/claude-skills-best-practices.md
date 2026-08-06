@@ -3,13 +3,13 @@ type: Best Practices Guide
 title: Claude Skills Best Practices
 description: Canonical rulebook for authoring skills — token efficiency, lean SKILL.md, progressive disclosure, and consistent behavior.
 tags: [skills, best-practices, tokens]
-timestamp: 2026-07-15T00:00:00Z
+timestamp: 2026-07-31T00:00:00Z
 ---
 
 # Claude Skills Best Practices
 ### Minimizing Token Usage & Creating Consistent Behavior
 
-> **Sources:** Anthropic official documentation ([code.claude.com/docs/en/skills](https://code.claude.com/docs/en/skills), [platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)), internal skill-creator SKILL.md, and real-world skill examples.
+> **Sources:** Anthropic official documentation ([code.claude.com/docs/en/skills](https://code.claude.com/docs/en/skills), [platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)), the Agent Skills open standard ([agentskills.io/skill-creation/best-practices](https://agentskills.io/skill-creation/best-practices), [agentskills.io/specification](https://agentskills.io/specification)), internal skill-creator SKILL.md, and real-world skill examples.
 
 ---
 
@@ -17,18 +17,27 @@ timestamp: 2026-07-15T00:00:00Z
 
 1. [What Skills Are](#1-what-skills-are)
 2. [Anatomy of a Skill](#2-anatomy-of-a-skill)
-   - [Sanctioned directory structure (this repo's standard)](#sanctioned-directory-structure-this-repos-standard)
 3. [Token Efficiency: The Core Model](#3-token-efficiency-the-core-model)
 4. [Writing a Lean SKILL.md](#4-writing-a-lean-skillmd)
 5. [Progressive Disclosure Patterns](#5-progressive-disclosure-patterns)
 6. [Descriptions: The Triggering Mechanism](#6-descriptions-the-triggering-mechanism)
-7. [Consistent Behavior Patterns](#7-consistent-behavior-patterns)
-8. [Frontmatter Reference & Control Flags](#8-frontmatter-reference--control-flags)
-9. [Dynamic Context Injection](#9-dynamic-context-injection)
-10. [Bundled Scripts: Token-Free Execution](#10-bundled-scripts-token-free-execution)
-11. [Anti-Patterns to Avoid](#11-anti-patterns-to-avoid)
-12. [Evaluation & Iteration Workflow](#12-evaluation--iteration-workflow)
-13. [Quick Checklist](#13-quick-checklist)
+7. [Bundled Scripts: Token-Free Execution](#7-bundled-scripts-token-free-execution)
+8. [Anti-Patterns to Avoid](#8-anti-patterns-to-avoid)
+9. [Quick Checklist](#9-quick-checklist)
+
+## Companion files
+
+This file covers what you read *while writing* a SKILL.md. The rest lives in
+[`skill-authoring/`](skill-authoring/index.md) — load by need, not by default:
+
+| Load this | When |
+|---|---|
+| [directory-structure.md](skill-authoring/directory-structure.md) | Scaffolding a skill, or deciding which subdirectory a file belongs in |
+| [frontmatter-reference.md](skill-authoring/frontmatter-reference.md) | Writing frontmatter, control flags, `paths`, arg substitution, `` !`command` `` injection |
+| [behavior-patterns.md](skill-authoring/behavior-patterns.md) | Output must be consistent run to run: templates, few-shot, gotchas, checklists, validation loops. Also has complete example skills |
+| [evaluation.md](skill-authoring/evaluation.md) | Before authoring (is there a real gap? where does the content come from?) and after (testing, iteration) |
+| [community-insights.md](community-insights.md) | Trigger-rate research, caveman compression, `.learnings/` pattern, Skills vs. CLAUDE.md |
+| [skill-creator-alignment.md](skill-authoring/skill-creator-alignment.md) | You want the rigorous tooled eval workflow, or you're auditing this rulebook |
 
 ---
 
@@ -38,12 +47,15 @@ A **skill** is a directory containing a `SKILL.md` file that gives Claude a deta
 
 ```
 ~/.claude/skills/my-skill/
-├── SKILL.md          ← Required entrypoint
-├── reference.md      ← Loaded on demand
-├── examples.md       ← Loaded on demand
+├── SKILL.md              ← Required entrypoint; the only file in the base dir
+├── references/           ← Loaded on demand
+│   ├── <topic>.md
+│   └── examples.md
 └── scripts/
-    └── helper.py     ← Executed, not loaded into context
+    └── helper.py         ← Executed, not loaded into context
 ```
+
+See [directory-structure.md](skill-authoring/directory-structure.md) for the full sanctioned layout.
 
 Skills follow the [Agent Skills open standard](https://agentskills.io) and work across Claude Code, the API, and Cowork.
 
@@ -62,109 +74,27 @@ description: What it does and when to use it. Front-load the key use case.
 # Your instructions here (markdown body)
 ```
 
-### Frontmatter field quick reference
+The two required fields are `name` and `description`. Everything else is optional control flags —
+who can invoke, which tools are pre-approved, whether it runs forked, which files auto-load it.
+**Full field table and flag semantics: [frontmatter-reference.md](skill-authoring/frontmatter-reference.md).**
 
-| Field | Required | Notes |
-|---|---|---|
-| `name` | No (uses dir name) | Lowercase, hyphens, max 64 chars |
-| `description` | **Recommended** | Max 1024 chars; truncated at ~250 chars in skill listing |
-| `disable-model-invocation` | No | `true` = only user can invoke |
-| `user-invocable` | No | `false` = only Claude invokes, hidden from `/` menu |
-| `allowed-tools` | No | Pre-approve tools without per-use prompts |
-| `context` | No | `fork` = run in isolated subagent |
-| `agent` | No | Which subagent type when `context: fork` |
-| `paths` | No | Glob patterns; skill auto-loads only for matching files |
-| `model` | No | Model override for this skill |
-| `effort` | No | `low`/`medium`/`high`/`max` |
+The body is ordinary markdown. Nothing about it is special except that it all loads at once, which
+is what §3 and §4 are about.
 
----
+### Where files go
 
-### Sanctioned directory structure (this repo's standard)
+The base directory holds only `SKILL.md`. Everything else goes in one of seven sanctioned
+subdirectories — `references/`, `assets/`, `sources/`, `scripts/`, `server/`, `cache/`,
+`.learnings/`. Two rules worth knowing before you read the full standard:
 
-> This is **this repo's** convention layered on top of the official loading model in §3 — not
-> Anthropic guidance. It exists so every skill has the same shape and tooling (`skill-maker`,
-> `skill-audit`) can assume it.
+- **`references/` is consumed by the agent** (read into context, costs tokens, carries OKF
+  frontmatter). **`assets/` is consumed by the deliverable** (copied or filled in, often never
+  read at all, no frontmatter — it would leak into the output).
+- **Nesting is an organization standard, not a token optimization.** Per §3, nothing under the
+  skill dir loads until it's read. Layout buys consistency and tooling, not fewer tokens.
 
-**The base directory holds only `SKILL.md`.** Everything else goes in one of six sanctioned
-subdirectories. All are optional — add one only when the skill needs it. Don't invent siblings;
-`server/` was added precisely so MCP servers stopped being a one-off.
-
-| Subdir | Holds | Loading | Index? |
-|---|---|---|---|
-| `references/` | Detailed agent-ready markdown, split by topic/domain | Lazy — zero tokens until read | OKF `index.md` at 4+ uncovered files |
-| `sources/` | Raw data (API dumps, large JSON/CSV) too costly to load casually | Lazy — high token cost, dig in only when needed | OKF `index.md` at 4+ uncovered files |
-| `scripts/` | Executable code Claude **runs**, not reads | Token-free — executed, never loaded | **Never** — describe at call site |
-| `server/` | Long-running / hosted processes (e.g. MCP servers) | Started, not loaded | **Never** — describe at call site |
-| `cache/` | Runtime/generated state a script writes and later reads | Not loaded — runtime only | n/a — gitignored, never committed |
-| `.learnings/` | Accumulated gotchas (`LEARNINGS.md`, `ERRORS.md`) | Read + summarized at task start | n/a — execution skills only |
-
-```
-skills/<category>/<skill-name>/
-├── SKILL.md            # the only file in the base dir
-├── references/         # OKF concept docs, lazy-loaded; index.md at 4+ uncovered files
-│   └── <topic>.md
-├── sources/            # raw data; high token cost; index.md at 4+ uncovered files
-├── scripts/            # run via ${CLAUDE_SKILL_DIR}/scripts/...; never indexed
-├── server/             # long-running processes (MCP servers); never indexed
-├── cache/              # runtime state a script generates; gitignored, never committed
-└── .learnings/         # execution skills only
-    ├── LEARNINGS.md
-    └── ERRORS.md
-```
-
-**This is an organization standard, not a token optimization.** Flat vs nested doesn't change
-what loads — per §3, only the SKILL.md body loads on trigger, references/sources cost nothing
-until read, and scripts/server never load. The subdirs buy authoring consistency, not fewer
-tokens. The one real token lever is `index.md`, and it cuts both ways (below).
-
-**Reference files follow OKF (Open Knowledge Format).** A skill's `references/` directory is an
-OKF knowledge bundle. Full spec is vendored at `~/.claude/skills/shared/okf-spec.md`; the rules
-that matter here:
-
-- Every reference file starts with YAML frontmatter: `type` (required, e.g. `Config Reference`,
-  `API Endpoint Schema`), plus `title` and a **one-sentence** `description` — the description is
-  copied verbatim into `index.md`, so keep it tight. Optional: `tags`, `timestamp`, `resource`.
-  This applies *only* under `references/` — `SKILL.md` and agent frontmatter keep the harness
-  fields (`name`, `description`, control flags) exactly as §8 defines.
-- A directory needs an `index.md` once it holds **4+ uncovered concept files** — its own files
-  plus, recursively, those of any subdirectory *without* its own `index.md` (an indexed
-  subdirectory covers its subtree and contributes zero; an unindexed one passes its files up to
-  the parent's count). So four 2-file subdirs don't each need an index, but their parent sees 8
-  uncovered files and does — listing the nested files directly by relative path. Below the
-  threshold, SKILL.md routing suffices; an index is still legal anywhere. Index format: **no
-  frontmatter**, body is nothing but headings with `* [Title](relative-path) - description`
-  bullets, alphabetical. Concepts group under a heading naming the group; indexed subdirectories
-  go under `# Subdirectories`, each linking to the subdirectory's own `index.md`.
-- Optional `log.md` per directory for change history: `## YYYY-MM-DD` headings, newest first.
-- Cross-link related reference files with file-relative markdown links; conventional section
-  headings are `# Schema`, `# Examples`, `# Citations` (numbered `[1] [text](url)`, at the end).
-
-**`index.md` is an enumeration layer, not a routing layer.** SKILL.md still owns routing: it
-says *when* to load which reference ("writing a new gear? load gear-basics.md") and can point
-at `references/index.md` instead of enumerating a large folder inline. Keep every index a pure
-pointer list — an index that holds content Claude actually needs creates the
-`SKILL.md → index.md → file` two-hop that §5 and §11 warn against.
-
-**`scripts/` and `server/` are described at their call site, never indexed.** The caller doesn't
-browse to pick a script — it needs the invocation contract (args in, what it writes/returns, exit
-codes) inline next to the `${CLAUDE_SKILL_DIR}/scripts/foo.py` call. Always use
-`${CLAUDE_SKILL_DIR}` for paths so they survive being symlinked into `~/.claude` and cloned
-elsewhere.
-
-**`.learnings/` is for execution skills only.** A pure reference/lookup skill has no "runs" to
-learn from. It's writable and append-only, so periodically promote hot learnings into the SKILL.md
-body and prune — otherwise it drifts from reality.
-
-**`cache/` is where runtime state goes — never the base dir.** If a skill's script needs to write
-generated state (a workspace dump, a resolved-ID lookup, anything fetched-then-reused), it writes
-to `cache/` under the skill root, e.g. `${CLAUDE_SKILL_DIR}/cache/`. It's gitignored repo-wide by
-`skills/*/*/cache/`, so it's never committed and doesn't count as authored skill content — a
-script can rebuild it from scratch. Don't scatter runtime files at the skill root or invent
-per-skill names for them.
-
-**Data policy for `sources/` and `scripts/` fixtures.** Raw data and fixtures bloat a repo that's
-cloned and symlinked into `~/.claude`. Commit small representative samples; fetch large dumps via
-a script or keep them out of the repo.
+**Full standard — the seven subdirs, what belongs in each, and the OKF rules for `references/`:
+[directory-structure.md](skill-authoring/directory-structure.md).**
 
 ---
 
@@ -176,7 +106,7 @@ Skills use a **three-level loading system** that keeps token costs low by defaul
 |---|---|---|
 | **Metadata** (always) | `name` + `description` from all skills | ~100 words per skill |
 | **SKILL.md body** (on trigger) | Full instructions | Loaded once, persists in session |
-| **Supporting files** (on demand) | `reference.md`, `examples.md`, etc. | Zero until Claude reads them |
+| **Supporting files** (on demand) | `references/<topic>.md`, `sources/*`, etc. | Zero until Claude reads them |
 | **Scripts** | `scripts/helper.py`, etc. | Zero — executed, not loaded |
 
 ### Key insight: the context window is a shared resource
@@ -218,9 +148,53 @@ The concise version trusts that Claude knows what PDFs are and how libraries wor
 
 ## 4. Writing a Lean SKILL.md
 
-### Keep it under 500 lines
+### Keep it under 500 lines and ~5,000 tokens
 
-Once the body exceeds ~500 lines, move detailed content to supporting files. This is both a performance guideline and a design signal: if your SKILL.md is growing large, you likely have content that should be loaded conditionally.
+The spec's limit is both: 500 lines **and** 5,000 tokens. Lines are the easier proxy, but a
+500-line body that's mostly dense tables or code can blow the token budget while looking compliant —
+check tokens when the body is table- or example-heavy. Past either limit, move detailed content to
+supporting files. This is a performance guideline and a design signal: a large SKILL.md usually
+means content that should be loading conditionally.
+
+### Scope each skill as a coherent unit
+
+Scoping a skill is like scoping a function: it should encapsulate one coherent unit of work that
+composes with other skills.
+
+- **Too narrow** → several skills load for one task, adding overhead and conflicting instructions.
+- **Too broad** → the description can't trigger precisely, so it fires on the wrong prompts or not
+  at all.
+
+"Query this database and format the results" is probably one unit. Adding database administration
+to it is not.
+
+### Aim for moderate detail
+
+The failure mode of an over-comprehensive skill isn't just token cost — the agent struggles to
+find what's relevant and **actively pursues unproductive paths triggered by instructions that
+don't apply to the current task.** Concise stepwise guidance plus one working example beats
+exhaustive documentation. When you're writing out every edge case, ask which ones the agent's own
+judgment already handles.
+
+### Favor procedures over declarations
+
+Teach the agent *how to approach* a class of problems, not *what to produce* for one instance.
+
+**Declarative (only works for this exact task):**
+```markdown
+Join `orders` to `customers` on `customer_id`, filter `region = 'EMEA'`, sum `amount`.
+```
+
+**Procedural (works for any query in the domain):**
+```markdown
+1. Read the schema from `references/schema.yaml` to find relevant tables
+2. Join using the `_id` foreign key convention
+3. Apply the user's filters as WHERE clauses
+4. Aggregate numeric columns and format as a markdown table
+```
+
+Specific details are still fine — output templates, "never output PII", tool-specific invocations.
+The *approach* is what has to generalize.
 
 ### Set appropriate degrees of freedom
 
@@ -313,12 +287,13 @@ with pdfplumber.open("file.pdf") as pdf:
 
 ## Additional resources
 
-- **Form filling**: See [FORMS.md](FORMS.md) for complete guide
-- **API reference**: See [REFERENCE.md](REFERENCE.md) for all methods
-- **Examples**: See [EXAMPLES.md](EXAMPLES.md) for common patterns
+- **Form filling**: See [references/forms.md](references/forms.md) for complete guide
+- **API reference**: See [references/api.md](references/api.md) for all methods
+- **Examples**: See [references/examples.md](references/examples.md) for common patterns
 ```
 
-Claude loads `FORMS.md`, `REFERENCE.md`, or `EXAMPLES.md` only when needed — zero token cost until then.
+Claude loads `references/forms.md`, `references/api.md`, or `references/examples.md` only when
+needed — zero token cost until then.
 
 ### Pattern 2: Domain-organized references
 
@@ -327,7 +302,8 @@ When a skill covers multiple domains, split reference files by domain. Claude re
 ```
 bigquery-skill/
 ├── SKILL.md
-└── reference/
+└── references/
+    ├── index.md        ← required at 4+ files (see directory-structure.md)
     ├── finance.md      ← revenue, billing metrics
     ├── sales.md        ← opportunities, pipeline
     ├── product.md      ← API usage, features
@@ -339,13 +315,13 @@ bigquery-skill/
 
 ## Available datasets
 
-- **Finance**: Revenue, ARR, billing → See [reference/finance.md](reference/finance.md)
-- **Sales**: Opportunities, pipeline → See [reference/sales.md](reference/sales.md)
-- **Product**: API usage, features → See [reference/product.md](reference/product.md)
-- **Marketing**: Campaigns, attribution → See [reference/marketing.md](reference/marketing.md)
+- **Finance**: Revenue, ARR, billing → See [references/finance.md](references/finance.md)
+- **Sales**: Opportunities, pipeline → See [references/sales.md](references/sales.md)
+- **Product**: API usage, features → See [references/product.md](references/product.md)
+- **Marketing**: Campaigns, attribution → See [references/marketing.md](references/marketing.md)
 ```
 
-When the user asks about revenue, Claude reads `reference/finance.md` only. The other files consume zero tokens.
+When the user asks about revenue, Claude reads `references/finance.md` only. The other files consume zero tokens.
 
 ### Pattern 3: Conditional workflow branching
 
@@ -367,19 +343,60 @@ When the user asks about revenue, Claude reads `reference/finance.md` only. The 
    - Repack when complete
 ```
 
+### Pattern 4: Shared context authored once, referenced everywhere
+
+**Context that applies to more than one skill or agent gets authored in exactly one place.** A
+`SKILL.md` is use-case-specific and rarely reusable — it's the *instructions*. The domain knowledge
+those instructions operate on usually isn't specific to one use case at all.
+
+The canonical case is a pair of roles that need identical knowledge and opposite instructions:
+
+```
+skills/shared/api-conventions.md      ← the knowledge, authored once
+        ↑                      ↑
+skills/api-author/SKILL.md    skills/api-reviewer/SKILL.md
+  "build endpoints that…"       "flag endpoints that…"
+```
+
+Duplicating the conventions into both bodies means every future correction has to be made twice,
+and the two copies silently diverge — at which point the reviewer starts rejecting what the author
+was told to write.
+
+**Three mechanisms, in order of preference:**
+
+| Mechanism | Use when | How |
+|---|---|---|
+| Shared reference file | 2+ skills need the same knowledge | Put it in `skills/shared/`, point at `~/.claude/skills/shared/<file>.md` from each SKILL.md with a load-when trigger |
+| Skill referenced by multiple agents | Several agents need the same full playbook | List the skill in each agent's `skills:` frontmatter array — the content is injected into every one of their system prompts |
+| Rule file | The guidance is standing policy, not skill-specific | Leave it in `rules/` and reference the path. Never copy rule content into a skill |
+
+**Reference a shared file exactly like a local one** — absolute path plus the condition that should
+make Claude read it. It's still progressive disclosure; the file just isn't inside the skill dir:
+
+```markdown
+Authoring a new endpoint? Read `~/.claude/skills/shared/api-conventions.md` first —
+it has the naming, versioning, and error-shape rules this repo enforces.
+```
+
+**The cost:** a path outside the skill directory is a dependency that doesn't travel. It breaks if
+the skill is packaged as a standalone `.skill`, cloned somewhere without the same `~/.claude`
+layout, or the shared file moves. That's an acceptable trade for knowledge two skills genuinely
+share; it's a bad trade for a couple of lines that could just live in both bodies. Share knowledge,
+not phrasing.
+
 ### Keep references one level deep
 
 Avoid nesting references inside other referenced files. Claude may partially read nested files and miss critical information.
 
 **Bad (too deep):**
 ```
-SKILL.md → advanced.md → details.md → actual info
+SKILL.md → references/advanced.md → references/details.md → actual info
 ```
 
 **Good (one level):**
 ```
-SKILL.md → advanced.md (complete info)
-SKILL.md → reference.md (complete info)
+SKILL.md → references/advanced.md (complete info)
+SKILL.md → references/api.md (complete info)
 ```
 
 ### Add a table of contents to long reference files
@@ -453,258 +470,7 @@ description: Explains code with visual diagrams and analogies. Make sure to use 
 
 ---
 
-## 7. Consistent Behavior Patterns
-
-### Template pattern
-
-Providing exact output templates is the most reliable way to enforce consistent formatting:
-
-```markdown
-## Report structure
-
-Use this exact template:
-
-```markdown
-# [Analysis Title]
-
-## Executive Summary
-[One-paragraph overview of key findings]
-
-## Key Findings
-- Finding 1 with supporting data
-- Finding 2 with supporting data
-
-## Recommendations
-1. Specific actionable recommendation
-2. Specific actionable recommendation
-```
-```
-
-When some flexibility is appropriate, signal it explicitly:
-
-```markdown
-## Report structure
-
-Use this as a sensible default, adapting sections based on what you discover:
-
-```markdown
-# [Analysis Title]
-## Executive Summary
-## Key Findings
-## Recommendations
-```
-Adjust sections as needed — for instance, if findings cluster differently.
-```
-
-### Examples pattern (few-shot in skills)
-
-Input/output examples are the most reliable way to communicate desired style and detail level. Include 2–5 pairs:
-
-```markdown
-## Commit message format
-
-**Example 1:**
-Input: Added user authentication with JWT tokens
-Output:
-```
-feat(auth): implement JWT-based authentication
-
-Add login endpoint and token validation middleware
-```
-
-**Example 2:**
-Input: Fixed bug where dates displayed incorrectly in reports
-Output:
-```
-fix(reports): correct date formatting in timezone conversion
-
-Use UTC timestamps consistently across report generation
-```
-
-**Example 3:**
-Input: Updated dependencies and refactored error handling
-Output:
-```
-chore: update dependencies and refactor error handling
-
-- Upgrade lodash to 4.17.21
-- Standardize error response format across endpoints
-```
-
-Follow this style: type(scope): brief description, then detailed explanation on a new line.
-```
-
-### Workflow checklists for complex tasks
-
-For multi-step tasks where skipped steps cause failures, provide a checklist Claude copies and tracks:
-
-```markdown
-## PDF form filling workflow
-
-Copy this checklist and check off items as you complete them:
-
-```
-Task Progress:
-- [ ] Step 1: Analyze the form (run analyze_form.py)
-- [ ] Step 2: Create field mapping (edit fields.json)
-- [ ] Step 3: Validate mapping (run validate_fields.py)
-- [ ] Step 4: Fill the form (run fill_form.py)
-- [ ] Step 5: Verify output (run verify_output.py)
-```
-
-**Step 1: Analyze the form**
-Run: `python scripts/analyze_form.py input.pdf`
-This extracts form fields and saves to `fields.json`.
-
-**Step 3: Validate mapping**
-Run: `python scripts/validate_fields.py fields.json`
-Fix any validation errors before continuing.
-```
-
-### Feedback loops
-
-The validate-fix-repeat loop dramatically improves output quality:
-
-```markdown
-## Document editing process
-
-1. Make your edits to `word/document.xml`
-2. **Validate immediately**: `python scripts/validate.py unpacked_dir/`
-3. If validation fails:
-   - Review the error message carefully
-   - Fix the issues in the XML
-   - Run validation again
-4. **Only proceed when validation passes**
-5. Rebuild: `python scripts/pack.py unpacked_dir/ output.docx`
-```
-
-Make validation scripts verbose with specific error messages like: `"Field 'signature_date' not found. Available fields: customer_name, order_total, signature_date_signed"` — specific errors help Claude fix the issue on the next attempt.
-
-### Avoid time-sensitive information
-
-Content tied to specific dates will become wrong. Use a "legacy patterns" section instead:
-
-**Bad:**
-```markdown
-If you're doing this before August 2025, use the old API.
-After August 2025, use the new API.
-```
-
-**Good:**
-```markdown
-## Current method
-
-Use the v2 API endpoint: `api.example.com/v2/messages`
-
-## Legacy patterns
-
-<details>
-<summary>Legacy v1 API (deprecated 2025-08)</summary>
-The v1 API used: `api.example.com/v1/messages`
-This endpoint is no longer supported.
-</details>
-```
-
----
-
-## 8. Frontmatter Reference & Control Flags
-
-### Controlling invocation
-
-```yaml
-# Only the user can invoke (good for /deploy, /commit — side-effect commands)
-disable-model-invocation: true
-
-# Only Claude invokes (good for background reference skills)
-user-invocable: false
-```
-
-| Frontmatter | User can `/invoke` | Claude auto-loads | Context loading |
-|---|---|---|---|
-| (default) | Yes | Yes | Description always; full body on invoke |
-| `disable-model-invocation: true` | Yes | No | Description not in context |
-| `user-invocable: false` | No | Yes | Description always; full body on invoke |
-
-### Pre-approving tools
-
-Avoid per-use approval prompts for skills with known tool needs:
-
-```yaml
-allowed-tools: Bash(git add *) Bash(git commit *) Bash(git status *)
-```
-
-### Path-scoped skills
-
-Automatically load a skill only when working with specific files:
-
-```yaml
-paths: "packages/frontend/**/*.tsx, packages/frontend/**/*.ts"
-```
-
-### Subagent isolation
-
-Run a skill in its own forked context (no conversation history):
-
-```yaml
-context: fork
-agent: Explore   # Built-in: Explore, Plan, general-purpose; or custom subagent name
-```
-
-### Argument substitution
-
-```yaml
----
-name: fix-issue
-description: Fix a GitHub issue by number
-disable-model-invocation: true
----
-
-Fix GitHub issue $ARGUMENTS following our coding standards.
-
-# Or with indexed args:
-Migrate the $0 component from $1 to $2.
-```
-
----
-
-## 9. Dynamic Context Injection
-
-The `` !`command` `` syntax executes shell commands *before* the skill content reaches Claude. The output replaces the placeholder inline:
-
-```yaml
----
-name: pr-summary
-description: Summarize a pull request with live diff data
-context: fork
-agent: Explore
-allowed-tools: Bash(gh *)
----
-
-## Pull request context
-- PR diff: !`gh pr diff`
-- PR comments: !`gh pr view --comments`
-- Changed files: !`gh pr diff --name-only`
-
-## Your task
-Summarize this pull request: what changed, why, and any concerns.
-```
-
-For multi-line injection, use a fenced code block with `` ```! ``:
-
-````markdown
-## Environment
-```!
-node --version
-npm --version
-git status --short
-```
-````
-
-This runs entirely as preprocessing — Claude only sees the final rendered result.
-
----
-
-## 10. Bundled Scripts: Token-Free Execution
+## 7. Bundled Scripts: Token-Free Execution
 
 Scripts in the `scripts/` directory can be executed without loading their source into context. This is the most powerful token-efficiency technique for complex skills.
 
@@ -772,7 +538,7 @@ TIMEOUT = 47  # Why 47?
 
 ---
 
-## 11. Anti-Patterns to Avoid
+## 8. Anti-Patterns to Avoid
 
 ### Offering too many options
 
@@ -790,11 +556,11 @@ For scanned PDFs requiring OCR, use pdf2image with pytesseract instead."
 
 ```markdown
 # Bad
-SKILL.md → advanced.md → details.md → actual info  ← Claude may miss this
+SKILL.md → references/advanced.md → references/details.md → actual info  ← Claude may miss this
 
 # Good
-SKILL.md → advanced.md (complete)
-SKILL.md → reference.md (complete)
+SKILL.md → references/advanced.md (complete)
+SKILL.md → references/api.md (complete)
 ```
 
 ### Windows-style paths
@@ -843,67 +609,13 @@ Use the BigQuery:bigquery_schema tool to retrieve schemas.
 
 ---
 
-## 12. Evaluation & Iteration Workflow
+## 9. Quick Checklist
 
-### Evaluation-driven development
+### Before writing a single line — [evaluation.md](skill-authoring/evaluation.md)
 
-Build evaluations *before* writing extensive documentation. This ensures the skill solves real problems.
-
-```json
-{
-  "skills": ["pdf-processing"],
-  "query": "Extract all text from this PDF file and save it to output.txt",
-  "files": ["test-files/document.pdf"],
-  "expected_behavior": [
-    "Successfully reads the PDF file using an appropriate library",
-    "Extracts text from all pages without missing any",
-    "Saves extracted text to output.txt in a readable format"
-  ]
-}
-```
-
-Process:
-1. Run Claude on representative tasks *without* the skill → document failures
-2. Create 2–3 evaluations targeting the gaps
-3. Write minimal instructions to address gaps
-4. Execute evaluations, compare against baseline
-5. Iterate
-
-### The Claude A / Claude B development loop
-
-The most effective method uses two Claude instances:
-
-- **Claude A** (your conversation) — refines the skill with you, has full context
-- **Claude B** (fresh instance with skill loaded) — tests it on real tasks
-
-Observe where Claude B struggles:
-- Unexpected exploration paths (structure isn't intuitive)
-- Missed file connections (links need to be more explicit)
-- Overreliance on one section (that content should be in SKILL.md)
-- Ignored content (unnecessary or poorly signaled)
-
-Bring observations back to Claude A: *"When I asked Claude B for a regional sales report, it forgot to filter out test accounts. The skill mentions it, but maybe it's not prominent enough?"*
-
-### Description optimization
-
-After the skill content is stable, run the description through an optimization loop with trigger evals:
-
-```json
-[
-  {"query": "ok so my boss sent me this xlsx file...", "should_trigger": true},
-  {"query": "can you write a python script to parse csv?", "should_trigger": false}
-]
-```
-
-Test with queries realistic enough that Claude would genuinely benefit from the skill (simple, one-step queries won't trigger skills regardless of description quality).
-
----
-
-## 13. Quick Checklist
-
-### Before writing a single line
-
-- [ ] What gaps exist when Claude works without this skill?
+- [ ] Ran the task without the skill — there's a real gap, not an imagined one
+- [ ] Content comes from a real task trace or real project artifacts, not model general knowledge
+- [ ] Scope is one coherent unit of work — not two jobs, not half a job
 - [ ] What does the skill do, and what should trigger it?
 - [ ] Are there scripts that should be bundled to avoid repeated generation?
 
@@ -914,7 +626,9 @@ Test with queries realistic enough that Claude would genuinely benefit from the 
 - [ ] Slightly "pushy" to prevent undertriggering
 
 ### SKILL.md body
-- [ ] Under 500 lines
+- [ ] Under 500 lines and ~5,000 tokens
+- [ ] Gotchas section present, in the body (not a reference file)
+- [ ] Instructions are procedural (generalize) rather than answers to one instance
 - [ ] Every token earns its place — Claude doesn't need explanations of things it already knows
 - [ ] Explains the "why" behind instructions, not just the "what"
 - [ ] Consistent terminology throughout (pick one term per concept)
@@ -927,103 +641,24 @@ Test with queries realistic enough that Claude would genuinely benefit from the 
 - [ ] Scripts bundled for deterministic or repetitive operations
 - [ ] `${CLAUDE_SKILL_DIR}` used in script paths for portability
 
-### Behavioral consistency
+### Behavioral consistency — [behavior-patterns.md](skill-authoring/behavior-patterns.md)
 - [ ] Output templates provided for format-critical tasks
 - [ ] 2–5 input/output examples for style-critical outputs
 - [ ] Workflow checklists for multi-step processes
 - [ ] Validation/feedback loops for quality-critical tasks
+- [ ] Plan validated against a source of truth before batch or destructive work
 
-### Control & safety
+### Control & safety — [frontmatter-reference.md](skill-authoring/frontmatter-reference.md)
 - [ ] `disable-model-invocation: true` for side-effect commands (`/deploy`, `/commit`)
 - [ ] `allowed-tools` set for tools needed without per-use approval
 - [ ] No Windows-style paths (all forward slashes)
 - [ ] Dependencies explicitly documented with install commands
 
-### Testing
+### Testing — [evaluation.md](skill-authoring/evaluation.md)
 - [ ] At least 3 evaluations created
 - [ ] Tested with the model(s) you plan to use
 - [ ] Tested with real usage scenarios, not just obvious cases
 - [ ] Trigger eval set reviewed to confirm the description fires correctly
-
----
-
-## Real-World Examples
-
-### Minimal reference skill
-
-```yaml
----
-name: api-conventions
-description: API design patterns for this codebase. Use when writing or reviewing
-  API endpoints, designing new routes, or asking about request/response formats.
-user-invocable: false
----
-
-When writing API endpoints:
-- Use RESTful naming conventions (`/users/{id}`, not `/getUser`)
-- Return consistent error format: `{"error": {"code": "...", "message": "..."}}`
-- Include request validation before any database calls
-- Paginate list endpoints with `cursor` (not `page`/`offset`)
-```
-
-### Task skill with subagent isolation
-
-```yaml
----
-name: deep-research
-description: Thoroughly researches a topic across the codebase with file references.
-  Use when the user asks to "research", "find all usages of", "understand how X works",
-  or needs a comprehensive summary of how something is implemented.
-context: fork
-agent: Explore
----
-
-Research $ARGUMENTS thoroughly:
-
-1. Find relevant files using Glob and Grep
-2. Read and analyze the code
-3. Summarize findings with specific file references and line numbers
-```
-
-### Safe deploy skill (user-only invocation)
-
-```yaml
----
-name: deploy
-description: Deploy the application to production
-disable-model-invocation: true
-allowed-tools: Bash(npm *) Bash(git *)
----
-
-Deploy $ARGUMENTS to production:
-
-1. Run the test suite: `npm test`
-2. Build: `npm run build`
-3. Confirm with user before pushing
-4. Push to deployment target
-5. Verify the deployment succeeded
-```
-
-### Skill with dynamic context injection
-
-```yaml
----
-name: pr-summary
-description: Summarize the current pull request with live data. Use when the user
-  asks to summarize a PR, write a PR description, or review what changed in a branch.
-context: fork
-agent: Explore
-allowed-tools: Bash(gh *)
----
-
-## Pull request context
-- Diff: !`gh pr diff`
-- Comments: !`gh pr view --comments`
-- Changed files: !`gh pr diff --name-only`
-
-Summarize this pull request: what changed, why it was changed, potential concerns,
-and a one-sentence description suitable for a changelog entry.
-```
 
 ---
 
@@ -1038,148 +673,9 @@ separate because it's field reports, not official guidance, and evolves on its o
 
 ---
 
-*Last updated: April 2026*
+*Last updated: July 2026*
 *Official sources: [Extend Claude with skills](https://code.claude.com/docs/en/skills) · [Skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices) · [Agent Skills overview](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview)*
+*Open standard: [Best practices for skill creators](https://agentskills.io/skill-creation/best-practices) · [Specification](https://agentskills.io/specification) · [Evaluating skills](https://agentskills.io/skill-creation/evaluating-skills) · [Optimizing descriptions](https://agentskills.io/skill-creation/optimizing-descriptions)*
 *Community sources: [awesome-claude-skills](https://github.com/travisvn/awesome-claude-skills) · [obra/superpowers](https://github.com/obra/superpowers) · [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) · [ykdojo/claude-code-tips](https://github.com/ykdojo/claude-code-tips) · [Delphine-L token-efficiency](https://github.com/Delphine-L/claude_global) · [anthropics/skills](https://github.com/anthropics/skills)*
 
 ---
-
----
-
-## Appendix: Alignment with the Anthropic `skill-creator` Skill
-
-> This section compares the guide against Anthropic's official `skill-creator` SKILL.md — the tool used to build, evaluate, and improve skills from within Claude itself. It maps what aligns, what the guide underemphasizes, and where the two sources are in genuine tension.
-
----
-
-### Where this guide and skill-creator agree
-
-The core structural guidance is consistent throughout:
-
-- Three-level progressive disclosure (metadata → body → supporting files)
-- Keep SKILL.md under 500 lines; move detail to referenced files
-- Description is the primary triggering mechanism
-- Bundle scripts for repeated work rather than having Claude regenerate them
-- Explain the "why" behind instructions, not just the "what"
-- Write → test → review → iterate as the fundamental development loop
-- Progressive disclosure for reference files; one level deep from SKILL.md
-
----
-
-### What skill-creator covers that this guide underemphasizes
-
-**The evaluation loop is a tooled, measured process — not just a suggestion**
-
-This guide says "build evaluations" across roughly one section. The skill-creator devotes most of its length to the mechanics of doing this rigorously:
-
-- Spawn **parallel** with-skill AND baseline subagents **in the same turn** (not sequentially — all runs start together so they finish around the same time)
-- Capture `total_tokens` and `duration_ms` from each task notification — this data arrives once in the notification and is gone; process it immediately
-- Grade assertions via `agents/grader.md` using exact field names (`text`, `passed`, `evidence`)
-- Aggregate with `scripts/aggregate_benchmark <workspace>/iteration-N --skill-name <name>` to produce `benchmark.json` with pass rate, time, and token deltas
-- Run an analyst pass (see `agents/analyzer.md`) to surface non-discriminating assertions, high-variance evals, and time/token tradeoffs
-- Launch the visual reviewer: `python eval-viewer/generate_review.py <workspace>/iteration-N --benchmark benchmark.json`
-
-The key implication: **token efficiency is a measured variable, not just a design goal.** You can see exactly how many tokens each run consumed and compare across iterations.
-
-**Always run a baseline**
-
-Every test run should have a companion:
-- **New skill:** run without the skill at all (`without_skill/outputs/`)
-- **Improving a skill:** run against the previous version (`old_skill/outputs/`)
-
-Without a baseline, you cannot know whether your changes actually helped. The guide implies this but never states it as a requirement.
-
-**Read the transcripts, not just the final outputs**
-
-skill-creator explicitly instructs: *read the transcripts from the test runs and notice if the skill is making the model waste time doing things that are unproductive. If all 3 test cases resulted in the subagent writing a `create_docx.py`, that's a signal the skill should bundle that script.*
-
-The guide is entirely output-focused. Transcripts reveal latent waste that output quality scores completely miss.
-
-**Beware of overfitting to your test cases**
-
-skill-creator has an important caution this guide lacks:
-
-> "We're trying to create skills that can be used a million times across many different prompts. Here you and the user are iterating on only a few examples. If the skill works only for those examples, it's useless."
-
-Fiddly, over-specific changes that fix one failing test often make the skill more brittle across the real distribution of prompts. The corrective: try different metaphors, different patterns, or restructured workflows rather than adding narrow guardrails.
-
-**Description optimization is an automated loop with scripts**
-
-The guide mentions "optimize your description" generically. skill-creator specifies the actual mechanism:
-
-```bash
-python -m scripts.run_loop \
-  --eval-set trigger-eval.json \
-  --skill-path path/to/skill \
-  --model claude-sonnet-4-6 \
-  --max-iterations 5
-```
-
-This runs a 60/40 train/test split, evaluates each query **3 times** for a reliable trigger rate (not once), proposes improvements based on failures, and selects the best description on held-out test score — specifically to avoid overfitting to the training queries. The guide's description optimization guidance is much weaker than this.
-
-**Blind comparison for rigorous A/B testing**
-
-skill-creator includes an advanced evaluation mode (see `agents/comparator.md` and `agents/analyzer.md`) where two skill versions are shown to an independent agent without labeling which is which, then analyzed for *why* the winner won. This produces more objective quality judgments than self-evaluation. The guide doesn't mention this at all.
-
-**Packaging for distribution**
-
-skill-creator ends with `scripts/package_skill.py` producing a distributable `.skill` file. The guide has no equivalent — it treats skills as local configurations rather than artifacts to be shared or versioned.
-
-**Cowork-specific mechanics**
-
-skill-creator has a dedicated section for Cowork environments:
-- No subagents → run test cases sequentially, skip baselines
-- No display → use `--static <output_path>` for a standalone HTML viewer file instead of a live server
-- "Submit All Reviews" downloads `feedback.json` rather than posting to a server
-- Packaging still works via `package_skill.py`
-
-The guide acknowledges Cowork briefly but doesn't document these mechanics.
-
----
-
-### What this guide covers that skill-creator does not
-
-These topics are out of scope for skill-creator (which focuses on the creation/eval workflow), but are real and useful:
-
-- Complete frontmatter field reference (`paths`, `effort`, `model`, `hooks`, `context`, `agent`, `shell`, argument substitution with `$ARGUMENTS[N]` and `${CLAUDE_SKILL_DIR}`)
-- Dynamic context injection (`` !`command` `` and `` ```! `` block syntax)
-- Invocation control nuances: `disable-model-invocation` vs `user-invocable` and when each applies
-- Domain-organized reference file pattern with per-domain loading
-- Anti-patterns section (Windows paths, deeply nested references, assuming packages installed, MCP tool name qualification)
-- The entire community section: caveman compression, learnings.md self-improvement pattern, trigger rate research, superpowers framework, Skills vs. CLAUDE.md decision framework
-
----
-
-### One genuine tension
-
-skill-creator says: *"Try to explain to the model why things are important in lieu of heavy-handed musty MUSTs. If you find yourself writing ALWAYS or NEVER in all caps, that's a yellow flag."*
-
-The community section of this guide reports the opposite experience: many developers find that explicit `MUST`/`ALWAYS` directives reliably improve compliance for behaviors that are otherwise inconsistent. Community trigger research even recommends `MANDATORY TRIGGERS` in all-caps as a description technique.
-
-**The reconciliation:** skill-creator's advice targets the *body* of the skill — where over-directive language can make instructions brittle and hard to generalize. The community advice tends to target *descriptions* and *trigger phrases*, where more aggressive language genuinely helps Claude pick the right skill. The two recommendations apply to different parts of the file and are not actually contradictory once you separate them.
-
----
-
-### Summary table
-
-| Topic | This guide | skill-creator |
-|---|---|---|
-| Progressive disclosure | ✅ Complete | ✅ Complete |
-| 500-line limit | ✅ | ✅ |
-| Description as trigger | ✅ Complete | ✅ Complete |
-| Bundle scripts | ✅ | ✅ |
-| Explain the why | ✅ | ✅ |
-| Eval loop mechanics (scripts, viewer, grader) | ⚠️ Surface level | ✅ Detailed |
-| Baseline comparisons | ⚠️ Implied | ✅ Required |
-| Read transcripts, not just outputs | ❌ Missing | ✅ |
-| Overfitting / generalization warning | ❌ Missing | ✅ |
-| Token/timing as measured metric | ❌ Conceptual only | ✅ Measured |
-| Description optimization automation | ⚠️ Mentioned | ✅ Scripted loop |
-| Blind A/B comparison | ❌ Missing | ✅ |
-| Packaging (.skill files) | ❌ Missing | ✅ |
-| Cowork-specific mechanics | ⚠️ Brief | ✅ Dedicated section |
-| Frontmatter field reference | ✅ Complete | ⚠️ Partial |
-| Dynamic context injection | ✅ | ❌ |
-| Anti-patterns | ✅ Section | ⚠️ Scattered |
-| Community insights | ✅ Full section | ❌ Out of scope |
-| Skills vs. CLAUDE.md | ✅ Community | ❌ Out of scope |

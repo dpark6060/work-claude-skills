@@ -5,3 +5,7 @@
 * [Community Insights: Real-World Skill Patterns](community-insights.md) - Field reports and practitioner-discovered patterns for building, optimizing, and debugging skills — companion to the canonical best-practices guide.
 * [Open Knowledge Format (OKF) v0.1](okf-spec.md) - Vendored copy of the OKF v0.1 spec — markdown-plus-frontmatter knowledge bundles, concept documents, index.md and log.md conventions.
 * [Output Conventions](output-conventions.md) - Where skills write their output files — the shared claude-work/ directory convention all skills must follow.
+
+# Subdirectories
+
+* [Skill Authoring](skill-authoring/index.md) - Companion files to the skills best-practices rulebook: directory structure, frontmatter reference, behavior patterns, evaluation, and skill-creator alignment.

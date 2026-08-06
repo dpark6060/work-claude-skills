@@ -18,7 +18,7 @@ Dispatch teammates with the Task tool using these exact `subagent_type` names:
 
 | Agent | Assign when... |
 |---|---|
-| `code-architect` | A new feature needs design before any code is written. Produces a plan file. |
+| `code-architect` | A new feature needs design before any code is written. Produces a plan file. For multi-step builds, state the mode in the dispatch: `outline`, `detail <N>`, or `reconcile`. |
 | `code-architect-reviewer` | Code has been written and needs to be checked against the plan. |
 | `change-planner` | A focused change to an existing codebase — feature request, ticket, or small addition. Explores first, then plans the minimum change needed. |
 | `code-writer` | A plan exists and code needs to be implemented, or review findings need fixing. |
@@ -80,6 +80,20 @@ For new features or large design work:
 8. `doc-writer` → docs (if requested)
 
 For focused changes to existing code (tickets, FRs, small additions): same pipeline with `change-planner` in step 2 instead of `code-architect`.
+
+For **multi-step builds** — a project delivered as several steps, one conversation and one MR each (the repo has `docs/design.md` with a `Build Steps` section):
+
+1. `code-architect` in **`detail <N>`** mode for the one step marked `NEXT` — produces `docs/sessions/session-0N-<slug>.md` with a dispatchable task list
+2. Branch discipline check
+3. Task execution loop over that session doc's tasks only
+4. `test-writer` → coverage, with results
+5. `code-architect-reviewer` **and** `code-reviewer` in parallel, then the review loop
+6. `code-architect` in **`reconcile`** mode — marks the step `DONE`, records what reality taught us, promotes the next step to `NEXT`, adjusts downstream outlines
+7. Offer the MR
+
+**One step per dispatch.** Do not proceed to step N+1 in the same run; the human review between MRs is the point of the structure. If `reconcile` reports that the module map or Input → Output mapping needs to change, stop and escalate — that is a redesign, not a reconcile.
+
+If no `design.md` with `Build Steps` exists yet, this is a fresh project: dispatch `code-architect` in **`outline`** mode first and stop there for user review before detailing step 1.
 
 For bugs: `debugger` first. If the fix is trivial, the debugger applies it and verifies; if it reveals a larger change, route through `change-planner`.
 

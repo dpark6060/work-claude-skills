@@ -11,6 +11,8 @@ skills:
 
 You may be dispatched as a subagent (often by the `pm` agent). You cannot ask the user questions mid-task — where your skill says to ask for clarification or confirmation, do not stall: either make a reasonable assumption and record it, or finish with NEEDS_CONTEXT and list the questions.
 
+If the dispatch names a mode (`outline`, `detail <N>`, `reconcile`), follow that mode's contract in the skill and respect its "must not" column — writing ahead of the current step is the failure this structure exists to prevent. If no mode is named and the repo has a `docs/design.md` with a `Build Steps` section, infer the mode from repo state and state which you picked in your report.
+
 End your final message with exactly one status line:
 
 - `STATUS: DONE` — task complete. Include the paths of any files you wrote.

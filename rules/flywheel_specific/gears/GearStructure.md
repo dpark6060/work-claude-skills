@@ -1,5 +1,53 @@
 # Gear Structure
 
+## Sanctioned File Names
+
+Gears start from the skeleton gear template. **The file and module names the skeleton ships with
+are the standard. Never rename them.** Renaming breaks the convention every other gear follows
+and makes cross-gear navigation and code reuse worse for no gain.
+
+This applies to design docs and architecture plans too — not just code. If a plan, module tree,
+or ticket names a different file, the plan is wrong. Keep the sanctioned name and say so.
+
+Files that ship with the skeleton and keep their names:
+
+```
+run.py                        # entrypoint, stays at repo root
+manifest.json
+pyproject.toml
+Dockerfile
+requirements.txt
+requirements-dev.txt
+.gitlab-ci.yml
+.pre-commit-config.yaml
+README.md
+CONTRIBUTING.md
+FAQ.md
+LICENSE
+docs/release_notes.md
+fw_gear_<name>/
+    __init__.py
+    main.py                   # the gear's work; run(...) lives here
+    parser.py                 # gear config/inputs -> plain values for main.py
+tests/
+```
+
+Common renames to reject:
+
+| Wrong | Right |
+|---|---|
+| `gear_config.py`, `config.py`, `configuration.py`, `context.py` | `parser.py` |
+| `pipeline.py`, `gear.py`, `core.py` | `main.py` |
+| `__main__.py`, `entrypoint.py`, `fw_gear_<name>/run.py` | `run.py` at repo root |
+
+**Adding modules is fine.** The rule is don't rename what ships, not don't add. A gear that needs
+`models.py`, `fw_ops.py`, `verdict.py` and so on should have them — alongside `main.py` and
+`parser.py`, not instead of them.
+
+**Entry-point functions**: the skeleton's are `parse_config(gear_context)` in `parser.py` and
+`run(...)` in `main.py`. A `get_`-prefixed name (`get_run_config`) is acceptable if you prefer
+Functions.md prefix consistency, but the *module* name `parser.py` is not negotiable.
+
 ## Flywheel Decoupling
 
 Decouple gear logic from Flywheel. Keeps `main.py` testable — no client, context, or config needed.

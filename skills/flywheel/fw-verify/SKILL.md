@@ -1,9 +1,10 @@
 ---
 name: fw-verify
 description: >
-  Empirically verify claims about Flywheel behavior by running real code against a
-  live (dev) instance — direct SDK probes, the file-curator gear as a harness, or a
-  from-scratch probe gear. Produces a claim-by-claim verdict report
+  Empirically verify claims about Flywheel behavior by running real code — local
+  version-pinned probes of Flywheel libraries (fw-gear, fw-file, the SDK), direct
+  SDK probes against a live (dev) instance, the file-curator gear as a harness, or
+  a from-scratch probe gear. Produces a claim-by-claim verdict report
   (CONFIRMED/REFUTED/INCONCLUSIVE) backed by re-runnable scripts. Use whenever a doc,
   MR, review comment, or person asserts Flywheel behavior worth re-deriving instead
   of trusting. MANDATORY TRIGGERS: verify, verify this claim, validate claim,
@@ -44,7 +45,14 @@ print(flywheel.Client(os.environ[cfg["api_key_env"]]).get_current_user().email)
 
    This validates `default_site`. On a `--site <name>` run, check that site's
    `api_key_env` instead — a key that works for the default site proves nothing
-   about the other one.
+   about the other one. If intake shows every claim classifies to mode 0 (local
+   library probe, no instance), the auth check and config are unnecessary — skip
+   them rather than blocking on a key the run will never use.
+
+   If the check fails as a bare `ConnectTimeout` traceback, that is reachability
+   (VPN, site down, wrong site), not a code bug — `curl` the API host to confirm
+   before debugging anything else. `flyw auth status` printing the site and user
+   is NOT proof of reachability; it reads cached local config, not the network.
 
 ## Workflow
 
@@ -54,6 +62,19 @@ print(flywheel.Client(os.environ[cfg["api_key_env"]]).get_current_user().email)
    requests). The final verdict report is EXEMPT from ste-writing.
 2. **Classify each claim onto the ladder** — cheapest mode that can genuinely test
    it (user can force a mode):
+   - **Mode 0 — local source/runtime probe** (the claim is about a Flywheel *library*
+     — fw-gear, fw-file, fw-curation, the SDK's own code — not about a live
+     instance). No instance, no run-id artifacts on site, no cleanup. Install the
+     exact version into a scratch venv (`uv venv` + `uv pip install "fw-gear==X.Y.Z"`),
+     read the source for source claims, and drive runtime claims in a local
+     subprocess with architectural boundaries stubbed (e.g.
+     `Config.get_destination_container`). A subprocess per scenario is mandatory
+     when the behavior under test is process exit (`sys.exit`). Version-pin
+     everything: a mode-0 verdict is only valid for the library version installed.
+     Dogfood-proven: 6 of 8 MR !34 sub-claims resolved here, including reading the
+     written `.metadata.json` contents directly. What mode 0 CANNOT see is the
+     platform's reaction (job state, engine handling, metadata application) — that
+     escalates to modes 1–3.
    - **Mode 1 — SDK probe** (client-observable: finders, return types, endpoint
      semantics) → read `${CLAUDE_SKILL_DIR}/references/mode-sdk.md`
    - **Mode 2 — file-curator harness** (behavior inside a gear runtime that
@@ -100,7 +121,11 @@ uv run "${CLAUDE_SKILL_DIR}/scripts/build_project.py" --spec <spec.json> [--run-
    classification the spec asked for and adds `qc`/`header` keys of its own — metadata
    that can confound the claim under test. A fixture project is therefore NOT
    representative of a normal project's gear behavior; if a claim depends on ingest gears
-   firing, say so and test it a different way.
+   firing, say so and test it a different way. The strip is verified on a site where
+   site-level rules are templates copied into each new project; on a site whose rules
+   fire independently (or a key that cannot remove project rules) the race comes back,
+   which is why the build keeps `is_classification_durable` as a safety net (~12s per
+   classified file) instead of trusting the strip blindly.
 4. **Pending uploads pause.** If `pending_uploads` is non-empty, list each waiting
    path to the user, ask them to upload, and WAIT for confirmation before running
    claims that need those files.
@@ -116,6 +141,8 @@ uv run "${CLAUDE_SKILL_DIR}/scripts/cleanup.py" --run-id <id> [--gear-version <v
    Run it unless the user asked to keep artifacts. It deletes ONLY artifacts whose
    label/name contains the run id, and refuses ids not matching the `fwv-` run-id
    format (`fwv-MMDD-xxxx`) — a truncated id would match far more than one run.
+   Gears have no group, so the gear sweep scans the whole site (~7s per call on a
+   1000-gear site, growing with the site) — never put cleanup in a loop.
    Run `--dry-run` first and read the list; on a shared site that is the norm, since
    it's the last chance to notice you're about to delete someone else's project.
    After a mode-3 run add `--gear-version <ver>` with the version that run uploaded:
@@ -124,7 +151,7 @@ uv run "${CLAUDE_SKILL_DIR}/scripts/cleanup.py" --run-id <id> [--gear-version <v
 
 ## Verdict report
 
-Write to `./fw-verify/<run-id>/report.md` (or the user's directory), scripts
+Write to `./claude-work/fw-verify/<run-id>/report.md` (or the user's directory), scripts
 alongside. Plain engineering prose — no ste-writing.
 
     # fw-verify report — <run-id>
@@ -156,6 +183,14 @@ exactly what blocked the test. Chat summary = one verdict line per claim.
 - **Finder queries have quoting rules that fail silently** (numeric labels, parent
   filters). Read `~/.claude/rules/flywheel_specific/sdk/FinderBehaviors.md` before
   writing one, or you will verify your own typo.
+- **Verify metadata only on a reloaded container.** Finder and list results omit
+  `info` and `classification` (`info == {}`, file `info == None`) even when the
+  data is there — `.reload()` or `fw.get_<container>(id)` first, or a correct
+  write reads as REFUTED.
+- **A read-back straight after a write proves nothing** on a container with ingest
+  gears pending — the gear can clobber the value seconds later. Either strip the
+  project's gear rules (the fixture builder does) or demand two agreeing delayed
+  reads before trusting the value.
 
 ## Safety rules
 

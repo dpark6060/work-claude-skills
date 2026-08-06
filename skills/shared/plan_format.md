@@ -99,6 +99,72 @@ Ordered, independently implementable tasks. Each task must be small enough to ve
 
 ---
 
+## Multi-step builds
+
+A project delivered as several steps — one conversation and one MR each — replaces the `Tasks` section with `Build Steps`, and puts the per-step detail in its own session doc written just before that step starts. See the Modes section of the `code-architect` skill for which mode writes what.
+
+`docs/design.md` keeps everything above the depth line: Input → Output mapping, module map, cross-boundary data contracts, decisions, risks. Per-step entries stay shallow:
+
+```markdown
+## Build Steps
+
+Ordered. Only the `NEXT` step has a session doc; the rest are deliberately shallow and
+are expected to change as earlier steps teach us things.
+
+### Step 2 — Archive db + PHI gate
+Status: NEXT
+Purpose: one or two sentences.
+- bullet
+- bullet
+
+### Step 3 — File discovery
+Status: OUTLINE
+Purpose: one or two sentences.
+- bullet
+
+### Step 1 — Scaffolding + models
+Status: DONE (MR !8)
+Learned: ImageRef.FileSize is the exact sum of all files for a basename, not
+  approximate — the byte check is now exact. Real schema is 21 tables and 37
+  ImageRef columns, not 5 and 12.
+```
+
+Status vocabulary: `OUTLINE`, `NEXT`, `DONE (MR !N)`. Exactly one step is `NEXT` at a time; `NEXT` covers both "detailed, not started" and "in progress", distinguished by whether its session doc exists. `Learned` appears only on `DONE` steps and only `reconcile` writes it — in the same pass that promotes the next step to `NEXT`, so the two cannot drift.
+
+### Session doc template
+
+Written by `detail <N>` to `docs/sessions/session-0N-<slug>.md`. This is where full depth belongs — signatures, behavior rules, error strings, test requirements. Completed session docs are kept as the code-level record of what was actually built, and later steps read the most recent ones.
+
+```markdown
+---
+title: Session N — [name]
+description: [one line, for docs/sessions/index.md]
+---
+
+## Context
+[Why this step exists, what it depends on, what shipped before it.]
+
+## Read first
+[Specific files and sections — design.md sections, prior session docs, real code.]
+
+## Module surfaces
+[Per module: signatures with behavior comments. Full depth.]
+
+## Behavior rules
+[Ordering, edge cases, error handling, exact strings where they are contractual.]
+
+## Testing requirements
+[Concrete cases, including the regression tests for anything a prior step got wrong.]
+
+## Tasks
+[The dispatchable `Tasks` section above. This is what makes the step executable.]
+
+## Out of scope
+[What belongs to a later step. Prevents scope creep into unstarted work.]
+```
+
+---
+
 ## Reviewer Verdicts
 
 When the `code-architect-reviewer` evaluates code against a plan, it assigns one of these verdicts per file:

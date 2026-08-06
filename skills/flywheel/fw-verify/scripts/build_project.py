@@ -312,6 +312,12 @@ def is_classification_durable(target: Target, classification: dict) -> bool:
     thing that actually distinguishes "the write stuck" from "the gear has not
     clobbered it yet".
 
+    Possible future improvement if rule-stripping ever proves insufficient: poll
+    the project's jobs (states pending/running) until none are active, then
+    write — a real terminal-state check instead of a statistical wait. Not
+    implemented; a stripped project spawns no jobs at all, so today this only
+    fires as a safety net.
+
     Args:
         target: The file target to re-read.
         classification: The classification that was requested.

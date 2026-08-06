@@ -171,6 +171,7 @@ job_id = gear.run(
         "file-input": acquisition.get_file("image.dcm"),
     },
     config={"debug": True},
+    tags=["static"],   # ALWAYS: routes the job to the static engine (15s pickup vs minutes)
 )
 ```
 
@@ -186,17 +187,15 @@ while True:
     time.sleep(10)
 ```
 
-5. Pull logs and extract `[fwv]` lines as evidence. The log endpoint isn't on the SDK
-   client, so use an `fw-client` HTTP client (same api key):
+5. Pull logs and extract `[fwv]` lines as evidence. `fw.get_job_logs(job_id)` is on the
+   SDK client (live-verified fwv-0806-fc9d) — no separate HTTP client needed. One caveat:
+   each entry's `.msg` can be a multi-line block, so split before grepping:
 
 ```python
-from fw_client import FWClient
-
-fw_http = FWClient(api_key=api_key)   # or FWClient(api_key=..., base_url="https://site.flywheel.io")
-
-logs = fw_http.get(f"/api/jobs/{job_id}/logs/text", raw=True).text
-evidence = [ln for ln in logs.splitlines() if "[fwv]" in ln]
-failure = [ln for ln in logs.splitlines() if "Curation failed:" in ln]
+logs = fw.get_job_logs(job_id)
+lines = [ln for entry in logs.logs for ln in entry.msg.splitlines()]
+evidence = [ln for ln in lines if "[fwv]" in ln]
+failure = [ln for ln in lines if "Curation failed:" in ln]
 ```
 
 ## Gotchas
@@ -236,15 +235,14 @@ failure = [ln for ln in logs.splitlines() if "Curation failed:" in ln]
   never runs and the job still completes with exit `0` — an empty `[fwv]` evidence list
   with a `complete` job usually means that, not "nothing happened".
 
-## Verify at first live run
+## Live-verified (run fwv-0806-fc9d, alatest 22.3.9, file-curator 1.0.4-dev)
 
-- The exact `gear.run(inputs=...)` reference form — SDK file object (as written above) vs
-  a `{"type": ..., "id": ..., "name": ...}` dict. Correct this doc if reality differs.
-- Whether `destination` must be the file's parent acquisition, or whether a project-level
-  destination is accepted (the acquisition level is the README's claim, not the manifest's).
-- Whether the `curator` input's manifest type restriction (`enum: ["source code"]`) is
-  enforced at job creation at all. Step 2 sets the type defensively either way, so this is
-  a "can we drop that line" question, not a blocker.
-- The file-curator version actually installed on the target site (this contract is 1.0.4).
-- That the `[fwv]` prefix survives into `/api/jobs/{job_id}/logs/text` unmangled by the
-  gear's log formatter.
+- `gear.run(inputs=...)` with SDK file objects (as written above) works as-is.
+- `destination=acquisition` (the file's parent) works. Project-level destination untested.
+- The `[fwv]` prefix survives into the job log (`fw.get_job_logs`) — the gear's log
+  formatter prepends timestamp/level/module but leaves the message intact.
+- alatest ships `1.0.4-dev`, which matches this 1.0.4 contract.
+- Job pickup with `tags=["static"]` was 15 s; an untagged mode-3 job the same day sat
+  pending 5.5 min. Always tag.
+- Still untested: whether the `curator` input's `enum: ["source code"]` type restriction
+  is enforced at job creation (step 2 sets the type defensively either way).

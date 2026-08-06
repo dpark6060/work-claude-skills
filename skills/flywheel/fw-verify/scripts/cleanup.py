@@ -168,6 +168,8 @@ def deactivate_gear_version(fw: t.Any, version: str, dry_run: bool) -> t.List[st
     """
     disabled = []
     for gear in get_gear_versions(fw, PROBE_GEAR_NAME):
+        if gear.gear.name != PROBE_GEAR_NAME:  # belt: don't trust the server-side filter
+            continue
         if gear.gear.version != version or gear.disabled:
             continue
         disabled.append(f"{PROBE_GEAR_NAME}:{gear.gear.version}")

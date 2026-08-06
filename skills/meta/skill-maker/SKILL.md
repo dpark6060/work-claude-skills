@@ -9,19 +9,21 @@ Skills live at `skills/<category>/<name>/SKILL.md` and are symlinked to `~/.clau
 
 ## The canonical rulebook — don't restate it, point to it
 
-All structural and mechanical rules — directory layout, frontmatter fields, the 500-line limit, description-writing, progressive disclosure, anti-patterns — live in **`~/.claude/skills/shared/claude-skills-best-practices.md`**. That doc is the single source of truth. This skill owns *strategy* (what to build and why); the doc owns *mechanics* (how to write it correctly).
+All structural and mechanical rules — directory layout, frontmatter fields, the 500-line limit, description-writing, progressive disclosure, anti-patterns — live in **`~/.claude/skills/shared/claude-skills-best-practices.md`** plus its companion files in **`~/.claude/skills/shared/skill-authoring/`**. Those are the single source of truth. This skill owns *strategy* (what to build and why); they own *mechanics* (how to write it correctly).
 
-Read the relevant section as you reach each step — don't load the whole file (it's long; loading it wholesale is itself the anti-pattern it warns about):
+Read only what the current step needs — don't load everything (loading it wholesale is itself the anti-pattern it warns about). Paths below are relative to `~/.claude/skills/shared/`:
 
 | When you're... | Read |
 |---|---|
-| Deciding skill vs. CLAUDE.md vs. rule file | Community Insights → "Skills vs. CLAUDE.md" |
-| Choosing the directory layout | §2 Anatomy (sanctioned structure) |
-| Writing the description | §6 Descriptions — the highest-leverage part of the whole skill |
-| Writing the body | §4 Lean SKILL.md, §5 Progressive Disclosure |
-| Writing frontmatter / control flags | §8 Frontmatter Reference |
-| Bundling scripts | §10 Bundled Scripts |
-| Final sanity check | §13 Quick Checklist, §11 Anti-Patterns |
+| Deciding skill vs. CLAUDE.md vs. rule file | `community-insights.md` → "Skills vs. CLAUDE.md" |
+| Deciding whether the skill is worth building at all | `skill-authoring/evaluation.md` |
+| Choosing the directory layout | `skill-authoring/directory-structure.md` |
+| Writing the description | rulebook §6 Descriptions — the highest-leverage part of the whole skill |
+| Writing the body | rulebook §4 Lean SKILL.md, §5 Progressive Disclosure |
+| Writing frontmatter / control flags | `skill-authoring/frontmatter-reference.md` |
+| Bundling scripts | rulebook §7 Bundled Scripts |
+| Enforcing consistent output (templates, gotchas, checklists) | `skill-authoring/behavior-patterns.md` |
+| Final sanity check | rulebook §9 Quick Checklist, §8 Anti-Patterns |
 
 ---
 
@@ -98,7 +100,7 @@ Based on the answers, design the structure before writing. Match the body to the
 
 **Analysis/Review skill:** What does it examine (code, a plan file, a PR diff, another skill's output)? What verdicts or output format does it produce? What concrete criteria does it use?
 
-Before finalizing, sanity-check the layout against §2 (structure) and §5 (progressive disclosure) of the rulebook. Then present the structure to the user in plain language and let them adjust before anything is written to disk.
+Before finalizing, sanity-check the layout against `skill-authoring/directory-structure.md` and rulebook §5 (progressive disclosure). Then present the structure to the user in plain language and let them adjust before anything is written to disk.
 
 ---
 
@@ -106,7 +108,7 @@ Before finalizing, sanity-check the layout against §2 (structure) and §5 (prog
 
 Once the user confirms, write the files following the rulebook.
 
-**Frontmatter** — see §8. Minimum is `name` + `description`; add control flags (`disable-model-invocation`, `user-invocable`, `allowed-tools`, `paths`, `context`/`agent`) only when the skill needs them. Do **not** add a `version` field — it isn't a sanctioned frontmatter field; this repo versions skills with git.
+**Frontmatter** — see `skill-authoring/frontmatter-reference.md`. Minimum is `name` + `description`; add control flags (`disable-model-invocation`, `user-invocable`, `allowed-tools`, `paths`, `context`/`agent`) only when the skill needs them. Do **not** add a `version` field — it isn't a sanctioned frontmatter field; this repo versions skills with git.
 
 **Description** — see §6. This is the single highest-leverage thing in the skill: it's the only part Claude sees when deciding whether to invoke. Third person, front-load the key use case in the first ~250 chars, include the trigger phrases the user gave you in Step 1, and lean slightly pushy to avoid undertriggering.
 
@@ -178,7 +180,7 @@ Keep the agent body short — the skill does the heavy lifting (the `skills:` ar
 
 ## Reference File Format (OKF)
 
-Reference files (Layer 1) follow the **Open Knowledge Format** — a domain-agnostic spec for knowledge concept documents. A skill's `references/` directory is treated as an OKF **bundle**: concept documents with frontmatter, an `index.md` per directory, optional `log.md`. OKF applies *only* to files under `references/`. It does **not** touch `SKILL.md` or agent frontmatter: those keep the fields the Claude Code harness parses (`name`, `description`, control flags) exactly as §8 defines them. The harness never reads reference-file frontmatter, so OKF fields here are purely for discovery, indexing, and progressive disclosure.
+Reference files (Layer 1) follow the **Open Knowledge Format** — a domain-agnostic spec for knowledge concept documents. A skill's `references/` directory is treated as an OKF **bundle**: concept documents with frontmatter, an `index.md` per directory, optional `log.md`. OKF applies *only* to files under `references/`. It does **not** touch `SKILL.md` or agent frontmatter: those keep the fields the Claude Code harness parses (`name`, `description`, control flags) exactly as `skill-authoring/frontmatter-reference.md` defines them. The harness never reads reference-file frontmatter, so OKF fields here are purely for discovery, indexing, and progressive disclosure.
 
 Full spec (vendored): `~/.claude/skills/shared/okf-spec.md` — upstream: https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md
 

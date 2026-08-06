@@ -15,7 +15,7 @@ optional dummy project.
 ## Script scaffold
 
 Write each claim's probe as its own script in the report directory
-(`./fw-verify/<run-id>/claimN_<slug>.py`) so verdicts stay re-runnable:
+(`./claude-work/fw-verify/<run-id>/claimN_<slug>.py`) so verdicts stay re-runnable:
 
 ```python
 #!/usr/bin/env -S uv run --script
@@ -49,6 +49,15 @@ Rules:
   versions are worthless later.
 - Read `~/.claude/rules/flywheel_specific/sdk/FinderBehaviors.md` before writing any
   finder query.
+- **`.reload()` before asserting on `info` or `classification`.** Finder/list
+  results are a projection that omits both (`info == {}`, file `info == None`) —
+  reading one straight off looks exactly like "the write never stuck" and has
+  cost a whole wrong diagnosis. `fw.get_<container>(id)` also works.
+- **Do not trust `iter_find` on an unproven container type.** The generic Finder
+  pages with `after_id`, and `/gears` ignores it: `fw.gears.iter_find` re-serves
+  the same page forever (measured: 3000 results, 250 unique, no end). Use
+  `fw.get_all_gears(all_versions=True, ...)` for gears, and prove termination on
+  any new container type before putting a Finder in a loop or delete path.
 
 ## Source cross-check
 

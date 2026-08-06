@@ -1,17 +1,32 @@
+import json
 from unittest import mock
 
 import pytest
 
 from build_project import (
     FAKE_DICOM_BYTES,
+    BuildResult,
     ItemSpec,
     Target,
     add_containers,
     add_file,
+    main,
+    orchestrate_build,
     parse_item,
     parse_spec,
     process_metadata,
 )
+
+
+@pytest.fixture
+def mock_fw():
+    fw = mock.MagicMock()
+    fw.projects.find_first.return_value = None
+    project = fw.get_group.return_value.add_project.return_value
+    project.subjects.find_first.return_value = None
+    project.get_file.return_value = None
+    project.add_subject.return_value.get_file.return_value = None
+    return fw
 
 
 def test_parse_item_single_segment_is_project_file():
@@ -103,6 +118,7 @@ def test_add_containers_creates_missing_chain_and_registers_paths():
     leaf = add_containers(project, ("sub-01", "ses-01", "acq-01"), registry)
 
     # Assert
+    project.subjects.find_first.assert_called_once_with('label="sub-01"')
     project.add_subject.assert_called_once_with(label="sub-01")
     subject.add_session.assert_called_once_with(label="ses-01")
     session.add_acquisition.assert_called_once_with(label="acq-01")
@@ -140,6 +156,7 @@ def test_add_containers_empty_chain_returns_project():
 def test_add_file_real_content_skips_upload_and_records_pending():
     # Arrange
     parent = mock.MagicMock()
+    parent.get_file.side_effect = Exception("404 file not found")
     item = ItemSpec(("sub-01",), "notes.txt", {"content": "real"})
     pending = []
     registry = {}
@@ -262,6 +279,42 @@ def test_process_metadata_pending_file_is_skipped_silently():
     registry["sub-01/notes.txt"].container.update_file_info.assert_not_called()
 
 
+def test_add_file_real_content_absent_file_records_pending():
+    # Arrange
+    parent = mock.MagicMock()
+    parent.get_file.return_value = None
+    item = ItemSpec(("sub-01",), "notes.txt", {"content": "real"})
+    pending = []
+    registry = {}
+
+    # Act
+    add_file(parent, item, pending, registry)
+
+    # Assert
+    parent.upload_file.assert_not_called()
+    assert pending == ["sub-01/notes.txt"]
+    assert registry["sub-01/notes.txt"].kind == "pending"
+
+
+def test_add_file_real_content_already_on_container_registers_as_file():
+    # Arrange
+    parent = mock.MagicMock()
+    parent.get_file.return_value = mock.MagicMock()
+    item = ItemSpec(("sub-01",), "notes.txt", {"content": "real"})
+    pending = []
+    registry = {}
+
+    # Act
+    add_file(parent, item, pending, registry)
+
+    # Assert
+    parent.upload_file.assert_not_called()
+    assert pending == []
+    assert registry["sub-01/notes.txt"] == Target(
+        kind="file", container=parent, filename="notes.txt"
+    )
+
+
 def test_process_metadata_applies_info_to_intermediate_container_from_chain():
     # Arrange — metadata keyed on a subject that only appears inside deeper item paths
     project = mock.MagicMock()
@@ -278,3 +331,105 @@ def test_process_metadata_applies_info_to_intermediate_container_from_chain():
 
     # Assert
     subject.update_info.assert_called_once_with({"cohort": "A"})
+
+
+def test_orchestrate_build_creates_project_under_group(mock_fw):
+    # Arrange
+    spec = {"project": "{run_id}-t", "items": ["readme.txt"]}
+
+    # Act
+    result = orchestrate_build(mock_fw, "fw-verify", spec, "fwv-0806-a3f2")
+
+    # Assert
+    mock_fw.get_group.assert_called_once_with("fw-verify")
+    mock_fw.get_group.return_value.add_project.assert_called_once_with(
+        label="fwv-0806-a3f2-t"
+    )
+    assert isinstance(result, BuildResult)
+    assert result.project_label == "fwv-0806-a3f2-t"
+    assert result.run_id == "fwv-0806-a3f2"
+
+
+def test_orchestrate_build_collects_pending_uploads(mock_fw):
+    # Arrange
+    spec = {
+        "project": "{run_id}-t",
+        "items": ["sub-01/notes.txt"],
+        "metadata": {"sub-01/notes.txt": {"content": "real"}},
+    }
+
+    # Act
+    result = orchestrate_build(mock_fw, "fw-verify", spec, "fwv-0806-a3f2")
+
+    # Assert
+    assert result.pending_uploads == ["sub-01/notes.txt"]
+
+
+def test_orchestrate_build_reuses_existing_project(mock_fw):
+    # Arrange
+    existing = mock.MagicMock()
+    mock_fw.projects.find_first.return_value = existing
+    spec = {"project": "{run_id}-t", "items": []}
+
+    # Act
+    orchestrate_build(mock_fw, "fw-verify", spec, "fwv-0806-a3f2")
+
+    # Assert
+    mock_fw.get_group.return_value.add_project.assert_not_called()
+    mock_fw.projects.find_first.assert_called_once_with(
+        'group._id=fw-verify,label="fwv-0806-a3f2-t"'
+    )
+
+
+def test_orchestrate_build_uploads_files_for_non_real_items(mock_fw):
+    # Arrange
+    spec = {"project": "{run_id}-t", "items": ["sub-01/notes.txt"]}
+
+    # Act
+    orchestrate_build(mock_fw, "fw-verify", spec, "fwv-0806-a3f2")
+
+    # Assert
+    subject = mock_fw.get_group.return_value.add_project.return_value.add_subject
+    subject.return_value.upload_file.assert_called_once()
+
+
+@mock.patch("build_project.flywheel.Client")
+@mock.patch("build_project.get_site_config")
+def test_main_prints_result_json(
+    mock_get_cfg, mock_client, tmp_path, monkeypatch, capsys
+):
+    # Arrange
+    monkeypatch.setenv("FW_DEV_API", "site:key")
+    mock_get_cfg.return_value = mock.MagicMock(
+        api_key_env="FW_DEV_API", group="fw-verify"
+    )
+    fw = mock_client.return_value
+    fw.projects.find_first.return_value = None
+    spec_path = tmp_path / "spec.json"
+    spec_path.write_text('{"project": "{run_id}-t", "items": []}')
+
+    # Act
+    rc = main(["--spec", str(spec_path), "--run-id", "fwv-0806-beef"])
+
+    # Assert
+    assert rc == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out["run_id"] == "fwv-0806-beef"
+    assert out["pending_uploads"] == []
+
+
+@mock.patch("build_project.get_site_config")
+def test_main_unknown_site_returns_nonzero(mock_get_cfg, tmp_path, capsys):
+    # Arrange
+    mock_get_cfg.side_effect = KeyError(
+        "Site 'nope' not found in config. Available sites: ['dev']"
+    )
+    spec_path = tmp_path / "spec.json"
+    spec_path.write_text('{"project": "{run_id}-t", "items": []}')
+
+    # Act
+    rc = main(["--spec", str(spec_path), "--site", "nope"])
+
+    # Assert
+    assert rc != 0
+    assert "nope" in capsys.readouterr().err

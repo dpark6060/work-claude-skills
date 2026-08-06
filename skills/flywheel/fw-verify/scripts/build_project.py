@@ -16,7 +16,7 @@ import io
 import json
 import sys
 import typing as t
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 import flywheel
@@ -129,6 +129,10 @@ def add_file(
 ) -> None:
     """Upload the item's file, or record it as a pending manual upload.
 
+    A content="real" file is never uploaded by this script. If a human already
+    put it on the container (a re-run), it is registered as a normal file so its
+    metadata gets applied; otherwise it is recorded as pending.
+
     Args:
         parent: Container the file attaches to.
         item: The resolved spec item (filename must not be None).
@@ -137,9 +141,13 @@ def add_file(
     """
     content = item.meta.get("content", "text")
     if content == "real":
-        pending.append(item.path)
+        is_present = is_file_on_container(parent, item.filename)
+        if not is_present:
+            pending.append(item.path)
         registry[item.path] = Target(
-            kind="pending", container=parent, filename=item.filename
+            kind="file" if is_present else "pending",
+            container=parent,
+            filename=item.filename,
         )
         return
     data = get_file_contents(content, item.path)
@@ -147,6 +155,23 @@ def add_file(
         flywheel.FileSpec(item.filename, io.BytesIO(data), size=len(data))
     )
     registry[item.path] = Target(kind="file", container=parent, filename=item.filename)
+
+
+def is_file_on_container(parent: t.Any, filename: str) -> bool:
+    """Check whether the container already carries a file with this name.
+
+    Args:
+        parent: The container to look on.
+        filename: File name to look for.
+
+    Returns:
+        bool: True if the file is present. Any SDK failure counts as absent —
+            a lookup we cannot complete must not block the pending path.
+    """
+    try:
+        return bool(parent.get_file(filename))
+    except Exception:  # noqa: BLE001 - SDK raises assorted errors for "no such file"
+        return False
 
 
 def get_file_contents(content: str, path: str) -> bytes:
@@ -167,8 +192,9 @@ def get_file_contents(content: str, path: str) -> bytes:
 def process_metadata(registry: t.Dict[str, Target], metadata: dict) -> None:
     """Apply spec metadata entries to their created containers/files.
 
-    Pending (content="real") files are skipped: nothing was uploaded yet, so
-    their metadata is applied by a re-run after the file is provided.
+    Pending (content="real") files are skipped: nothing is on the container yet,
+    so there is nothing to tag. Re-run the script once the file is uploaded and
+    it registers as a normal file target, which applies its metadata then.
 
     Args:
         registry: Path -> Target map built during creation.
@@ -207,3 +233,98 @@ def _apply_file_meta(target: Target, meta: dict) -> None:
         )
     if "type" in meta:
         target.container.update_file(target.filename, {"type": meta["type"]})
+
+
+@dataclass
+class BuildResult:
+    """Outcome of a build: the created project and files awaiting manual upload."""
+
+    project_id: str
+    project_label: str
+    run_id: str
+    pending_uploads: t.List[str] = field(default_factory=list)
+
+
+def get_or_add_project(fw: t.Any, group_id: str, label: str) -> t.Any:
+    """Return the group's project with this label, creating it if absent.
+
+    Args:
+        fw: Flywheel client.
+        group_id: Group the project lives under.
+        label: Project label.
+
+    Returns:
+        t.Any: the existing or newly created project container.
+    """
+    existing = fw.projects.find_first(f'group._id={group_id},label="{label}"')
+    if existing is not None:
+        return existing
+    group = fw.get_group(group_id)
+    return group.add_project(label=label)
+
+
+def orchestrate_build(fw: t.Any, group_id: str, spec: dict, run_id: str) -> BuildResult:
+    """Build the full dummy project described by the spec.
+
+    Args:
+        fw: Flywheel client.
+        group_id: Namespace group all artifacts live under.
+        spec: The loaded hierarchy spec.
+        run_id: Namespacing run id (must already carry the fwv- prefix).
+
+    Returns:
+        BuildResult: project identifiers and pending manual uploads.
+    """
+    label, items = parse_spec(spec, run_id)
+    project = get_or_add_project(fw, group_id, label)
+    registry: t.Dict[str, Target] = {}
+    pending: t.List[str] = []
+    for item in items:
+        parent = add_containers(project, item.containers, registry)
+        if item.filename is not None:
+            add_file(parent, item, pending, registry)
+    process_metadata(registry, spec.get("metadata", {}))
+    return BuildResult(
+        project_id=str(project.id),
+        project_label=label,
+        run_id=run_id,
+        pending_uploads=pending,
+    )
+
+
+def get_arg_parser() -> argparse.ArgumentParser:
+    """Build the CLI argument parser."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--spec", required=True, help="Path to hierarchy spec JSON")
+    parser.add_argument("--run-id", default=None, help="Run id (generated if omitted)")
+    parser.add_argument(
+        "--site", default=None, help="Named site from config (default: default_site)"
+    )
+    return parser
+
+
+def main(argv: t.Optional[t.List[str]] = None) -> int:
+    """CLI entrypoint: build the project and print the result as JSON.
+
+    Args:
+        argv: Command line arguments (defaults to sys.argv[1:]).
+
+    Returns:
+        int: 0 on success, 1 if the requested site is not in the config.
+    """
+    args = get_arg_parser().parse_args(argv)
+    try:
+        cfg = get_site_config(args.site)
+    except KeyError as exc:
+        print(f"Config error: {exc.args[0]}", file=sys.stderr)
+        return 1
+    fw = flywheel.Client(get_api_key(cfg))
+    spec = json.loads(Path(args.spec).read_text())
+    run_id = args.run_id or get_run_id()
+    result = orchestrate_build(fw, cfg.group, spec, run_id)
+    print(json.dumps(asdict(result), indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

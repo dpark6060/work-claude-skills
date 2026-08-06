@@ -85,7 +85,7 @@ def test_delete_gears_deletes_only_matching_names():
     fw = mock.MagicMock()
     keep = _gear("file-curator")
     kill = _gear("fwv-0806-a3f2-probe")
-    fw.gears.iter_find.return_value = iter([keep, kill])
+    fw.get_all_gears.return_value = [keep, kill]
 
     # Act
     deleted = delete_gears(fw, "fwv-0806-a3f2", dry_run=False)
@@ -98,7 +98,7 @@ def test_delete_gears_deletes_only_matching_names():
 def test_delete_gears_dry_run_deletes_nothing():
     # Arrange
     fw = mock.MagicMock()
-    fw.gears.iter_find.return_value = iter([_gear("fwv-0806-a3f2-probe")])
+    fw.get_all_gears.return_value = [_gear("fwv-0806-a3f2-probe")]
 
     # Act
     deleted = delete_gears(fw, "fwv-0806-a3f2", dry_run=True)
@@ -108,16 +108,31 @@ def test_delete_gears_dry_run_deletes_nothing():
     fw.delete_gear.assert_not_called()
 
 
-def test_delete_gears_asks_for_every_gear_version():
+def test_delete_gears_asks_get_all_gears_for_every_version():
     # Arrange
     fw = mock.MagicMock()
-    fw.gears.iter_find.return_value = iter([])
+    fw.get_all_gears.return_value = []
 
     # Act
     delete_gears(fw, "fwv-0806-a3f2", dry_run=False)
 
     # Assert
-    fw.gears.iter_find.assert_called_once_with(all_versions=True)
+    fw.get_all_gears.assert_called_once_with(all_versions=True)
+
+
+def test_delete_gears_never_uses_the_paging_finder():
+    # Arrange - /gears ignores after_id, so fw.gears.iter_find re-serves the
+    # same page forever and the sweep never terminates. Live: 3000 pulled, 250
+    # unique. Using the Finder here is the bug, not a style choice.
+    fw = mock.MagicMock()
+    fw.get_all_gears.return_value = []
+
+    # Act
+    delete_gears(fw, "fwv-0806-a3f2", dry_run=True)
+
+    # Assert
+    fw.gears.iter_find.assert_not_called()
+    fw.gears.find.assert_not_called()
 
 
 @mock.patch("cleanup.flywheel.Client")
@@ -136,7 +151,7 @@ def test_main_prints_deletion_summary_json(mock_cfg, mock_client, monkeypatch, c
     mock_cfg.return_value = mock.MagicMock(api_key_env="FW_DEV_API", group="fw-verify")
     fw = mock_client.return_value
     fw.projects.iter_find.return_value = iter([])
-    fw.gears.iter_find.return_value = iter([])
+    fw.get_all_gears.return_value = []
 
     # Act
     rc = main(["--run-id", "fwv-0806-a3f2", "--dry-run"])
@@ -157,7 +172,7 @@ def test_main_dry_run_reports_matches_without_deleting(
     mock_cfg.return_value = mock.MagicMock(api_key_env="FW_DEV_API", group="fw-verify")
     fw = mock_client.return_value
     fw.projects.iter_find.return_value = iter([_project("fwv-0806-a3f2-exit-codes")])
-    fw.gears.iter_find.return_value = iter([_gear("fwv-0806-a3f2-probe")])
+    fw.get_all_gears.return_value = list([_gear("fwv-0806-a3f2-probe")])
 
     # Act
     rc = main(["--run-id", "fwv-0806-a3f2", "--dry-run"])

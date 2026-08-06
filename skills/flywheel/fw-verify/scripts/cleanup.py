@@ -84,6 +84,12 @@ def delete_gears(fw: t.Any, run_id: str, dry_run: bool) -> t.List[str]:
     by default, and a run that uploads a probe gear twice must not leave the
     older version behind for the next cleanup to miss.
 
+    Uses the raw `get_all_gears` call and NOT `fw.gears.iter_find`. The generic
+    Finder pages with `after_id`, `/gears` ignores it, and the endpoint then
+    re-serves the same page forever: an iter_find sweep pulled 3000 gears of
+    which 250 were unique and never terminated. `get_all_gears` returns the
+    whole list (1081 versions on the test site) in one request.
+
     Args:
         fw: Flywheel SDK client.
         run_id: Run id that a gear name must contain to be deleted.
@@ -93,7 +99,7 @@ def delete_gears(fw: t.Any, run_id: str, dry_run: bool) -> t.List[str]:
         list[str]: names of deleted (or would-delete, in dry-run) gears.
     """
     deleted = []
-    for gear in fw.gears.iter_find(all_versions=True):
+    for gear in fw.get_all_gears(all_versions=True):
         if run_id not in gear.gear.name:
             continue
         deleted.append(gear.gear.name)

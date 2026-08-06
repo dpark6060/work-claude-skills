@@ -16,6 +16,7 @@ from build_project import (
     parse_spec,
     process_metadata,
 )
+from fwv_common import SiteConfig
 
 
 @pytest.fixture
@@ -416,6 +417,47 @@ def test_main_prints_result_json(
     out = json.loads(capsys.readouterr().out)
     assert out["run_id"] == "fwv-0806-beef"
     assert out["pending_uploads"] == []
+
+
+@mock.patch("build_project.get_site_config")
+def test_main_unset_api_key_env_returns_nonzero(
+    mock_get_cfg, tmp_path, monkeypatch, capsys
+):
+    # Arrange
+    monkeypatch.delenv("FW_MISSING_API", raising=False)
+    mock_get_cfg.return_value = SiteConfig(
+        api_key_env="FW_MISSING_API", group="fw-verify", label="dev"
+    )
+    spec_path = tmp_path / "spec.json"
+    spec_path.write_text('{"project": "{run_id}-t", "items": []}')
+
+    # Act
+    rc = main(["--spec", str(spec_path)])
+
+    # Assert
+    assert rc == 1
+    assert "FW_MISSING_API" in capsys.readouterr().err
+
+
+@mock.patch("build_project.flywheel.Client")
+@mock.patch("build_project.get_site_config")
+def test_main_missing_spec_file_returns_nonzero(
+    mock_get_cfg, mock_client, tmp_path, monkeypatch, capsys
+):
+    # Arrange
+    monkeypatch.setenv("FW_DEV_API", "site:key")
+    mock_get_cfg.return_value = SiteConfig(
+        api_key_env="FW_DEV_API", group="fw-verify", label="dev"
+    )
+    missing_spec = tmp_path / "ghost.json"
+
+    # Act
+    rc = main(["--spec", str(missing_spec)])
+
+    # Assert
+    assert rc == 1
+    assert "ghost.json" in capsys.readouterr().err
+    mock_client.return_value.get_group.assert_not_called()
 
 
 @mock.patch("build_project.get_site_config")

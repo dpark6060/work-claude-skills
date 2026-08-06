@@ -303,23 +303,37 @@ def get_arg_parser() -> argparse.ArgumentParser:
     return parser
 
 
+SETUP_ERRORS = (KeyError, FileNotFoundError, RuntimeError, json.JSONDecodeError)
+
+
+def get_error_message(exc: Exception) -> str:
+    """Return an exception's message, unwrapping KeyError's repr quoting."""
+    if isinstance(exc, KeyError) and exc.args:
+        return str(exc.args[0])
+    return str(exc)
+
+
 def main(argv: t.Optional[t.List[str]] = None) -> int:
     """CLI entrypoint: build the project and print the result as JSON.
+
+    Every setup mistake a user can make — missing config.json, unknown --site,
+    unset API key env var, missing or malformed --spec — prints the underlying
+    message and exits 1 rather than dumping a traceback.
 
     Args:
         argv: Command line arguments (defaults to sys.argv[1:]).
 
     Returns:
-        int: 0 on success, 1 if the requested site is not in the config.
+        int: 0 on success, 1 if config, credentials, or the spec file are bad.
     """
     args = get_arg_parser().parse_args(argv)
     try:
         cfg = get_site_config(args.site)
-    except KeyError as exc:
-        print(f"Config error: {exc.args[0]}", file=sys.stderr)
+        fw = flywheel.Client(get_api_key(cfg))
+        spec = json.loads(Path(args.spec).read_text())
+    except SETUP_ERRORS as exc:
+        print(f"Setup error: {get_error_message(exc)}", file=sys.stderr)
         return 1
-    fw = flywheel.Client(get_api_key(cfg))
-    spec = json.loads(Path(args.spec).read_text())
     run_id = args.run_id or get_run_id()
     result = orchestrate_build(fw, cfg.group, spec, run_id)
     print(json.dumps(asdict(result), indent=2))

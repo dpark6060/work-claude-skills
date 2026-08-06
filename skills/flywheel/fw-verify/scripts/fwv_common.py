@@ -1,0 +1,77 @@
+"""Shared helpers for fw-verify scripts: config loading, API key resolution, run ids."""
+
+import json
+import os
+import secrets
+import typing as t
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
+
+CACHE_DIR = Path(__file__).resolve().parent.parent / "cache"
+CONFIG_PATH = CACHE_DIR / "config.json"
+RUN_ID_PREFIX = "fwv-"
+
+
+@dataclass
+class SiteConfig:
+    """One site entry from cache/config.json."""
+
+    api_key_env: str
+    group: str
+    label: str
+
+
+def get_site_config(
+    site: t.Optional[str] = None, config_path: Path = CONFIG_PATH
+) -> SiteConfig:
+    """Load a site's settings from the untracked skill config.
+
+    The config is deliberately asymmetric: "default_site" is an inline anonymous
+    object while "sites" holds the same shape keyed by name.
+
+    Args:
+        site: Named entry under "sites"; None selects "default_site".
+        config_path: Path to config.json (overridable for tests).
+
+    Returns:
+        SiteConfig: the selected site's settings.
+
+    Raises:
+        FileNotFoundError: config.json is missing.
+        KeyError: the named site is not present.
+    """
+    if not config_path.exists():
+        raise FileNotFoundError(
+            f"{config_path} not found. Copy assets/config.example.json to "
+            f"cache/config.json and fill in your site details."
+        )
+    data = json.loads(config_path.read_text())
+    entry = data["default_site"] if site is None else data["sites"][site]
+    return SiteConfig(**entry)
+
+
+def get_api_key(cfg: SiteConfig) -> str:
+    """Resolve the API key from the configured environment variable.
+
+    Args:
+        cfg: The site config naming the environment variable.
+
+    Returns:
+        str: the API key value.
+
+    Raises:
+        RuntimeError: the environment variable is unset or empty.
+    """
+    key = os.environ.get(cfg.api_key_env)
+    if not key:
+        raise RuntimeError(
+            f"Environment variable {cfg.api_key_env} is not set. "
+            f"Export it with the API key for site '{cfg.label}'."
+        )
+    return key
+
+
+def get_run_id() -> str:
+    """Generate a namespaced run id like fwv-0806-a3f2."""
+    return f"{RUN_ID_PREFIX}{datetime.now():%m%d}-{secrets.token_hex(2)}"

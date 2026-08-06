@@ -117,11 +117,20 @@ class Curator(FileCurator):
 
 ```python
 import io
+import sys
 from pathlib import Path
 
 import flywheel
 
-fw = flywheel.Client(api_key)   # api_key via scripts/fwv_common.get_api_key(cfg)
+sys.path.insert(0, "<skill>/scripts")   # or just run this from the skill's scripts/ dir
+from fwv_common import get_api_key, get_site_config
+
+cfg = get_site_config()          # default site from cache/config.json
+api_key = get_api_key(cfg)       # resolved from the env var named in that config
+group_id = cfg.group
+project_label = "..."            # "project_label" from build_project.py's printed JSON
+
+fw = flywheel.Client(api_key)
 project = fw.lookup(f"{group_id}/{project_label}")           # the fwv-<run_id> dummy project
 acquisition = fw.lookup(f"{group_id}/{project_label}/sub-01/ses-01/acq-01")
 

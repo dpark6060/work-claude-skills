@@ -20,6 +20,7 @@ from build_project import (
     parse_spec,
     process_metadata,
     set_file_classification,
+    validate_label_carries_run_id,
 )
 from fwv_common import SiteConfig
 
@@ -633,6 +634,51 @@ def test_orchestrate_build_uploads_files_for_non_real_items(mock_fw):
     # Assert
     subject = mock_fw.get_group.return_value.add_project.return_value.add_subject
     subject.return_value.upload_file.assert_called_once()
+
+
+def test_validate_label_carries_run_id_accepts_a_label_holding_the_run_id():
+    # Act & Assert - no exception
+    validate_label_carries_run_id("fwv-0806-a3f2-exit-codes", "fwv-0806-a3f2")
+
+
+def test_validate_label_carries_run_id_rejects_a_label_without_it():
+    # Act & Assert
+    with pytest.raises(ValueError, match="does not contain the run id"):
+        validate_label_carries_run_id("my-fixed-project", "fwv-0806-a3f2")
+
+
+def test_orchestrate_build_refuses_a_spec_whose_label_drops_the_run_id(mock_fw):
+    # Arrange - cleanup matches projects by run-id substring, so this label
+    # would build something no cleanup could ever delete.
+    spec = {"project": "fixed-label", "items": ["readme.txt"]}
+
+    # Act & Assert
+    with pytest.raises(ValueError, match="does not contain the run id"):
+        orchestrate_build(mock_fw, "fw-verify", spec, "fwv-0806-a3f2")
+
+    mock_fw.get_group.return_value.add_project.assert_not_called()
+
+
+@mock.patch("build_project.flywheel.Client")
+@mock.patch("build_project.get_site_config")
+def test_main_bad_spec_prints_setup_error_instead_of_tracebacking(
+    mock_get_cfg, mock_client, tmp_path, monkeypatch, capsys
+):
+    # Arrange - a semantic spec problem is the user's to fix, and SKILL.md
+    # promises it prints "Setup error:".
+    monkeypatch.setenv("FW_DEV_API", "site:key")
+    mock_get_cfg.return_value = SiteConfig(
+        api_key_env="FW_DEV_API", group="fw-verify", label="dev"
+    )
+    spec_path = tmp_path / "spec.json"
+    spec_path.write_text('{"project": "no-run-id-here", "items": []}')
+
+    # Act
+    rc = main(["--spec", str(spec_path), "--run-id", "fwv-0806-beef"])
+
+    # Assert
+    assert rc == 1
+    assert "Setup error:" in capsys.readouterr().err
 
 
 @mock.patch("build_project.flywheel.Client")

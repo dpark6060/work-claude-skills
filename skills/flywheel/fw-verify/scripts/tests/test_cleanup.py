@@ -189,6 +189,21 @@ def test_main_dry_run_reports_matches_without_deleting(
 
 
 @mock.patch("cleanup.get_site_config")
+def test_main_malformed_config_prints_setup_error(mock_cfg, capsys):
+    # Arrange - cleanup's own SETUP_ERRORS tuple used to omit JSONDecodeError,
+    # so a malformed config.json tracebacked here while build_project printed a
+    # clean message. Both now share one tuple from fwv_common.
+    mock_cfg.side_effect = json.JSONDecodeError("Expecting value", "{bad", 0)
+
+    # Act
+    rc = main(["--run-id", "fwv-0806-a3f2"])
+
+    # Assert
+    assert rc == 1
+    assert "Setup error:" in capsys.readouterr().err
+
+
+@mock.patch("cleanup.get_site_config")
 def test_main_unset_api_key_env_returns_nonzero(mock_cfg, monkeypatch, capsys):
     # Arrange
     monkeypatch.delenv("FW_MISSING_API", raising=False)

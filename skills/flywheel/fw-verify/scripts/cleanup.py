@@ -18,10 +18,14 @@ import typing as t
 
 import flywheel
 
-from build_project import get_error_message
-from fwv_common import RUN_ID_PREFIX, get_api_key, get_site_config
+from fwv_common import (
+    RUN_ID_PREFIX,
+    SETUP_ERRORS,
+    get_api_key,
+    get_error_message,
+    get_site_config,
+)
 
-SETUP_ERRORS = (KeyError, FileNotFoundError, RuntimeError)
 RUN_ID_FORMAT = f"{RUN_ID_PREFIX}MMDD-xxxx"
 RUN_ID_PATTERN = re.compile(rf"{re.escape(RUN_ID_PREFIX)}\d{{4}}-[0-9a-f]{{4}}")
 
@@ -135,7 +139,9 @@ def main(argv: t.Optional[t.List[str]] = None) -> int:
         int: 0 on success, 1 if config or credentials are bad.
 
     Raises:
-        ValueError: the run id does not start with "fwv-".
+        ValueError: the run id is not a complete "fwv-MMDD-xxxx" run id. The
+            prefix alone is not enough — a truncated id matches every run in its
+            namespace, so the whole format is validated.
     """
     args = get_arg_parser().parse_args(argv)
     validate_run_id(args.run_id)

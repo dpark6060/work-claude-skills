@@ -22,7 +22,13 @@ from pathlib import Path
 
 import flywheel
 
-from fwv_common import get_api_key, get_run_id, get_site_config
+from fwv_common import (
+    SETUP_ERRORS,
+    get_api_key,
+    get_error_message,
+    get_run_id,
+    get_site_config,
+)
 
 CONTAINER_LEVELS = ("subject", "session", "acquisition")
 FAKE_DICOM_BYTES = b"FWV-FAKE-DICOM\x00"
@@ -404,6 +410,30 @@ def delete_project_rules(fw: t.Any, project_id: str) -> t.List[str]:
     return [str(rule.id) for rule in rules]
 
 
+def validate_label_carries_run_id(label: str, run_id: str) -> None:
+    """Refuse a project label that cleanup would never be able to find.
+
+    cleanup.py deletes by substring-matching the run id against project labels,
+    so a spec whose "project" omits "{run_id}" builds something no cleanup can
+    ever reach — and worse, a fixed label makes every run adopt the same project
+    and inherit the last run's containers. Fail before anything is created.
+
+    Args:
+        label: The resolved project label.
+        run_id: The run id that must appear in it.
+
+    Raises:
+        ValueError: the label does not contain the run id.
+    """
+    if run_id in label:
+        return
+    raise ValueError(
+        f"Project label {label!r} does not contain the run id {run_id!r}. Add "
+        f'"{{run_id}}" to the spec\'s "project" value — cleanup matches on it, '
+        f"so a label without it can never be deleted."
+    )
+
+
 def orchestrate_build(fw: t.Any, group_id: str, spec: dict, run_id: str) -> BuildResult:
     """Build the full dummy project described by the spec.
 
@@ -418,8 +448,12 @@ def orchestrate_build(fw: t.Any, group_id: str, spec: dict, run_id: str) -> Buil
 
     Returns:
         BuildResult: project identifiers and pending manual uploads.
+
+    Raises:
+        ValueError: the resolved project label does not contain the run id.
     """
     label, items = parse_spec(spec, run_id)
+    validate_label_carries_run_id(label, run_id)
     project = get_or_add_project(fw, group_id, label)
     delete_project_rules(fw, str(project.id))
     registry: t.Dict[str, Target] = {}
@@ -448,39 +482,41 @@ def get_arg_parser() -> argparse.ArgumentParser:
     return parser
 
 
-SETUP_ERRORS = (KeyError, FileNotFoundError, RuntimeError, json.JSONDecodeError)
-
-
-def get_error_message(exc: Exception) -> str:
-    """Return an exception's message, unwrapping KeyError's repr quoting."""
-    if isinstance(exc, KeyError) and exc.args:
-        return str(exc.args[0])
-    return str(exc)
+# The shared setup errors plus ValueError, which is how every semantic spec
+# problem surfaces (path too deep, metadata key matching nothing, label missing
+# the run id). SKILL.md promises a bad spec prints "Setup error:", so the build
+# has to be inside the guard, not just the config loading. cleanup.py keeps the
+# bare tuple on purpose — there, a ValueError is a refusal to delete and must
+# stay loud.
+BUILD_ERRORS = SETUP_ERRORS + (ValueError,)
 
 
 def main(argv: t.Optional[t.List[str]] = None) -> int:
     """CLI entrypoint: build the project and print the result as JSON.
 
     Every setup mistake a user can make — missing config.json, unknown --site,
-    unset API key env var, missing or malformed --spec — prints the underlying
-    message and exits 1 rather than dumping a traceback.
+    unset API key env var, missing or malformed --spec, or a spec whose contents
+    are semantically wrong — prints the underlying message and exits 1 rather
+    than dumping a traceback. The build itself is inside the guarded block for
+    that last case: a too-deep path, a metadata key matching nothing, or a label
+    without the run id are all the user's spec to fix, not bugs.
 
     Args:
         argv: Command line arguments (defaults to sys.argv[1:]).
 
     Returns:
-        int: 0 on success, 1 if config, credentials, or the spec file are bad.
+        int: 0 on success, 1 if config, credentials, or the spec are bad.
     """
     args = get_arg_parser().parse_args(argv)
+    run_id = args.run_id or get_run_id()
     try:
         cfg = get_site_config(args.site)
         fw = flywheel.Client(get_api_key(cfg))
         spec = json.loads(Path(args.spec).read_text())
-    except SETUP_ERRORS as exc:
+        result = orchestrate_build(fw, cfg.group, spec, run_id)
+    except BUILD_ERRORS as exc:
         print(f"Setup error: {get_error_message(exc)}", file=sys.stderr)
         return 1
-    run_id = args.run_id or get_run_id()
-    result = orchestrate_build(fw, cfg.group, spec, run_id)
     print(json.dumps(asdict(result), indent=2))
     return 0
 

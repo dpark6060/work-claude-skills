@@ -41,6 +41,14 @@ survived, re-verified after the fact. That treats the symptom — the rule strip
 removes the cause — and it stays in place as a safety net for a site whose rules fire
 independently of the project's, or a key that cannot remove them.
 
+## 2026-08-06 — unproven: whether `fw.delete_gear` needs a delete reason
+
+`delete_project` needs `delete_reason` on an audit-trail site (400 otherwise) and now always
+sends it. Whether `fw.delete_gear` has the same requirement is **untested** — every cleanup
+run so far matched zero gears, so that line has never executed against a real gear. Watch it
+at the first mode-3 cleanup; if it 400s, the fix is the same parameter. Gears are not
+containers, so do not assume the requirement carries over in either direction.
+
 ## 2026-08-06 — `fw.gears.iter_find` never terminates; `delete_gears` hung forever
 
 The Task 6 warning was right. `cleanup.py --dry-run` produced no output for five minutes

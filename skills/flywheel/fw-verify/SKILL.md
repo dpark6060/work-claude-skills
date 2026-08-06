@@ -82,7 +82,12 @@ uv run "${CLAUDE_SKILL_DIR}/scripts/build_project.py" --spec <spec.json> [--run-
    `pending_uploads`. Write the spec JSON yourself following
    `${CLAUDE_SKILL_DIR}/assets/hierarchy.example.json` (path depth = level;
    trailing `/` = empty container; per-path `metadata` sets `info` on containers;
-   `info`/`classification`/`type`/`content` on files). Content choices: omit for placeholder
+   `info`/`classification`/`type`/`modality`/`content` on files — set `modality`
+   whenever you set `classification`, since the API rejects non-`Custom`
+   classification keys on a file with no modality (live 422: "Unknown modalities
+   can only use the custom attribute"). The spec's `project` value must contain
+   `{run_id}`; without it the build refuses, because cleanup finds projects by
+   run-id substring. Content choices: omit for placeholder
    text; `"fake-dicom"` when only routing/metadata/type-matching is under test;
    `"real"` when something must actually parse the file. Setup problems (missing
    config, unset key env var, bad spec) print `Setup error: ...` to stderr and exit

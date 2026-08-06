@@ -117,12 +117,15 @@ class Curator(FileCurator):
 
 ```python
 import io
+import os
 import sys
 from pathlib import Path
 
 import flywheel
 
-sys.path.insert(0, "<skill>/scripts")   # or just run this from the skill's scripts/ dir
+# Read from the env var rather than pasting a path: "${CLAUDE_SKILL_DIR}" does
+# not expand inside a Python string. Or just run this from the skill's scripts/ dir.
+sys.path.insert(0, f"{os.environ['CLAUDE_SKILL_DIR']}/scripts")
 from fwv_common import get_api_key, get_site_config
 
 cfg = get_site_config()          # default site from cache/config.json

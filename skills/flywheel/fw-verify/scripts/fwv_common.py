@@ -12,6 +12,26 @@ CACHE_DIR = Path(__file__).resolve().parent.parent / "cache"
 CONFIG_PATH = CACHE_DIR / "config.json"
 RUN_ID_PREFIX = "fwv-"
 
+# Every way a user can misconfigure a script before it reaches the instance:
+# missing config.json, unknown --site, unset key env var, malformed JSON. Shared
+# so both entrypoints report them identically — they drifted once, and cleanup
+# tracebacked on a malformed config while build_project printed a clean message.
+SETUP_ERRORS = (KeyError, FileNotFoundError, RuntimeError, json.JSONDecodeError)
+
+
+def get_error_message(exc: Exception) -> str:
+    """Return an exception's message, unwrapping KeyError's repr quoting.
+
+    Args:
+        exc: The caught setup exception.
+
+    Returns:
+        str: the message, without the extra quotes KeyError's str() adds.
+    """
+    if isinstance(exc, KeyError) and exc.args:
+        return str(exc.args[0])
+    return str(exc)
+
 
 @dataclass
 class SiteConfig:

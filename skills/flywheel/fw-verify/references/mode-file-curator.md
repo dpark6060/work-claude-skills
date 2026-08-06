@@ -17,7 +17,9 @@ observe it. Cheaper than building a gear; can't test manifest/exit-code semantic
 
 Read from `https://gitlab.com/flywheel-io/scientific-solutions/gears/file-curator`
 (`main`): `manifest.json`, `README.md`, `run.py`, `fw_gear_file_curator/{main,parser,utils}.py`,
-`pyproject.toml`. Gear image `flywheel/file-curator:1.0.4`, gear level **acquisition**.
+`pyproject.toml`. Gear image `flywheel/file-curator:1.0.4`. The manifest carries no gear-level
+field; the README's classification checklist marks the gear **acquisition**-level, which is where
+the destination guidance below comes from — inferred from docs, not from the manifest.
 
 - Gear lookup: `fw.lookup("gears/file-curator")`
 - Inputs:
@@ -67,7 +69,9 @@ Read from `https://gitlab.com/flywheel-io/scientific-solutions/gears/file-curato
   - Extra pip packages: set a module-level `EXTRA_PACKAGES = ["polars"]` list, or pass a
     `requirements` input. Preinstalled per the README: `lxml`, `pandas`, `nibabel`,
     `Pillow`, `piexif`, `pydicom`, `pypng`, `flywheel-sdk`, `fw-client`, `fw-curation`,
-    `fw-file`, `fw-gear`. Image Python is 3.13.
+    `fw-file`, `fw-gear`. Image Python is 3.13 per the manifest's `PYTHON_VERSION`
+    (its `PYTHONPATH` still points at `python3.12/site-packages` — the two contradict each
+    other; check at runtime rather than trusting either).
 
 - Error/exit semantics (this is what the skill greps against):
   - `main.curate` wraps curation in `try/except Exception` and logs exactly
@@ -106,11 +110,43 @@ class Curator(FileCurator):
         # ...the actual claim under test goes here, one [fwv] line per observation
 ```
 
-2. Upload the script to the dummy project (any container file works as a gear input):
-   `project.upload_file("probe_curator.py")`. Re-read the container afterward
-   (`project = project.reload()`) so `get_file` sees it.
+2. Upload both required inputs to the dummy project and defensively set the script's file
+   type. The target file for `file-input` can be one `scripts/build_project.py` already
+   created (e.g. `sub-01/ses-01/acq-01/image.dcm` in `assets/hierarchy.example.json`) — in
+   that case skip its upload and just fetch the acquisition. Otherwise upload one:
+
+```python
+import io
+from pathlib import Path
+
+import flywheel
+
+fw = flywheel.Client(api_key)   # api_key via scripts/fwv_common.get_api_key(cfg)
+project = fw.lookup(f"{group_id}/{project_label}")           # the fwv-<run_id> dummy project
+acquisition = fw.lookup(f"{group_id}/{project_label}/sub-01/ses-01/acq-01")
+
+# The curator script.
+script = Path("probe_curator.py").read_bytes()
+project.upload_file(
+    flywheel.FileSpec("probe_curator.py", io.BytesIO(script), size=len(script))
+)
+
+# The file the curator will be handed, if the dummy project doesn't already have one.
+payload = b"fw-verify placeholder\n"
+acquisition.upload_file(
+    flywheel.FileSpec("image.dcm", io.BytesIO(payload), size=len(payload))
+)
+
+project = project.reload()          # so get_file sees the new files
+acquisition = acquisition.reload()
+
+# The manifest restricts the curator input to file type "source code"; don't rely on
+# the classifier having typed the .py upload that way.
+project.update_file("probe_curator.py", {"type": "source code"})
+```
+
 3. Launch. Destination should be the container that owns `file-input` (the gear is
-   acquisition-level):
+   acquisition-level per the README):
 
 ```python
 gear = fw.lookup("gears/file-curator")
@@ -138,9 +174,14 @@ while True:
     time.sleep(10)
 ```
 
-5. Pull logs and extract `[fwv]` lines as evidence:
+5. Pull logs and extract `[fwv]` lines as evidence. The log endpoint isn't on the SDK
+   client, so use an `fw-client` HTTP client (same api key):
 
 ```python
+from fw_client import FWClient
+
+fw_http = FWClient(api_key=api_key)   # or FWClient(api_key=..., base_url="https://site.flywheel.io")
+
 logs = fw_http.get(f"/api/jobs/{job_id}/logs/text", raw=True).text
 evidence = [ln for ln in logs.splitlines() if "[fwv]" in ln]
 failure = [ln for ln in logs.splitlines() if "Curation failed:" in ln]
@@ -150,8 +191,13 @@ failure = [ln for ln in logs.splitlines() if "Curation failed:" in ln]
 
 - **The class must be named `Curator`.** `load_curator` does `getattr(mod, "Curator")`;
   any other name is an `AttributeError` at load time.
-- **`self.config` is not the gear config.** The gear passes only `context=`, so the base
-  class builds a default `fw_curation` `CurationConfig`. Gear config lives at
+- **The manifest's own `curator` description is stale.** In 1.0.4 it still links
+  gear-toolkit's `FileCurator` docs
+  (`flywheel_gear_toolkit/utils/#curator`) — that is the v0 contract, and v1.x AST-rejects
+  gear-toolkit imports. Ignore the manifest description; the README and this doc are right.
+- **`self.config` is not the gear config.** The gear passes only `context=`, so
+  fw-curation's base `Curator.__init__` (the parent of `FileCurator`) builds a default
+  `CurationConfig`. Gear config lives at
   `self.context.config.opts`. `self.reporter` is `None` unless you set one up.
 - **v1.x statically rejects v0 scripts.** `check_script_version` AST-parses the script
   before running it and exits `1` if it finds `import flywheel_gear_toolkit`,
@@ -183,10 +229,10 @@ failure = [ln for ln in logs.splitlines() if "Curation failed:" in ln]
 - The exact `gear.run(inputs=...)` reference form — SDK file object (as written above) vs
   a `{"type": ..., "id": ..., "name": ...}` dict. Correct this doc if reality differs.
 - Whether `destination` must be the file's parent acquisition, or whether a project-level
-  destination is accepted for this acquisition-level gear.
+  destination is accepted (the acquisition level is the README's claim, not the manifest's).
 - Whether the `curator` input's manifest type restriction (`enum: ["source code"]`) is
-  enforced at job creation, and whether a `.py` upload is auto-typed `source code` or
-  needs an explicit `file.update(type="source code")`.
+  enforced at job creation at all. Step 2 sets the type defensively either way, so this is
+  a "can we drop that line" question, not a blocker.
 - The file-curator version actually installed on the target site (this contract is 1.0.4).
 - That the `[fwv]` prefix survives into `/api/jobs/{job_id}/logs/text` unmangled by the
   gear's log formatter.

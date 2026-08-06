@@ -35,7 +35,7 @@ never on documentation, memory, or plausibility.
    of halfway through a probe:
 
 ```bash
-uv run --with flywheel-sdk python -c '
+uv run --no-project --with flywheel-sdk python -c '
 import sys, os, json, flywheel
 cfg = json.load(open(sys.argv[1]))["default_site"]
 print(flywheel.Client(os.environ[cfg["api_key_env"]]).get_current_user().email)

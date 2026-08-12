@@ -52,6 +52,7 @@ Rules:
 | Field | Jira key | Format | Example |
 |---|---|---|---|
 | Customer | `customfield_10108` | `[{"value": "<name>"}]` | `[{"value": "UWash - NACC"}]` |
+| Customer *in JQL* | `cf[10108]` | `cf[10108] = "<exact option>"` | `cf[10108] = "UWash - NACC"` |
 | Sprint | `customfield_10021` | `{"id": <int>}` | `{"id": 3522}` |
 | Labels | `labels` | `["tag1", "tag2"]` | `["Hourly", "NACC"]` |
 | Assignee | `assignee_account_id` | accountId string | `"5d88bebcc7d4e30dc282e6e0"` |
@@ -77,8 +78,17 @@ additional_fields={
 |---|---|
 | Post an end-of-session work summary comment | `references/post-comment.md` |
 | Create a new ticket | `references/create-ticket.md` |
+| Find the epic a piece of work belongs under | `references/find-epic.md` |
+| Reopen a closed issue, or fix `SOW`/`Hourly` sync labels | `references/transition-issue.md` |
 
-Load only the reference file for the operation at hand. Do not load both unless you are doing both.
+Load only the reference file for the operation at hand. Do not load more than the task needs.
+
+## Called by a conductor skill?
+
+`fw-workorder` invokes this skill as part of a larger work order. When it does, **its gate
+is the confirmation step** — `create-ticket.md`'s Phase 3 "draft and confirm" has already
+happened there, so do not stop and re-confirm. Create what you were asked to create and
+report back. Interactive use is unchanged: confirm as normal.
 
 ---
 

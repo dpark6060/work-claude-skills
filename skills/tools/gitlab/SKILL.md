@@ -149,6 +149,26 @@ glab api "projects/GROUP%2FREPO/merge_requests/42/notes" --paginate | jq '[.[] |
 
 If asked to create an MR, commit and push changes, or do an end-of-session MR workflow, load `references/create-mr.md` and follow it exactly.
 
+### Push `origin` only — some repos have client mirror remotes
+
+Check `git remote -v` before pushing. A repo may have more than one remote:
+
+```
+origin → git@gitlab.com:flywheel-io/scientific-solutions/gears/nacc/loni-upload.git
+nacc   → git@github.com:naccdata/fw-loni-export.git      ← client mirror
+```
+
+`origin` is the Flywheel repo — branches, MRs, and pipelines live there. **Any other remote
+is a client mirror**, published by a human as part of a release. Pushing one sends unreviewed
+work straight into a client's repository.
+
+Push `origin` and nothing else unless the user explicitly names another remote. `git push`
+with no remote argument is fine when the branch tracks `origin`; verify with
+`git rev-parse --abbrev-ref --symbolic-full-name @{u}` if unsure.
+
+Repos whose `origin` is GitHub rather than GitLab are not this skill's job — use
+`gh pr create` there.
+
 ---
 
 ## REST API (glab api)

@@ -19,10 +19,12 @@ invisible.
 
 ## Step 1 — Query epics for the client
 
-The Customer field is `customfield_10108`. In JQL, reference it as `cf[10108]`.
+Customer/s is a custom field; in JQL it is referenced as `cf[<id>]` with the exact dropdown
+option string. Id and option list:
+`~/.claude/skills/shared/tools/atlassian/gear-board-fields.md`.
 
 ```
-mcp__atlassian__searchJiraIssuesUsingJql(
+mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql(
     cloudId="flywheelio.atlassian.net",
     jql='project = GEAR AND issuetype = Epic AND cf[10108] = "UWash - NACC" ORDER BY updated DESC',
     fields=["key", "summary", "status", "labels"],
@@ -34,6 +36,14 @@ mcp__atlassian__searchJiraIssuesUsingJql(
 option (`UWash - NACC`, not `NACC`).
 
 Expect a lot of results — `UWash - NACC` alone has ~40 epics. Do not assume a short list.
+
+> **⚠ The MCP search returns at most 5 issues** regardless of `maxResults`, and its
+> pagination is dead (`hasNextPage: false` / `endCursor: null` even when `remainingCount`
+> is nonzero — verified 2026-08-12). With ~40 epics per customer, an MCP-only run ranks
+> five arbitrary epics and silently hides the right one. **Run this query over REST**
+> (`/rest/api/3/search/jql` with an explicit `fields` list) per
+> `~/.claude/skills/shared/tools/atlassian/jira-reads.md`. Only use MCP here if you check
+> `remainingCount` and it is 0.
 
 ---
 
@@ -85,16 +95,9 @@ both the board and the Jira→Clockify task sync. No match means the caller asks
 ## Step 4 — Check the sync prerequisites
 
 An epic only produces a Clockify task when it has `SOW` + `Hourly` (or `SOW` + `Fixed`)
-labels, a Customer, and a status other than `New Request`. Report any matched epic missing
-these — the caller will need them fixed before time can be logged against it. Fixing them is
-in [transition-issue.md](transition-issue.md); the sync itself is documented in the
-`clockify` skill's `references/flywheel-workflow.md`.
-
-Common real states seen on the GEAR board:
-
-```
-labels: ["Hourly", "SOW"]           → syncs
-labels: ["Hourly", "NACC", "SOW"]   → syncs
-labels: []                          → will NOT sync, needs fixing
-status: "New Request"               → will NOT sync regardless of labels
-```
+labels, a Customer, and a status on the sync's create allowlist (`New Request` and
+`Internal Backlog List` are both off it — it is an allowlist, not "anything but
+`New Request`"). Report any matched epic missing these — the caller will need them fixed
+before time can be logged against it. Fixing them is in
+[transition-issue.md](transition-issue.md); the full sync rules are in
+`~/.claude/skills/shared/tools/clockify/jira-sync.md`.

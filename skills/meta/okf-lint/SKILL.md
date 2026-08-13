@@ -36,9 +36,12 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/okf_lint.py <path>
 - `--json` — machine-readable findings (rule, severity, path, message).
 - `--strict` — treat warnings as failures (exit 1). Default: only errors fail.
 - `--errors-only` — show/count hard errors only (what the Stop hook uses).
-- `--fix` — apply **safe** fixes only: create a missing `index.md` in any directory that
-  has concept files or indexed subdirs, filling titles/descriptions from frontmatter. It
-  never edits an existing `index.md` and never touches frontmatter.
+- `--fix` — apply **safe** fixes only: create the `index.md` files the house rule (OKF007)
+  requires — only in directories at or over the uncovered-file threshold, deepest-first so
+  an indexed subdir covers its subtree before the parent is counted, filling
+  titles/descriptions from frontmatter and listing uncovered nested files by relative
+  path. It never creates an index below the threshold, never edits an existing
+  `index.md`, and never touches frontmatter.
 - Exit codes: `0` clean, `1` failures present, `2` bad usage.
 
 Stdlib-only; uses PyYAML for stricter parse checks if it happens to be installed.
@@ -63,6 +66,21 @@ editing the files, then re-run to confirm zero findings:
 For "bring this directory to spec": run `--fix` first to generate any missing indexes,
 then walk the remaining findings and fix them by hand. Use `--fix` output plus a re-run to
 confirm you reached zero.
+
+## House rule: when an index.md is required (OKF007)
+
+The spec (§6) only says an index MAY appear. This repo tightens that: an `index.md` is
+**required** once a directory holds **4+ uncovered concept files** — its own files plus,
+recursively, those of any subdirectory *without* its own `index.md` (an indexed
+subdirectory covers its subtree and contributes zero; an unindexed one passes its files up
+to the parent's count). Four 2-file subdirs don't each need an index, but their parent
+sees 8 uncovered files and does — it lists the nested files directly by relative path.
+Below the threshold an index is still legal anywhere.
+
+The linter flags this as OKF007 (warning), and `--fix` repairs it by creating the missing
+index. The threshold is `INDEX_THRESHOLD` in `scripts/okf_lint.py`. Other skills
+(skill-maker, project-init) should not restate this rule — they point here and run the
+linter.
 
 ## What counts as an error vs a warning
 

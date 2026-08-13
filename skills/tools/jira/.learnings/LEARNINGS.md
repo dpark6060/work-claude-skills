@@ -7,12 +7,37 @@ Update this file after each session where something new is discovered.
 
 ## Confirmed Field IDs
 
-| Field | Jira key | Notes |
-|---|---|---|
-| Customer | `customfield_10108` | Confirmed — format: `[{"value": "<name>"}]` |
-| Sprint | `customfield_10021` | Confirmed — format: `{"id": <int>}` |
-| Story Points | `customfield_10016` | Confirmed — format: number |
-| Billable | _not confirmed_ | Run `getJiraIssueTypeMetaWithFields` to locate before use |
+**The field table moved.** Every GEAR field id, option id, issue-type id, priority id, and
+write shape now lives in one place:
+`~/.claude/skills/shared/tools/atlassian/gear-board-fields.md`. Do not re-add a table here —
+record only new *findings* below.
+
+### 2026-08-13 — live createmeta on GEAR (Story 10029 + Task 10020), two long-open questions closed
+
+Call: `getJiraIssueTypeMetaWithFields`, `cloudId=flywheelio.atlassian.net`,
+`projectIdOrKey=GEAR`, `requiredFieldsOnly=false`, paged. Story and Task each expose the
+**same 24 create-screen fields**; only `project` and `summary` are required.
+
+- **Acceptance Criteria EXISTS: `customfield_11394`, name "Acceptance Criteria", type
+  `textarea`** — on both Story and Task. This settles the contradiction: `meeting-tickets`'
+  tracker was right, and the old "GEAR has no AC field, AC lives inline in the description"
+  line in `shared/tools/atlassian/jira-reads.md` was describing convention, not schema. That
+  file has been corrected. Older tickets still carry AC inline, so read both places.
+- **There is NO Billable field on GEAR.** All 24 fields enumerated; nothing named billable or
+  similar. The "not confirmed, go find it" note is retired from `SKILL.md` and
+  `references/create-ticket.md`. Billable-ness is carried by the `Hourly` / `Fixed` / `SOW`
+  labels, consumed by the Jira→Clockify sync.
+- **Story Points (`customfield_10016`) is NOT on the GEAR create screen** for Story or Task —
+  the previous "Confirmed" entry in this file was wrong for create calls. Do not pass it on
+  create.
+- Also observed: Flagged `customfield_10027` (options Impediment=10019, "Option 1"=10118),
+  Design `customfield_11286`, Zendesk Ticket IDs `customfield_11292`, Zendesk Ticket Count
+  `customfield_11293`, Vulnerability `customfield_11296`, Start date `customfield_10015`,
+  Development `customfield_10000`. Priorities: Blocker 10001, Urgent 1, High 2, Medium 3
+  (default), Low 4, plus a sentiment set (Advocate 11008 … Escalated 11012). Issue types:
+  Task 10020, Epic 10021, Subtask 10022, Story 10029, Bug 10030, Spike 10098,
+  Vulnerability 11318. Project id 10020, team-managed (`simplified: true`) → epics attach
+  via the system `parent` field, no epic-link custom field.
 
 ---
 

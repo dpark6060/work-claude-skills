@@ -28,7 +28,7 @@ by this point only two states remain:
 | Exists, `ACTIVE` | Nothing. Log against it in phase 7. |
 | Missing | Trigger the sync schedule, **wait for the pipeline**, verify the task appeared |
 
-Follow `~/.claude/skills/clockify/references/jira-sync-trigger.md`.
+Follow `~/.claude/skills/shared/tools/clockify/jira-sync.md`.
 
 Two prerequisites that silently produce nothing — check them before triggering, or you will
 wait five minutes for a green pipeline that created nothing:
@@ -102,8 +102,8 @@ it. **Never un-draft and never merge.**
 Per story, in order:
 
 1. **`Skill(jira)`** — post a comment: what changed, the MR link, test results, and the work
-   order file path. Comments are plain prose; `addCommentToJiraIssue` has no
-   `contentFormat` param, so do not rely on `\n` for layout.
+   order file path. Comments are plain prose — see the ADF rules in
+   `~/.claude/skills/shared/tools/atlassian/mcp-access.md`.
 2. **`Skill(clockify)`** in **unattended** mode — one entry, under that story's own epic
    task, using the tier-derived estimate from
    [depth-and-estimate.md](depth-and-estimate.md#estimate-rubric). Unattended skips
@@ -111,7 +111,8 @@ Per story, in order:
 
 If clockify reports no task for the epic, the epic is probably missing its `SOW`/`Hourly`
 labels — that should have been fixed in phase 4. Fix the labels, trigger the sync per
-clockify's workflow, and retry once before reporting it as unlogged.
+`~/.claude/skills/shared/tools/clockify/jira-sync.md`, and retry once before reporting it as
+unlogged.
 
 **No time entry for a repo that produced no MR.** This is the rule that keeps logged hours
 honest.

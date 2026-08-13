@@ -198,8 +198,11 @@ exactly what blocked the test. Chat summary = one verdict line per claim.
 - No writes outside the configured namespace group on the target site.
 - Creating projects or uploading gears on any site other than `default_site`
   requires explicit user confirmation in chat first.
-- API keys come from env vars named in config — never echo, log, or write them
-  into reports or scripts.
+- API keys come from env vars named in config (`api_key_env`, per site) — never echo,
+  log, or write them into reports or scripts. If a site's env var isn't set, the
+  profile inventory in `~/.claude/skills/shared/flywheel/instance-access.md`
+  (`~/.fw/config.yml`) says which sites there are keys for; ask the user to export the
+  one you need rather than embedding a key.
 - Every created artifact (project label, gear name) carries the run id, because
   cleanup matches on it.
 

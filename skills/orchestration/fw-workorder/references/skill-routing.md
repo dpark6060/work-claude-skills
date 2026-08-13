@@ -29,7 +29,7 @@ and phase sequencing. Everything else is dispatched.
 | 4 | Reopen a closed epic, fix `SOW`/`Hourly` labels | `Skill(jira)` | → `~/.claude/skills/jira/references/transition-issue.md` |
 | 4 | Create a story | `Skill(jira)` | → `~/.claude/skills/jira/references/create-ticket.md` |
 | 2b | Read a closed epic's Clockify task status | `Skill(clockify)` | Read-only. Task also closed → **hard stop, flag at the gate** |
-| 4b | Create a missing Clockify task | `Skill(clockify)` | → `~/.claude/skills/clockify/references/jira-sync-trigger.md`. Trigger the sync schedule and **wait for the pipeline** |
+| 4b | Create a missing Clockify task | `Skill(clockify)` | → `~/.claude/skills/shared/tools/clockify/jira-sync.md`. Trigger the sync schedule and **wait for the pipeline** |
 | 5 | Write the code in one repo | `Agent(pm)` | One dispatch per repo, in parallel, with a depth directive — see [delivery.md](delivery.md) |
 | 6 | Push and open a draft MR | `Skill(gitlab)` | End-of-session MR workflow; `origin` only |
 | 6 | Watch a failing pipeline | `Skill(pipeline-babysitter)` | Only if the user asks — not part of the default run |

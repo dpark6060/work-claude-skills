@@ -48,7 +48,8 @@ change, or states an outcome without a mechanism, carry the ambiguity to the gat
 
 # Phase 1 — Client
 
-Resolve to the exact Jira `Customer/s` (`customfield_10108`) value, e.g. `UWash - NACC`.
+Resolve to the exact Jira `Customer/s` value, e.g. `UWash - NACC` (field id and the option
+list: `~/.claude/skills/shared/tools/atlassian/gear-board-fields.md`).
 That one string keys the epic search, the Clockify client, and the Jira→Clockify sync, so a
 near-miss here silently breaks phase 7.
 
@@ -93,7 +94,7 @@ So when you find that combination:
 get closed by means other than the sync's 42-day grace period. Observed: `GEAR-11687`
 resolved only 15 days ago and its task is already `DONE`.
 
-Procedure and API details: `~/.claude/skills/clockify/references/jira-sync-trigger.md`.
+Procedure and API details: `~/.claude/skills/shared/tools/clockify/jira-sync.md`.
 
 # Phase 3 — Repos
 

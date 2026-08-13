@@ -156,7 +156,9 @@ You are reviewing [X]. Your job is [goal]. You produce [output].
 ## What Good / Bad Looks Like — examples or heuristics
 ```
 
-**Reference files (if any):** write each to `skills/<name>/references/<guide-name>.md` as a focused standalone guide on its topic — not a summary of SKILL.md. SKILL.md points to it; it holds the detail. Structure every reference file per the OKF format below. Once the skill has **4+ reference files**, also write `references/index.md` (format below) and keep it current — SKILL.md can then point at the index instead of enumerating files inline.
+**Reference files (if any):** write each to `skills/<name>/references/<guide-name>.md` as a focused standalone guide on its topic — not a summary of SKILL.md. SKILL.md points to it; it holds the detail. Structure every reference file per the OKF format below. Whether the directory needs an `references/index.md` is okf-lint's rule (OKF007) — don't track it by hand; the lint check below catches it. When an index exists, SKILL.md can point at it instead of enumerating files inline.
+
+**Lint check:** after writing reference files, run the **okf-lint** skill on `skills/<name>/references/` (quick form: `python3 ~/.claude/skills/okf-lint/scripts/okf_lint.py skills/<name>/references/`) and fix findings until clean.
 
 **Companion agent (if any):**
 ```
@@ -201,7 +203,7 @@ resource: <uri>               # optional — the underlying asset; omit for abst
 
 **Index files** — the progressive-disclosure layer. Rules:
 
-- An `index.md` is required once a directory holds **4+ uncovered concept files** — its own files plus, recursively, those of any subdirectory *without* its own `index.md` (an indexed subdirectory covers its subtree and contributes zero; an unindexed one passes its files up to the parent's count). Four 2-file subdirs don't each need an index, but their parent sees 8 uncovered files and does — it lists the nested files directly by relative path. Below the threshold, SKILL.md routing suffices; an index is still legal anywhere.
+- *When* an index is required is the okf-lint skill's rule (OKF007 — see its SKILL.md, "House rule: when an index.md is required"). Don't restate or hand-count it: write indexes where obviously useful and run okf-lint to catch the rest. Below the threshold, SKILL.md routing suffices; an index is still legal anywhere.
 - **No frontmatter** in an index file. (Exception: the bundle root's `index.md` MAY carry a lone `okf_version: "0.1"` block.)
 - Body is nothing but sections of bulleted links. Concept files are grouped under a heading naming the group (often the shared `type`); subdirectories go under a `# Subdirectories` heading, each entry linking to the subdirectory's own `index.md`:
 

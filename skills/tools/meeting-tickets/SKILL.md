@@ -76,14 +76,10 @@ section-by-section — never blind-overwrite an existing config.
 Goal: find my action items from meetings since the last run and write them as drafts.
 **Never call `createJiraIssue` in this mode.**
 
-> **Connector tools load lazily in headless `claude -p` — call them, don't check for
-> them.** The meeting-index, transcript, and Slack tools are **not** in your immediate
-> tool list at the start of a scheduled run; the connectors attach asynchronously and
-> their tools surface via ToolSearch. They **work** headless. Do NOT conclude a
-> connector is unavailable and bail with an empty result because you don't see its
-> tool — that inference is wrong and produces a false empty run. Just call the tool
-> (ToolSearch for it first if it isn't directly callable). Only treat a connector as
-> down when an **actual call errors**, and then say which call failed in the report.
+> **Don't bail with an empty result because the meeting-index, transcript, or Slack
+> tool isn't in your startup list** — that produces a false empty run. Call it
+> (ToolSearch first if needed) and report which call failed only if one actually
+> errors: `~/.claude/skills/shared/harness/headless-connectors.md`.
 
 ### S1 — Determine the window
 Default window is **self-healing**: start = `last_run` from the state file
@@ -197,6 +193,15 @@ For each approved draft, run **two passes** and judge overlap from both. Pass 1 
 dups anywhere in the project; Pass 2 catches the ones terse or inconsistent ticket
 titles hide — same-epic work that shares no keywords with the draft.
 
+> **⚠ MCP JQL search returns at most 5 issues** no matter what `maxResults` you pass,
+> and its pagination is dead (`hasNextPage: false`, `endCursor: null` even when
+> `remainingCount` is nonzero). Both passes below need the *complete* result set — a
+> truncated scan means you create a duplicate and never see the existing ticket. Check
+> `remainingCount` on every search; if it's nonzero, or the query could plausibly match
+> more than 5 issues (epic child scans routinely do), re-run it over the REST route in
+> `~/.claude/skills/shared/tools/atlassian/jira-reads.md`. Never treat a 5-row result as
+> "that's all of them."
+
 **Pass 1 — keyword search across the project.** Pull 2–4 distinctive terms from the
 draft's summary + "what I'm on the hook for" (concrete nouns — customer names, systems,
 project names — not filler like "create" or "ticket") and `searchJiraIssuesUsingJql`:
@@ -221,6 +226,8 @@ search first, or alongside this), list every uncompleted child and check it by h
 parent = <EPIC-KEY> AND statusCategory != Done ORDER BY created DESC
 ```
 
+- **Enumerate every child, not the first 5** — an epic with more children than that
+  is normal, so run this one over REST per the truncation warning above.
 - Check the child **summaries** first for an obvious match.
 - Then, for any child even *remotely* related, **read its description** — do not trust
   the title. This is the step that catches a badly-named dup (e.g. a child titled
@@ -255,7 +262,10 @@ project = <tracker project> AND issuetype = Epic
 - **Do NOT filter `statusCategory`.** Epics are routinely `Done` / `On Hold` while
   still holding active child work — excluding them makes you miss the right home.
 - Search **broad**: by the system name, the customer, AND the workstream/feature — not
-  one narrow keyword. Run a couple of variants if the first is thin.
+  one narrow keyword. Run a couple of variants if the first is thin. A broad epic search
+  will exceed the MCP 5-issue cap (a single customer can have ~40 epics) — use the REST
+  route from `~/.claude/skills/shared/tools/atlassian/jira-reads.md` so the right epic
+  isn't cut off.
 - Present the top candidate(s) (key + summary) for each draft in R2. If several fit,
   let me choose; if none fit, ask whether to create a new epic or leave it standalone.
   Never guess the epic silently.

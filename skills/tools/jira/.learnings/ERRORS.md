@@ -8,7 +8,7 @@ MCP errors, unexpected responses, and their resolutions. Add entries as they occ
 
 ```
 ### YYYY-MM-DD — <brief title>
-**Tool:** `mcp__atlassian__<tool_name>`
+**Tool:** `mcp__claude_ai_Atlassian__<tool_name>`
 **Error:** <exact error message or behavior>
 **Resolution:** <what fixed it>
 ```

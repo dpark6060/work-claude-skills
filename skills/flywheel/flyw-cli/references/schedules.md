@@ -19,14 +19,14 @@ Creates a scheduled import. Accepts all the same rule/behavior options as `impor
 flyw import schedule create \
     --project fw://group/Project \
     --storage <STORAGE_ID> \
-    --mapping 'path={subject.label}/{session.label}/{acquisition.label}/*' \
+    --rule-set ./my-rules.yaml \
     --start "2024-12-31T00:00:00+00:00"
 
 # Run every Sunday at midnight UTC
 flyw import schedule create \
     --project fw://group/Project \
     --storage <STORAGE_ID> \
-    --mapping 'path={subject.label}/{session.label}/{acquisition.label}/*' \
+    --rule-set ./my-rules.yaml \
     --cron "0 0 * * 0"
 
 # Run every Sunday starting after a specific date
@@ -38,6 +38,9 @@ flyw import schedule create ... \
     --cron "0 0 * * 0" --end "2025-12-31T00:00:00+00:00"
 ```
 
+Note: `schedule create` takes `--rule-set` like `run` does — there are no inline rule flags.
+It does **not** accept `--resume-local` or `--wait` (nothing to wait for).
+
 ## `export schedule create`
 
 Same pattern as import — accepts all `export run` options plus scheduling:
@@ -46,9 +49,15 @@ Same pattern as import — accepts all `export run` options plus scheduling:
 flyw export schedule create \
     --project fw://group/Project \
     --storage <STORAGE_ID> \
-    --include type=dicom \
+    --rule-set <RULESET_ID> \
+    --label "Nightly export" \
+    --overwrite auto \
+    --fail-fast 5% \
     --cron "0 0 * * 0"
 ```
+
+Prefer **one schedule per project** over one broad schedule: they fail independently, can be
+paused for a single project, and their reports stay readable.
 
 ## Scheduling Options
 
@@ -108,10 +117,23 @@ flyw export schedule update <SCHEDULE_ID> --cron "0 0 * * 1"
 ```
 
 ### Cancel a schedule
+
+The verb is `cancel`. There is no `schedule delete` subcommand, despite what the public docs
+at `bulk-export-schedule/` say.
+
 ```bash
 flyw import schedule cancel <SCHEDULE_ID>
 flyw export schedule cancel <SCHEDULE_ID>
 ```
+
+### Inspect what a schedule actually does
+```bash
+flyw export schedule get <SCHEDULE_ID> -o json
+```
+
+Returns `active`, `cron`, `last_run`, `next_run`, and the frozen `operation.rules` — the rules
+are snapshotted at creation, so this is the only reliable way to see what a long-running
+schedule is really exporting.
 
 ## Common Options on All Schedule Commands
 
@@ -122,3 +144,15 @@ flyw export schedule cancel <SCHEDULE_ID>
 | `--after-id ID` | Pagination token (list only) |
 | `--limit INT` | Page limit (list only) |
 | `--all / --no-all` | Include previous runs (list only) |
+
+## Web App
+
+**Schedules are CLI-only.** There is no web app equivalent for creating or managing them, in
+either direction. One-off imports and exports can be run from the UI; recurring ones cannot.
+
+## Docs
+
+Verified 200 as of 2026-07-27.
+
+- Export scheduling: <https://docs.flywheel.io/data_transfer/outbound/bulk_export/bulk-export-schedule/>
+- Bulk Import overview (covers scheduling): <https://docs.flywheel.io/data_transfer/inbound/bulk_import/>

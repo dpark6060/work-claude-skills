@@ -67,10 +67,12 @@ that spot in both — keep the shared machinery in sync when editing either.
   Any underscored name is stale.
 - **A skill dir = a directory containing `SKILL.md`** plus optional reference `.md` files. Use
   the `skill-maker` skill to scaffold new ones rather than hand-rolling.
-- **Before creating or restructuring a skill, read `skills/shared/claude-skills-best-practices.md`** —
-  especially the "Sanctioned directory structure" section (§2). It defines the required layout:
-  `SKILL.md` alone in the base dir, with optional `references/`, `sources/`, `scripts/`, `server/`,
-  and `.learnings/` subdirs. New skills must follow it.
+- **Before creating or restructuring a skill, read
+  `skills/shared/skill-authoring/directory-structure.md`.** It defines the required layout:
+  `SKILL.md` alone in the base dir, with optional `references/`, `assets/`, `sources/`, `scripts/`,
+  `server/`, `cache/`, and `.learnings/` subdirs. New skills must follow it. The rulebook itself is
+  `skills/shared/claude-skills-best-practices.md`, with its companion files in
+  `skills/shared/skill-authoring/` (see that dir's `index.md`).
 - **Agents reference skills by name** via the `skills:` array in their frontmatter; that injects
   the full skill content into the agent's system prompt at startup.
 - **Agent/skill changes need a Claude Code restart** to take effect — definitions load at session

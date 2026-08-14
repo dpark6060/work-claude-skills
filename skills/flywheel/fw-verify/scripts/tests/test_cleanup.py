@@ -1,0 +1,362 @@
+import json
+from datetime import datetime
+from unittest import mock
+
+import pytest
+
+from cleanup import (
+    DELETE_REASON,
+    PROBE_GEAR_NAME,
+    deactivate_gear_version,
+    delete_gears,
+    delete_projects,
+    get_gear_versions,
+    main,
+    validate_run_id,
+)
+from fwv_common import SiteConfig, get_run_id
+
+
+def _project(label):
+    p = mock.MagicMock()
+    p.label = label
+    return p
+
+
+def _gear(name):
+    g = mock.MagicMock()
+    g.gear.name = name
+    return g
+
+
+def _gear_version(version, disabled=None):
+    g = mock.MagicMock()
+    g.gear.name = PROBE_GEAR_NAME
+    g.gear.version = version
+    g.disabled = disabled
+    return g
+
+
+def test_validate_run_id_without_prefix_raises_valueerror():
+    # Act & Assert
+    with pytest.raises(ValueError, match="fwv-"):
+        validate_run_id("prod-data")
+
+
+def test_validate_run_id_with_prefix_passes():
+    validate_run_id("fwv-0806-a3f2")
+
+
+def test_validate_run_id_bare_prefix_raises_valueerror():
+    # Act & Assert
+    with pytest.raises(ValueError, match="fwv-"):
+        validate_run_id("fwv-")
+
+
+def test_validate_run_id_truncated_suffix_raises_valueerror():
+    # Act & Assert
+    with pytest.raises(ValueError, match="fwv-"):
+        validate_run_id("fwv-0806")
+
+
+def test_validate_run_id_accepts_generated_run_id():
+    # Act & Assert
+    validate_run_id(get_run_id())
+
+
+def test_delete_projects_deletes_only_matching_labels():
+    # Arrange
+    fw = mock.MagicMock()
+    keep = _project("some-real-project")
+    kill = _project("fwv-0806-a3f2-exit-codes")
+    fw.projects.iter_find.return_value = iter([keep, kill])
+
+    # Act
+    deleted = delete_projects(fw, "fw-verify", "fwv-0806-a3f2", dry_run=False)
+
+    # Assert
+    assert deleted == ["fwv-0806-a3f2-exit-codes"]
+    fw.delete_project.assert_called_once_with(kill.id, delete_reason=DELETE_REASON)
+
+
+def test_delete_projects_dry_run_deletes_nothing():
+    # Arrange
+    fw = mock.MagicMock()
+    fw.projects.iter_find.return_value = iter([_project("fwv-0806-a3f2-t")])
+
+    # Act
+    deleted = delete_projects(fw, "fw-verify", "fwv-0806-a3f2", dry_run=True)
+
+    # Assert
+    assert deleted == ["fwv-0806-a3f2-t"]
+    fw.delete_project.assert_not_called()
+
+
+def test_delete_gears_deletes_only_matching_names():
+    # Arrange
+    fw = mock.MagicMock()
+    keep = _gear("file-curator")
+    kill = _gear("fwv-0806-a3f2-probe")
+    fw.get_all_gears.return_value = [keep, kill]
+
+    # Act
+    deleted = delete_gears(fw, "fwv-0806-a3f2", dry_run=False)
+
+    # Assert
+    assert deleted == ["fwv-0806-a3f2-probe"]
+    fw.delete_gear.assert_called_once_with(kill.id)
+
+
+def test_delete_gears_dry_run_deletes_nothing():
+    # Arrange
+    fw = mock.MagicMock()
+    fw.get_all_gears.return_value = [_gear("fwv-0806-a3f2-probe")]
+
+    # Act
+    deleted = delete_gears(fw, "fwv-0806-a3f2", dry_run=True)
+
+    # Assert
+    assert deleted == ["fwv-0806-a3f2-probe"]
+    fw.delete_gear.assert_not_called()
+
+
+def test_delete_gears_asks_get_all_gears_for_every_version():
+    # Arrange
+    fw = mock.MagicMock()
+    fw.get_all_gears.return_value = []
+
+    # Act
+    delete_gears(fw, "fwv-0806-a3f2", dry_run=False)
+
+    # Assert
+    fw.get_all_gears.assert_called_once_with(all_versions=True)
+
+
+def test_delete_gears_never_uses_the_paging_finder():
+    # Arrange - /gears ignores after_id, so fw.gears.iter_find re-serves the
+    # same page forever and the sweep never terminates. Live: 3000 pulled, 250
+    # unique. Using the Finder here is the bug, not a style choice.
+    fw = mock.MagicMock()
+    fw.get_all_gears.return_value = []
+
+    # Act
+    delete_gears(fw, "fwv-0806-a3f2", dry_run=True)
+
+    # Assert
+    fw.gears.iter_find.assert_not_called()
+    fw.gears.find.assert_not_called()
+
+
+@mock.patch("cleanup.flywheel.Client")
+@mock.patch("cleanup.get_site_config")
+def test_main_rejects_bad_run_id(mock_cfg, mock_client):
+    # Act & Assert
+    with pytest.raises(ValueError):
+        main(["--run-id", "everything"])
+
+
+@mock.patch("cleanup.flywheel.Client")
+@mock.patch("cleanup.get_site_config")
+def test_main_prints_deletion_summary_json(mock_cfg, mock_client, monkeypatch, capsys):
+    # Arrange
+    monkeypatch.setenv("FW_DEV_API", "site:key")
+    mock_cfg.return_value = SiteConfig(
+        api_key_env="FW_DEV_API", group="fw-verify", label="dev"
+    )
+    fw = mock_client.return_value
+    fw.projects.iter_find.return_value = iter([])
+    fw.get_all_gears.return_value = []
+
+    # Act
+    rc = main(["--run-id", "fwv-0806-a3f2", "--dry-run"])
+
+    # Assert
+    assert rc == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out == {
+        "projects": [],
+        "gears": [],
+        "gear_versions_deactivated": [],
+        "dry_run": True,
+    }
+
+
+@mock.patch("cleanup.flywheel.Client")
+@mock.patch("cleanup.get_site_config")
+def test_main_dry_run_reports_matches_without_deleting(
+    mock_cfg, mock_client, monkeypatch, capsys
+):
+    # Arrange
+    monkeypatch.setenv("FW_DEV_API", "site:key")
+    mock_cfg.return_value = SiteConfig(
+        api_key_env="FW_DEV_API", group="fw-verify", label="dev"
+    )
+    fw = mock_client.return_value
+    fw.projects.iter_find.return_value = iter([_project("fwv-0806-a3f2-exit-codes")])
+    fw.get_all_gears.return_value = list([_gear("fwv-0806-a3f2-probe")])
+
+    # Act
+    rc = main(["--run-id", "fwv-0806-a3f2", "--dry-run"])
+
+    # Assert
+    assert rc == 0
+    assert json.loads(capsys.readouterr().out) == {
+        "projects": ["fwv-0806-a3f2-exit-codes"],
+        "gears": ["fwv-0806-a3f2-probe"],
+        "gear_versions_deactivated": [],
+        "dry_run": True,
+    }
+    fw.delete_project.assert_not_called()
+    fw.delete_gear.assert_not_called()
+
+
+def test_get_gear_versions_asks_for_disabled_versions_too():
+    # Arrange - without include_invalid the endpoint hides deactivated
+    # versions, and the next-version calculation would re-mint one (409).
+    fw = mock.MagicMock()
+
+    # Act
+    get_gear_versions(fw, PROBE_GEAR_NAME)
+
+    # Assert
+    fw.get_all_gears.assert_called_once_with(
+        all_versions=True,
+        include_invalid=True,
+        filter=f"gear.name={PROBE_GEAR_NAME}",
+    )
+
+
+def test_deactivate_gear_version_disables_only_the_exact_version():
+    # Arrange
+    fw = mock.MagicMock()
+    target = _gear_version("0.1.7")
+    fw.get_all_gears.return_value = [
+        _gear_version("0.1.6"),
+        target,
+        _gear_version("0.1.8"),
+    ]
+
+    # Act
+    disabled = deactivate_gear_version(fw, "0.1.7", dry_run=False)
+
+    # Assert
+    assert disabled == [f"{PROBE_GEAR_NAME}:0.1.7"]
+    fw.delete_gear.assert_called_once_with(target.id)
+
+
+def test_deactivate_gear_version_skips_an_already_disabled_version():
+    # Arrange - re-running cleanup must not re-disable.
+    fw = mock.MagicMock()
+    fw.get_all_gears.return_value = [
+        _gear_version("0.1.7", disabled=datetime(2026, 8, 6, 12, 0))
+    ]
+
+    # Act
+    disabled = deactivate_gear_version(fw, "0.1.7", dry_run=False)
+
+    # Assert
+    assert disabled == []
+    fw.delete_gear.assert_not_called()
+
+
+def test_deactivate_gear_version_unknown_version_disables_nothing():
+    # Arrange
+    fw = mock.MagicMock()
+    fw.get_all_gears.return_value = [_gear_version("0.1.6")]
+
+    # Act
+    disabled = deactivate_gear_version(fw, "9.9.9", dry_run=False)
+
+    # Assert
+    assert disabled == []
+    fw.delete_gear.assert_not_called()
+
+
+def test_deactivate_gear_version_dry_run_disables_nothing():
+    # Arrange
+    fw = mock.MagicMock()
+    fw.get_all_gears.return_value = [_gear_version("0.1.7")]
+
+    # Act
+    disabled = deactivate_gear_version(fw, "0.1.7", dry_run=True)
+
+    # Assert
+    assert disabled == [f"{PROBE_GEAR_NAME}:0.1.7"]
+    fw.delete_gear.assert_not_called()
+
+
+@mock.patch("cleanup.flywheel.Client")
+@mock.patch("cleanup.get_site_config")
+def test_main_without_gear_version_deactivates_nothing(
+    mock_cfg, mock_client, monkeypatch, capsys
+):
+    # Arrange
+    monkeypatch.setenv("FW_DEV_API", "site:key")
+    mock_cfg.return_value = SiteConfig(
+        api_key_env="FW_DEV_API", group="fw-verify", label="dev"
+    )
+    fw = mock_client.return_value
+    fw.projects.iter_find.return_value = iter([])
+    fw.get_all_gears.return_value = []
+
+    # Act
+    rc = main(["--run-id", "fwv-0806-a3f2"])
+
+    # Assert
+    assert rc == 0
+    assert json.loads(capsys.readouterr().out)["gear_versions_deactivated"] == []
+    fw.delete_gear.assert_not_called()
+
+
+@mock.patch("cleanup.flywheel.Client")
+@mock.patch("cleanup.get_site_config")
+def test_main_gear_version_reports_the_deactivated_version(
+    mock_cfg, mock_client, monkeypatch, capsys
+):
+    # Arrange
+    monkeypatch.setenv("FW_DEV_API", "site:key")
+    mock_cfg.return_value = SiteConfig(
+        api_key_env="FW_DEV_API", group="fw-verify", label="dev"
+    )
+    fw = mock_client.return_value
+    fw.projects.iter_find.return_value = iter([])
+    fw.get_all_gears.return_value = [_gear_version("0.1.7")]
+
+    # Act
+    rc = main(["--run-id", "fwv-0806-a3f2", "--gear-version", "0.1.7"])
+
+    # Assert
+    assert rc == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out["gear_versions_deactivated"] == [f"{PROBE_GEAR_NAME}:0.1.7"]
+
+
+@mock.patch("cleanup.get_site_config")
+def test_main_malformed_config_prints_setup_error(mock_cfg, capsys):
+    # Arrange - cleanup's own SETUP_ERRORS tuple used to omit JSONDecodeError,
+    # so a malformed config.json tracebacked here while build_project printed a
+    # clean message. Both now share one tuple from fwv_common.
+    mock_cfg.side_effect = json.JSONDecodeError("Expecting value", "{bad", 0)
+
+    # Act
+    rc = main(["--run-id", "fwv-0806-a3f2"])
+
+    # Assert
+    assert rc == 1
+    assert "Setup error:" in capsys.readouterr().err
+
+
+@mock.patch("cleanup.get_site_config")
+def test_main_unset_api_key_env_returns_nonzero(mock_cfg, monkeypatch, capsys):
+    # Arrange
+    monkeypatch.delenv("FW_MISSING_API", raising=False)
+    mock_cfg.return_value = SiteConfig(
+        api_key_env="FW_MISSING_API", group="fw-verify", label="dev"
+    )
+
+    # Act
+    rc = main(["--run-id", "fwv-0806-a3f2"])
+
+    # Assert
+    assert rc == 1
+    assert "FW_MISSING_API" in capsys.readouterr().err

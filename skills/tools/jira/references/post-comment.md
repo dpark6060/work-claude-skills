@@ -88,7 +88,7 @@ Wait for explicit approval or an edited version before posting. Do not post with
 ## Phase 5 — Post the Comment
 
 ```
-mcp__atlassian__addCommentToJiraIssue(
+mcp__claude_ai_Atlassian__addCommentToJiraIssue(
     cloudId="flywheelio.atlassian.net",
     issue_key="<ticket key>",
     comment="<confirmed comment>"

@@ -1,0 +1,44 @@
+{
+  "name": "claude-test-gear",
+  "label": "fw-verify probe gear",
+  "description": "Minimal probe gear used by the fw-verify skill to empirically test gear/engine semantics. Not for production use.",
+  "version": "0.1.0",
+  "author": "fw-verify skill",
+  "maintainer": "fw-verify skill",
+  "license": "MIT",
+  "cite": "",
+  "url": "",
+  "source": "",
+  "environment": {},
+  "command": "python /flywheel/v0/run.py",
+  "custom": {
+    "gear-builder": {
+      "category": "utility",
+      "image": "claude-test-gear:0.1.0"
+    }
+  },
+  "inputs": {
+    "input-file": {
+      "base": "file",
+      "optional": true,
+      "description": "Optional test input file"
+    }
+  },
+  "config": {
+    "exit_code": {
+      "type": "integer",
+      "default": 0,
+      "description": "Exit code run.py exits with (the exit-semantics test lever)"
+    },
+    "run_id": {
+      "type": "string",
+      "default": "unset",
+      "description": "fw-verify run id, echoed in logs for namespacing"
+    },
+    "debug": {
+      "type": "boolean",
+      "default": false,
+      "description": "Extra verbosity"
+    }
+  }
+}

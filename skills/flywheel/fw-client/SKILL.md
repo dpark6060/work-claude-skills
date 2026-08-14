@@ -72,6 +72,11 @@ For common multi-step patterns that go beyond raw endpoint schemas:
 ## Instantiation
 
 ### Standard (API key)
+
+Where the key comes from for a given site (the `~/.fw/config.yml` profile inventory,
+env-var fallbacks, the `scitran-user` header form): `~/.claude/skills/shared/flywheel/instance-access.md`.
+A profile's `api_key` value is already the `host:key` string these constructors want.
+
 ```python
 from fw_client import FWClient
 

@@ -26,19 +26,13 @@ Collect the following before drafting anything. If the user has not provided a v
 | Labels | Yes | Always include `"Hourly"` + the client name as a label (see label normalization note below) |
 | Epic / parent | If given | User — accept as a ticket key (e.g. `GEAR-7595`) |
 | Sprint | Auto | Query the active sprint (see Phase 2) |
-| Billable | If known | See note below |
+| Acceptance Criteria | If given | Real field on GEAR — id in the shared field reference |
+
+Field ids, option ids, issue-type ids, and priority ids: `~/.claude/skills/shared/tools/atlassian/gear-board-fields.md`. Do not restate them here.
 
 **Label normalization:** For multi-word customer names, use the short form as the label (e.g. `"NACC"` not `"UWash - NACC"`). Check existing GEAR tickets for that customer to confirm the established label convention before creating. Check `.learnings/LEARNINGS.md` — confirmed label forms may already be recorded there.
 
-**Billable field:** The custom field ID for "billable" has not been confirmed. Before setting it, run:
-```
-mcp__atlassian__getJiraIssueTypeMetaWithFields(
-    cloudId="flywheelio.atlassian.net",
-    projectKey="GEAR",
-    issueTypeName="Task"
-)
-```
-Search the response for a field named "billable" or similar to get its `key` (e.g. `customfield_XXXXX`) and the accepted values.
+**There is no Billable field on GEAR** (live createmeta, 2026-08-13 — all 24 create-screen fields on Story and Task enumerated, none is billable). Billable-ness rides on the `Hourly`/`Fixed`/`SOW` labels. Do not go hunting for a billable field id.
 
 ---
 
@@ -46,7 +40,7 @@ Search the response for a field named "billable" or similar to get its `key` (e.
 
 Query the active sprint for the GEAR board before creating the ticket. Do not hardcode a sprint ID — sprints rotate quarterly.
 
-Use `mcp__atlassian__searchJiraIssuesUsingJql` with:
+Use `mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql` with:
 ```
 jql: "project = GEAR AND sprint in openSprints()"
 fields: ["customfield_10021"]
@@ -84,7 +78,7 @@ Wait for explicit approval before proceeding.
 ## Phase 4 — Create the Ticket
 
 ```
-mcp__atlassian__createJiraIssue(
+mcp__claude_ai_Atlassian__createJiraIssue(
     cloudId="flywheelio.atlassian.net",
     projectKey="GEAR",
     issueTypeName="<type>",
@@ -95,7 +89,7 @@ mcp__atlassian__createJiraIssue(
     parent="<epic key>",           # omit if no epic given
     additional_fields={
         "customfield_10108": [{"value": "<customer name>"}],
-        "customfield_10021": {"id": <sprint id>},
+        "customfield_10021": <sprint id>,   # bare integer — {"id": N} is rejected with "Specify a valid value for Sprint"
         "labels": ["Hourly", "<client label>"]
     }
 )

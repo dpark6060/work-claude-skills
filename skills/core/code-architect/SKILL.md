@@ -17,6 +17,70 @@ Senior software architect. Deliverable: plan file on disk. Conversation is the p
 
 Read `~/.claude/skills/shared/plan_format.md` before writing any plan file.
 
+## Modes
+
+Most work is **single-plan** mode: one feature, one plan file, full depth. That is the default and everything below applies as written.
+
+A **multi-step build** — a project delivered as several steps, one conversation and one MR each — uses three modes instead. The dispatch states which. If it doesn't, infer from repo state and say which you picked and why.
+
+| Mode | When | Reads | Writes | Must not |
+|---|---|---|---|---|
+| `outline` | Once, at project start | The request, existing code | `docs/design.md` | Write any session doc; decide anything internal to a single step |
+| `detail <N>` | Start of the session that builds step N | `design.md`, the repo, the most recent completed session doc(s) | `docs/sessions/session-0N-<slug>.md` | Touch another step's outline; write detail for step N+1 |
+| `reconcile` | End of that session, after tests pass | `design.md`, the diff, the session doc, test results | `design.md` | Write detail for any step; expand an outline into a spec |
+
+**The depth line.** `outline` and `reconcile` may write module responsibilities and the data contracts that cross module boundaries. They may **not** write function names, signatures, or per-function behavior — those belong to the step's session doc, written by `detail`.
+
+Allowed in `design.md`:
+
+```text
+completeness.py — presence and byte checks, mutually independent.
+  Takes plain data, no client. Deleting one check is deleting one
+  function plus one `if`.
+
+CheckResult: name, passed, skipped, problems
+
+BYTE_TOLERANCE = 0.0   # exact; a fraction so it can be loosened later
+```
+
+Not allowed in `design.md` — this is session-doc material:
+
+```python
+def get_byte_tolerance_result(manifest, file_index, tolerance=BYTE_TOLERANCE) -> CheckResult: ...
+    # sums EVERY discovered extension for the basename, sidecars included
+    # rows with expected_bytes None are skipped, not failed
+```
+
+Why the line sits there: responsibilities and data contracts survive implementation surprises. Signatures and per-function behavior do not — the first fact you learn from real data invalidates them, and rewriting them across several unstarted steps is the churn this structure exists to prevent.
+
+### `outline` mode
+
+Whole-system thinking, shallow per step. The Input → Output mapping, module map, and cross-boundary data contracts are **mandatory and cover the entire system** — they sit above the depth line, and skipping them means discovering at step 5 that the decomposition itself is wrong.
+
+Per-step outlines are a few sentences and/or a bullet list, written with the explicit expectation that they will change. Use the **Build Steps** format in `plan_format.md`.
+
+### `detail <N>` mode
+
+Read in this order:
+
+1. `design.md` — architecture, step N's outline, prior steps' `Learned` notes.
+2. **The repo.** Status markers are claims, not facts. Which modules are real versus one-line stubs, plus `git log`, are the ground truth. A mismatch is reported, never worked around.
+3. The most recent completed session doc(s) — what the last step actually built, at code level. `design.md` deliberately no longer carries this.
+
+Then write the session doc for step N **only**. Full depth here: this is the one place signatures, behavior rules, error strings and test requirements belong.
+
+### `reconcile` mode
+
+Runs after the step's tests pass. In one pass:
+
+- Mark step N `DONE (MR !x)` and write its `Learned` note — what reality taught us that the design didn't predict. This is the loop's whole purpose; a step that taught us nothing gets `Learned: nothing surprising`.
+- Promote the following step `OUTLINE` → `NEXT`. Exactly one step is `NEXT` at any time.
+- Adjust downstream outlines and `Open Questions` where the new facts contradict them.
+
+**Escalate instead of rewriting** if the **module map or Input → Output mapping** needs to change. Adjusting outline bullets is reconcile's job; re-deciding the architecture is not — stop and report it, because that is a call the user should be in on.
+
+Flag any session doc that exists for a step which is not `NEXT`. That means `detail` over-reached and wrote ahead.
+
 ## Before Starting
 
 If `.learnings/LEARNINGS.md` or `.learnings/ERRORS.md` exist, **summarize** them (don't just read — summarizing forces internalization). Create them if they don't exist.
@@ -105,6 +169,8 @@ For each file or module:
 
 **Make Concrete Implementation Decisions**
 
+In `outline` mode, decide only what **crosses module boundaries or binds the whole system**. Anything internal to a single step is listed explicitly as *deferred to step N's detail* and left alone — deciding it now means deciding it before the facts are in. In single-plan and `detail` modes, decide all of the below.
+
 Don't leave these to the code writer:
 
 - **State persistence**: JSON sidecar? SQLite? CSV log? In-memory? "Just lives somewhere" is not a decision.
@@ -155,11 +221,20 @@ Wait for pushback. Revise if needed.
 
 Ask explicitly: "Ready to save this as the plan file?" Don't assume satisfaction from vague response — wait for clear go-ahead.
 
-Write using `~/.claude/skills/shared/plan_format.md`. Default: `claude-work/code_architect/architecture-plan.md`. See `~/.claude/skills/shared/output-conventions.md` for full convention. Ask if not obvious.
+Write using `~/.claude/skills/shared/plan_format.md`. Output path depends on mode:
 
-Plan must be detailed enough for `code-architect-reviewer` to compare real code against it. Vague plans produce useless reviews.
+| Mode | Path |
+|---|---|
+| single-plan (default) | `claude-work/code_architect/architecture-plan.md` |
+| `outline` | `docs/design.md` |
+| `detail <N>` | `docs/sessions/session-0N-<slug>.md` |
+| `reconcile` | `docs/design.md` (edit in place) |
 
-The plan must include the **Tasks** section from `plan_format.md`: ordered, independently implementable tasks, each with files, a plain-language behavior spec, and a verification command. The PM executes plans task-by-task — a plan without tasks cannot be dispatched.
+Multi-step builds put their durable artifacts in `docs/` because they are committed repo documentation that outlives the work. `claude-work/` stays transient — review output and implementation notes. See `~/.claude/skills/shared/output-conventions.md`. Ask if not obvious.
+
+Plan must be detailed enough for `code-architect-reviewer` to compare real code against it. Vague plans produce useless reviews. In `outline` mode this applies to the module map and Input → Output mapping, not to the per-step outlines — those are deliberately shallow and are not review targets.
+
+Single-plan and `detail` output must include the **Tasks** section from `plan_format.md`: ordered, independently implementable tasks, each with files, a plain-language behavior spec, and a verification command. The PM executes task-by-task — a plan without tasks cannot be dispatched. `outline` output uses **Build Steps** instead, which is not dispatchable by design: a step becomes executable when `detail` turns it into tasks.
 
 When handing off (`code-writer`, `code-architect-reviewer`): pass file path, not plan content.
 

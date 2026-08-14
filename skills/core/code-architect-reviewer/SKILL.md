@@ -90,3 +90,5 @@ After delivering the report:
 ### Step 6 — Write the Review to Disk
 
 Write the full review report to `claude-work/code_architect_reviewer/architecture-review.md` in the project root. Create the `claude-work/code_architect_reviewer/` directory if it doesn't exist. This file is used by other skills (e.g. `jira-comment`) to summarize session work. See `~/.claude/skills/shared/output-conventions.md` for the full output directory convention.
+
+Start the review file (and any copy written into the repo, e.g. `docs/reviews/`) with the line `<!-- markdownlint-disable MD013 MD025 MD040 MD041 -->` — repos gate committed docs with markdownlint in pre-commit, and review formatting legitimately violates those four rules. If the dispatch names a different output path, this line still goes first.

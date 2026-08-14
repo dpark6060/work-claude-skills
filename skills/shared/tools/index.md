@@ -1,0 +1,8 @@
+# Tools
+
+* [GEAR Board Fields](atlassian/gear-board-fields.md) - The GEAR (Scientific Solutions) board's project id, issue-type ids, priority ids, and custom field ids — including the live-verified Acceptance Criteria field and the confirmed absence of a Billable field — plus additional_fields shapes, JQL forms, and team-managed parent mechanics.
+* [Jira: Read Issues Without Blowing Context](atlassian/jira-reads.md) - Best practice for all Jira reads — download the raw response to a file and jq out the fields you need instead of pulling full issue payloads into context; includes the REST route, the MCP 5-issue search truncation, field-trimming rules for MCP reads, and known response gotchas.
+* [Atlassian MCP Access](atlassian/mcp-access.md) - The working Atlassian MCP tool prefix, the Flywheel cloudId in both accepted forms, David's Jira accountId, and the ADF/contentFormat rules every Jira write must follow.
+* [Jira→Clockify Task Sync: Rules, Trigger, and Verify](clockify/jira-sync.md) - The canonical Jira→Clockify sync rules read from sync.py — which epics qualify, the status allowlist, how to play the pipeline schedule and wait for it, and why a closed task is a dead end that must be escalated.
+* [GitLab CI Tools](gitlab/GITLAB_TOOLS.md) - The bundled glab wrapper scripts for MR babysitting (info, comments, pipelines, jobs, job traces), the correct glab output flag, known bad glab commands, and the step-by-step babysit workflow.
+* [GitLab: How to Actually Search Flywheel Code](gitlab/code-search.md) - The working route for finding code and repos on Flywheel's GitLab — per-project blob search and scope=projects repo lookup via glab api — plus the two routes that fail (group-wide blob search 403s, MCP blob search returns invalid JSON).

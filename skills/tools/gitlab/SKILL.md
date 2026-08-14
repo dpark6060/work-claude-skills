@@ -7,7 +7,7 @@ description: >
   create an MR — even if they don't explicitly say "GitLab". MANDATORY TRIGGERS: GitLab,
   MR, merge request, PR, glab, pipeline, review comments, MR diff, search code, fetch
   file, create MR, open pull request
-version: 2026-04-13
+version: 2026-08-13
 tags:
   - gitlab
   - search
@@ -38,38 +38,33 @@ Don't write an entry if nothing went wrong and nothing surprising happened.
 
 You have two complementary tools for working with GitLab:
 
-1. **GitLab MCP server** — for searching code, issues, MRs, pipelines. Already authenticated.
+1. **GitLab MCP server** — for issues, MRs, pipelines. Already authenticated. **Not for
+   code search** — its blob search is broken; see the code-search section below.
 2. **`glab` CLI** — for everything else: fetching files, viewing MRs, reading comments, hitting the REST API. Already authenticated via `~/.config/glab-cli/config.yml`. No PAT management needed.
 
 For `glab` commands that operate on a specific repo, use the `-R` / `--repo` flag with `OWNER/REPO` or `GROUP/NAMESPACE/REPO` format. This avoids needing to be in a git directory.
 
 ---
 
-## Searching for Code (MCP)
+## Searching for Code
 
-Use the `mcp__GitLab__search` tool with `scope: blobs` to search for code across a group.
+**Full runbook: `~/.claude/skills/shared/tools/gitlab/code-search.md`** — read it before
+searching code. Summary:
 
-**Key parameters:**
-- `scope`: `blobs` for code search
-- `search`: the search string — use double quotes for exact phrase matching (e.g., `"from fw_client import FWClient"`)
-- `group_id`: the numeric GitLab group ID
-- `per_page`: set to `100` to maximize results per page (GitLab caps at 100)
-- `page`: paginate if needed
+There is **no working group-wide code search** on Flywheel's GitLab. Group/global blob
+search is disabled (`403 Global Search is disabled for this scope`), and the MCP
+`search(scope="blobs")` tool returns `Invalid JSON response`. Don't use either.
 
-**Pagination note:** Always set `per_page: 100`. If you get exactly 100 results and `has_more` is not explicitly false, fetch the next page.
+The route that works — narrow to a project, then search its blobs:
 
-**Example:**
-```
-mcp__GitLab__search(
-    scope="blobs",
-    search='"from fw_client import FWClient"',
-    group_id="5096867",
-    per_page=100,
-    page=1
-)
+```bash
+glab api "search?scope=projects&search=<repo-name>"            # 1. find the repo
+glab api "projects/GROUP%2FREPO" | jq '.id'                     #    (or resolve its id)
+glab api "projects/<id>/search?scope=blobs&search=<string>"     # 2. search its code
 ```
 
-Each result includes `path`, `project_id`, `ref`, `startline`, and `data` (surrounding lines).
+Each blob hit includes `path`, `ref`, `startline`, and `data` (surrounding lines). For
+repeated searching over one repo, shallow-clone and `rg` locally instead.
 
 ---
 
@@ -149,6 +144,26 @@ glab api "projects/GROUP%2FREPO/merge_requests/42/notes" --paginate | jq '[.[] |
 
 If asked to create an MR, commit and push changes, or do an end-of-session MR workflow, load `references/create-mr.md` and follow it exactly.
 
+### Push `origin` only — some repos have client mirror remotes
+
+Check `git remote -v` before pushing. A repo may have more than one remote:
+
+```
+origin → git@gitlab.com:flywheel-io/scientific-solutions/gears/nacc/loni-upload.git
+nacc   → git@github.com:naccdata/fw-loni-export.git      ← client mirror
+```
+
+`origin` is the Flywheel repo — branches, MRs, and pipelines live there. **Any other remote
+is a client mirror**, published by a human as part of a release. Pushing one sends unreviewed
+work straight into a client's repository.
+
+Push `origin` and nothing else unless the user explicitly names another remote. `git push`
+with no remote argument is fine when the branch tracks `origin`; verify with
+`git rev-parse --abbrev-ref --symbolic-full-name @{u}` if unsure.
+
+Repos whose `origin` is GitHub rather than GitLab are not this skill's job — use
+`gh pr create` there.
+
 ---
 
 ## REST API (glab api)
@@ -194,7 +209,10 @@ glab api -X PUT "projects/<NUMERIC_ID>/merge_requests/<IID>" -f title="new title
 
 ### MCP GitLab search returns `Invalid JSON response`
 
-The `mcp__GitLab__search` tool can return `Invalid JSON response` for some project paths. Fall back to `glab` CLI:
+The `mcp__GitLab__search` tool can return `Invalid JSON response` for some project paths.
+For **code** search, don't retry it at all — use the per-project `glab` route in
+`~/.claude/skills/shared/tools/gitlab/code-search.md`. For MR lookups, fall back to the
+`glab` CLI:
 ```bash
 glab mr list -s opened -R GROUP/REPO
 glab mr list --source-branch my-branch

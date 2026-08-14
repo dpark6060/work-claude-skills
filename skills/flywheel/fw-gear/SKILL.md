@@ -60,6 +60,16 @@ Don't write an entry if nothing went wrong and nothing surprising happened.
 
 ---
 
+## File Layout Is Not Yours To Change
+
+Gears start from the skeleton template, and its file and module names are the standard:
+`run.py` at the repo root, `fw_gear_<name>/main.py`, `fw_gear_<name>/parser.py`. **Never rename
+them** — not to `gear_config.py`, not to `pipeline.py`, not because a design doc or module tree
+says otherwise. Adding modules (`models.py`, `fw_ops.py`, …) is fine; renaming what ships is not.
+
+Read `~/.claude/rules/flywheel_specific/gears/GearStructure.md` before creating or renaming any
+file in a gear repo. It has the full sanctioned list and the reject table.
+
 ## Guide Index
 
 Load the relevant guide(s) based on your task:
@@ -112,4 +122,4 @@ All gear code you write should:
 5. Use correct method names from the guides (not outdated `flywheel-gear-toolkit` names)
 6. Only access `context.client` if the gear manifest declares an `api-key` input
 7. Access the destination via `context.config.destination["id"]` (a dict on `context.config`) — **never** `context.destination.id`. That attribute does not exist and will raise `AttributeError`. For the SDK container, use `context.config.get_destination_container()`. See gear-basics.md.
-8. Follow project coding conventions (`rules/general_coding/`)
+8. Follow project coding conventions (`~/.claude/rules/general_coding/`) and gear structure rules (`~/.claude/rules/flywheel_specific/gears/GearStructure.md`)

@@ -1,0 +1,14 @@
+{
+  "default_site": {
+    "api_key_env": "FW_DEV_API",
+    "group": "fw-verify",
+    "label": "dev"
+  },
+  "sites": {
+    "example-alternate": {
+      "api_key_env": "FW_OTHER_API",
+      "group": "fw-verify",
+      "label": "other"
+    }
+  }
+}

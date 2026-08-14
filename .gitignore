@@ -7,4 +7,9 @@ skills/*/cache/
 skills/*/*/local/
 skills/*/local/
 docs/superpowers
+
+# Python bytecode and test caches from skill scripts
+__pycache__/
+*.py[cod]
+.pytest_cache/
 .DS_Store

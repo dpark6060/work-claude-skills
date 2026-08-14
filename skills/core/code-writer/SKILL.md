@@ -22,6 +22,8 @@ Pull up the relevant rule file(s) based on what you're writing. Do not rely on m
 | Any code | `~/.claude/rules/general_coding/GeneralCoding.md` — always |
 | A function or method | `~/.claude/rules/general_coding/Functions.md` |
 | A class | `~/.claude/rules/general_coding/Classes.md` |
+| Any file in a Flywheel gear repo | `~/.claude/rules/flywheel_specific/gears/GearStructure.md` — sanctioned filenames and run.py/main.py decoupling |
+| Example code for Flywheel | `~/.claude/rules/flywheel_specific/writing_examples.md` |
 
 ---
 
@@ -72,9 +74,9 @@ Whenever possible, try to adhere to the zen of python.
 
 ## Before You Write
 
-1. If an architecture plan exists for this feature (`architecture_plan.md` or similar), read the relevant section. Write to the plan — do not improvise structure.
-2. If the task is ambiguous, ask one focused question before writing. Do not make assumptions about responsibility or data flow and proceed anyway.
-3. If you are writing example code for flywheel, read `~/.claude/rules/flywheel_specific/writing_examples.md`
+1. If an architecture plan exists for this feature (`architecture_plan.md`, `docs/design.md` or similar), read the relevant section. Write to the plan — do not improvise structure.
+2. **A plan does not override a sanctioned filename.** In a gear repo, the skeleton's file and module names (`run.py`, `main.py`, `parser.py`, …) win over whatever a design doc's module tree calls them. If the plan names `gear_config.py` and the standard is `parser.py`, use `parser.py` and flag the discrepancy in your report. Same for any other convention the rules files state outright — the plan is a design, not a license to rename standard files.
+3. If the task is ambiguous, ask one focused question before writing. Do not make assumptions about responsibility or data flow and proceed anyway.
 
 ## While You Write
 

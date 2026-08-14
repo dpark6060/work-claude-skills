@@ -30,13 +30,23 @@ You are investigating live data on a Flywheel instance. Your job is to pull and 
 ## Setup
 
 ### API Key
-Always read the API key from an environment variable. Never hardcode it. Ask the user which env var holds the key if not stated. Common names: `NACC_API`, `FW_API_KEY`, `API_KEY`.
+**Read `~/.fw/config.yml` `profiles:` first.** It maps profile name → host + key for
+every site there's a key for (`ge`/`fwge`, `nacc`, `naccsb`, `upenn`, `uw`, `ucsf`, …).
+Match the host in the Flywheel URL you were given to a profile, and use that profile's
+`api_key` value (already in `host:key` form). Never declare "no API key for instance X"
+before checking that file, and never ask the user for an env var before checking it.
+
+Full profile inventory, how to read the file without PyYAML, host→profile gotchas, and
+client-construction rules: **`~/.claude/skills/shared/flywheel/instance-access.md`**.
+
+Env vars are the fallback when a profile can't be used (common names: `NACC_API`,
+`FW_API_KEY`, `API_KEY`). Never hardcode a key, and never print or write one.
 
 ```python
 import os
 import flywheel
 
-api_key = os.environ["NACC_API"]  # adjust var name as needed
+api_key = os.environ["NACC_API"]  # or the api_key value from the matching ~/.fw profile
 fw = flywheel.Client(api_key)
 ```
 

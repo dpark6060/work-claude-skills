@@ -245,6 +245,33 @@ manually unless absolutely necessary.
 The `gear-builder.image` value is used by the Flywheel gear-builder toolchain to tag
 the Docker image.
 
+### suite and classification are closed enums — do not invent values
+
+`custom.flywheel.suite` and every key/value in `custom.flywheel.classification` come from
+`fw_gear/gear_spec_schema.json`. A vendor or project name ("GE HealthCare", "Acme Trial")
+is not a legal suite, and there is no extension mechanism — putting one there fails
+validation.
+
+- `suite` (one string): Conversion, Curation, Quality Assurance, Utility, Export, Report,
+  Image Processing, Other
+- `classification` keys: `species`, `organ`, `function`, `modality`, `therapeutic_area` —
+  each value must be on that key's list in the schema. `function` is the suite list with
+  the `Image Processing - *` subtypes substituted for `Image Processing`.
+
+`Manifest.validate()` skips both checks unless called with `validate_classification=True`
+(`fw_gear/manifest.py::_validate_gear_suite` / `_validate_gear_classification`). The
+`gearcheck` pre-commit hook passes that flag when the repo's `.gitlab-ci.yml` sets
+`VALIDATE_CLASSIFICATION: "true"`, which the SSE gear skeleton does — so on those repos a
+bad suite is a hook failure, and a **missing** `classification` key is its own error.
+`gearcheck` pins its own older `fw-gear` inside its container, so validate locally against
+the installed version too:
+
+```bash
+.venv/bin/python -c "from fw_gear.manifest import Manifest; Manifest('manifest.json').validate(validate_classification=True)"
+```
+
+`custom.gear-builder.category` is a plain unvalidated string in the manifest schema.
+
 ---
 
 ## Output Configuration

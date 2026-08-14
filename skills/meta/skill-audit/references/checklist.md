@@ -189,7 +189,8 @@ These aren't in the official docs but come from real usage at scale.
 ## 7. OKF conformance (references/ and sources/)
 
 Reference files follow the Open Knowledge Format — spec vendored at
-`~/.claude/skills/shared/okf-spec.md`, summary in best-practices §2. Applies only
+`~/.claude/skills/shared/okf-spec.md`, summary in
+`~/.claude/skills/shared/skill-authoring/directory-structure.md`. Applies only
 under `references/` (and `sources/` indexes); SKILL.md and agent frontmatter are
 exempt (the harness owns those fields).
 

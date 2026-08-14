@@ -1,8 +1,8 @@
 ---
 name: jira
-description: All Jira write operations via the Atlassian MCP — posting end-of-session comments and creating new tickets. Triggers on "comment on the Jira ticket", "update Jira", "log work to Jira", "create a Jira ticket", "file a ticket", "open a ticket".
+description: All Jira operations — reading issues without blowing context, posting end-of-session comments, and creating new tickets via the Atlassian MCP. Triggers on "comment on the Jira ticket", "update Jira", "log work to Jira", "create a Jira ticket", "file a ticket", "open a ticket", "read the ticket", "pull the Jira issue".
 
-MANDATORY TRIGGERS: Jira, ticket, GEAR, story, bug, sprint, epic, create ticket, open ticket, file a bug, raise a bug, log work, add comment, end of session, post to Jira, update ticket, link ticket
+MANDATORY TRIGGERS: Jira, ticket, GEAR, story, bug, sprint, epic, create ticket, open ticket, file a bug, raise a bug, log work, add comment, end of session, post to Jira, update ticket, link ticket, read ticket, fetch ticket, pull issue
 version: 1.0.0
 disable-model-invocation: true
 ---
@@ -11,63 +11,36 @@ disable-model-invocation: true
 
 All Jira operations go through the Atlassian MCP. This skill covers the rules that apply to every operation. Load the appropriate reference file for the specific task.
 
----
-
-## Constants
-
-| Constant | Value |
-|---|---|
-| `cloudId` | `flywheelio.atlassian.net` |
-| Default project | `GEAR` |
-| Your accountId | `5d88bebcc7d4e30dc282e6e0` |
+**Reads:** always download the response to a file and jq out only the fields you need — never pull a raw issue or search payload into context. MCP JQL search silently truncates to 5 issues, so any scan that needs every match goes over REST. Full procedure: `~/.claude/skills/shared/tools/atlassian/jira-reads.md`.
 
 ---
 
-## Critical: Formatting Rule
+## MCP access, constants, and formatting
 
-**Never use `\n` escape sequences in text passed to Jira MCP tools.**
+**Read `~/.claude/skills/shared/tools/atlassian/mcp-access.md` before your first MCP call.**
+It is the authority on:
 
-Jira's default content format is ADF (Atlassian Document Format). When you pass a plain string to an ADF field without specifying the format, newlines are stored as literal `\n` characters and display as raw text in the ticket — not as line breaks.
+- the tool prefix — `mcp__claude_ai_Atlassian__*`, never `mcp__atlassian__*` (dead server)
+- `cloudId` (host and UUID forms, both accepted) and David's accountId
+- the ADF rules — `contentFormat: "markdown"` on `createJiraIssue`/`editJiraIssue`, real
+  newlines not `\n`, and why `addCommentToJiraIssue` comments must be plain prose
 
-**Always fix this by specifying `contentFormat: "markdown"`:**
-
-```
-mcp__atlassian__createJiraIssue(
-    cloudId="flywheelio.atlassian.net",
-    contentFormat="markdown",
-    description="First paragraph.\n\nSecond paragraph."   # real newlines, not \\n
-)
-```
-
-Rules:
-- Always pass `contentFormat: "markdown"` on `createJiraIssue` and `editJiraIssue`
-- Write paragraph breaks as blank lines (two real newlines), not `\n`
-- Bold, code spans, and bullet lists follow standard markdown syntax
-- `addCommentToJiraIssue` does not have a `contentFormat` param — write comments as plain prose with no reliance on `\n` for formatting; use short paragraphs instead
+Jira-specific default: project `GEAR`.
 
 ---
 
-## GEAR Board Field Quick Reference
+## GEAR board fields
 
-| Field | Jira key | Format | Example |
-|---|---|---|---|
-| Customer | `customfield_10108` | `[{"value": "<name>"}]` | `[{"value": "UWash - NACC"}]` |
-| Sprint | `customfield_10021` | `{"id": <int>}` | `{"id": 3522}` |
-| Labels | `labels` | `["tag1", "tag2"]` | `["Hourly", "NACC"]` |
-| Assignee | `assignee_account_id` | accountId string | `"5d88bebcc7d4e30dc282e6e0"` |
-| Epic/Parent | `parent` param | issue key string | `"GEAR-7595"` |
-| Story Points | `customfield_10016` | number | `3` |
+**Every GEAR field id, option id, priority id, issue-type id, `additional_fields` shape, and
+JQL form is in `~/.claude/skills/shared/tools/atlassian/gear-board-fields.md`.** Read it
+before setting any field; do not work from memory of the ids.
 
-> **Billable field:** The field ID for "billable" is not confirmed. Run `mcp__atlassian__getJiraIssueTypeMetaWithFields` on the GEAR project to locate it before setting it.
+Two things that used to be wrong here and are now settled (live createmeta, 2026-08-13):
+Acceptance Criteria **is** a real field — `customfield_11394`, textarea, on Story and Task.
+There is **no Billable field** on GEAR; billable-ness rides on the `Hourly`/`Fixed`/`SOW`
+labels. Stop hunting for a billable field id.
 
-All custom fields go in the `additional_fields` object:
-```
-additional_fields={
-    "customfield_10108": [{"value": "UWash - NACC"}],
-    "customfield_10021": {"id": 3522},
-    "labels": ["Hourly", "NACC"]
-}
-```
+Sprint ids rotate quarterly — always query `openSprints()`, never hardcode.
 
 ---
 
@@ -75,10 +48,20 @@ additional_fields={
 
 | Task | Reference file to load |
 |---|---|
+| Read an issue, search with JQL, or fetch comments/attachments | `~/.claude/skills/shared/tools/atlassian/jira-reads.md` |
 | Post an end-of-session work summary comment | `references/post-comment.md` |
 | Create a new ticket | `references/create-ticket.md` |
+| Find the epic a piece of work belongs under | `references/find-epic.md` |
+| Reopen a closed issue, or fix `SOW`/`Hourly` sync labels | `references/transition-issue.md` |
 
-Load only the reference file for the operation at hand. Do not load both unless you are doing both.
+Load only the reference file for the operation at hand. Do not load more than the task needs.
+
+## Called by a conductor skill?
+
+`fw-workorder` invokes this skill as part of a larger work order. When it does, **its gate
+is the confirmation step** — `create-ticket.md`'s Phase 3 "draft and confirm" has already
+happened there, so do not stop and re-confirm. Create what you were asked to create and
+report back. Interactive use is unchanged: confirm as normal.
 
 ---
 

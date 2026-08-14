@@ -40,6 +40,11 @@ flyw auth logout              # Remove current profile credentials
 
 Credentials are stored in `~/.fw/config.yml`. Exiting the shell does NOT log you out.
 
+> The file itself — record structure, the saved profile → host inventory, how to read
+> it without PyYAML, and building SDK/`FWClient` clients from a profile's key — is
+> documented once in **`~/.claude/skills/shared/flywheel/instance-access.md`**. This
+> file covers only the CLI mechanics on top of it.
+
 ## Profiles
 
 **Profiles are the most commonly used CLI feature.** They allow switching between multiple Flywheel instances without re-authenticating.
@@ -91,7 +96,8 @@ flyw --profile staging gear ls
 
 ### Where Profiles Are Stored
 
-Profiles and their credentials are persisted in `~/.fw/config.yml`. You can change the config directory:
+`~/.fw/config.yml` — see `~/.claude/skills/shared/flywheel/instance-access.md` for what
+is in it and which sites already have profiles. Change the directory with:
 
 ```bash
 export FW_CLI_CONFIG_DIR=/custom/path

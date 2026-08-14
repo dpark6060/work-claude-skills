@@ -26,8 +26,7 @@ Import data from external cloud storage into a Flywheel project. Imports run ser
 flyw import run \
     --project fw://group/Project \
     --storage d34db33fd34db33fd34db33f \
-    --exclude 'path=~.DS_Store' \
-    --mapping 'path={subject.label}/{session.label}/{acquisition.label}/*'
+    --rule-set ./my-rules.yaml
 ```
 
 ### Required Options
@@ -39,46 +38,61 @@ flyw import run \
 
 ### Rule Options
 
-| Option | Description |
-|---|---|
-| `-l, --level LVL` | Hierarchy level to import to |
-| `-i, --include FILT` | Include filter [multi allowed] |
-| `-e, --exclude FILT` | Exclude filter [multi allowed] |
-| `-t, --type TYPE` | Data type (e.g. `dicom`) |
-| `-m, --mapping SRC=DST` | Metadata mapping [multi allowed] |
-| `--default DST=VAL` | Metadata fallback default [multi allowed] |
-| `--override DST=VAL` | Metadata override [multi allowed] |
-| `--zip / --no-zip` | Zip grouped files together |
-| `--zip-single / --no-zip-single` | Zip even single files |
-| `--rules-file FILE` | Load rules from YAML |
-| `-r, --rule RULE` | Inline YAML rule [multi allowed] |
-| `--conflict-strategy S` | `skip`, `update`, or `review` |
-
-### DICOM Options
+**Use `--rule-set`.** Rules belong in a rule-set — either a managed rule-set ID or a path to a
+local YAML file. Everything the old inline flags did is a key in the rule-set YAML (see
+[Import Rules](#import-rules)).
 
 | Option | Description |
 |---|---|
-| `--dicom-instance-name TPL` | Single DICOM instance file name |
-| `--dicom-group-by TAG` | DICOM tags to group by [multi allowed] |
-| `--dicom-split-localizer` | Split embedded localizer images |
+| `--rule-set RULE_SET` | Rule-set ID **or** local YAML file path |
+
+<details>
+<summary>Deprecated inline rule flags (informational — do not write new commands with these)</summary>
+
+Older CLI versions took rules as inline flags, and mapping-heavy ingests (BIDS especially) were
+commonly written as long `--mapping` chains. The 0.35 docs list these as **deprecated, use
+`--rule-set` instead**:
+
+`--level`, `--include`, `--exclude`, `--mapping`, `--type`, `--zip`, `--zip-single`,
+`--defaults`, `--overrides`, `--dicom-instance-name`, `--dicom-group-by`,
+`--dicom-split-localizer`, `--rules`
+
+They are hidden from `--help` but still parse — verified for `--mapping` on 0.35.0, where a
+genuinely unknown flag errors with `Invalid argument` and `--mapping` does not. So existing
+scripts (e.g. the `fw-ingest-bids-template` import script) keep working.
+
+The mapping `<template>=<pattern>` syntax itself is *not* deprecated — it carries over unchanged
+into the `mapping` key of a rule-set rule. See
+<https://flywheel-io.gitlab.io/tools/app/cli/0.35/flyw/import/run/#mappings>.
+
+When touching an existing inline-flag script, port it to a rule-set rather than extending it.
+</details>
 
 ### Behavior Options
 
 | Option | Description |
 |---|---|
-| `--dry-run` | Process without transferring (for testing) |
+| `--label TXT` | Label to assign to the import |
+| `--description TXT` | Description to assign |
+| `--conflict-strategy S` | `skip`, `update`, or `review` |
+| `--dry-run / --no-dry-run` | Process without transferring (for testing) |
 | `--limit N` | Stop after N files |
 | `--fail-fast N[%]` | Stop at failure threshold |
 | `--missing-meta MODE` | `fail` or `skip` items with missing metadata |
 | `--storage-config CFG` | Override storage config (inline YAML) |
 | `--uid-scope SCOPE` | UID uniqueness scope: `site`, `group`, `project`, `none` |
-| `--wait / --no-wait` | Wait for completion |
+| `--scan-params-prefix PREFIX` | Storage path prefix to filter files for import |
+| `--scan-params-query KEY=VAL[,...]` | DICOM query parameters to filter files for import |
 | `--resume-local IMPORT` | Resume interrupted local upload |
+| `--wait / --no-wait` | Wait for completion |
 | `-o, --output OUTPUT` | Output format |
 
 ## Import Rules
 
-Rules define which files to import and how to place them in Flywheel's hierarchy. At least one rule is required. Rules are evaluated **in order** — first matching rule wins.
+Rules live in the rule-set YAML spec, not on the command line. At least one rule is required.
+Rules are evaluated **in order** — first matching rule wins. The keys below (`include`,
+`exclude`, `type`, `mapping`, `zip`, `dicom_*`, …) are YAML keys within a rule, which is why
+they have no CLI-flag equivalent.
 
 A rule matches when:
 - **any** include filter matches (if given) **AND**
@@ -178,24 +192,25 @@ When using `type: dicom`, these are auto-populated (only if field not already se
 ## `import test` — Test Rules Without Importing
 
 ```bash
-flyw import test patient_0/study_172/series_1/000001.DCM \
-    --exclude 'path=~.DS_Store' \
-    --mapping 'path={subject.label}/{session.label}/{acquisition.label}/*'
+flyw import test --rule-set ./my-rules.yaml patient_0/study_172/series_1/000001.DCM
 ```
 
-Takes the same rule options as `import run` but tests against a path without any data transfer.
+Resolves the rule-set against a single path and reports the metadata it would extract — no
+storage, no project, no data transfer. Only two options: `--rule-set` and `--missing-meta`.
+The fastest way to debug a mapping that isn't producing the hierarchy you expect.
 
 ## `import get` — Check Import Status
 
 ```bash
-flyw import get <IMPORT_ID>                 # Current state
-flyw import get <IMPORT_ID> --wait          # Monitor until done
-flyw import get <IMPORT_ID> --report=csv    # CSV report
-flyw import get <IMPORT_ID> -o json         # JSON output
-flyw import get <IMPORT_ID> --tree          # Hierarchy view
+flyw import get <IMPORT_ID>                          # Current state
+flyw import get <IMPORT_ID> --wait                   # Monitor until done
+flyw import get <IMPORT_ID> --report csv             # Report [jsonl|csv]
+flyw import get <IMPORT_ID> --conflict-report csv    # Conflict report [jsonl|csv]
+flyw import get <IMPORT_ID> --fail                   # Exit 1 if the import failed
+flyw import get <IMPORT_ID> -o json                  # JSON output
 ```
 
-Returns exit code 1 if import failed (with `--fail`).
+There is no `--tree` option.
 
 ## `import list` — List Imports
 
@@ -226,26 +241,50 @@ flyw import rerun <IMPORT_ID> --wait     # Wait for completion
 
 Rule sets are reusable, named collections of import rules that can be managed independently and referenced across imports.
 
+The spec file flag is `-Y, --yaml` — **not** `--rules-file`.
+
 ```bash
-flyw import rule-set create --name "my-rules" --rules-file rules.yml
-flyw import rule-set get <RULESET_ID>
+flyw import rule-set create --name "my-rules" --yaml spec.yaml
+flyw import rule-set create --name "my-rules" --scope fw://grp/prj --default --yaml spec.yaml
+flyw import rule-set create --name "copy" --yaml-from <RULESET_ID>
+flyw import rule-set get <RULESET_ID> -o json
 flyw import rule-set list
-flyw import rule-set update <RULESET_ID> --rules-file updated-rules.yml
+flyw import rule-set update <RULESET_ID> --yaml updated-spec.yaml
 flyw import rule-set archive <RULESET_ID>
 flyw import rule-set restore <RULESET_ID>
 ```
 
-### Subcommands
+### `create` Options
 
-| Subcommand | Description |
+| Option | Description |
 |---|---|
-| `create` | Create a named rule set from a rules file |
-| `get` | Get rule set details |
-| `list` | List all rule sets |
-| `update` | Update an existing rule set |
-| `archive` | Archive a rule set (soft delete) |
-| `restore` | Restore an archived rule set |
+| `-n, --name NAME` | Rule-set name [required] |
+| `-d, --description DESC` | Description |
+| `-Y, --yaml FILE` | Rule-set spec YAML file |
+| `--yaml-from RULE_SET` | Rule-set ID to copy the spec from |
+| `-s, --scope SCOPE` | Group or project to scope the rule-set to |
+| `--default / --no-default` | Make this the default for the scope |
+
+`get -o json` returns both the parsed `spec` and the original `yaml` — reading a built-in
+rule-set is the fastest way to get a known-good spec to copy.
 
 ## Output Behavior
 
 `import run` follows progress until completion by default. Press `CTRL+C` to stop monitoring — the import continues on the cluster. Use `import get` to resume monitoring later.
+
+Exception: for **local** source paths the transfer runs through your machine, so killing the CLI
+does interrupt it. Resume with `--resume-local <IMPORT_ID>`.
+
+## Docs
+
+All verified 200 as of 2026-07-27. Do not guess doc URLs — `docs.flywheel.io/user/*` is a 404.
+
+| Page | URL |
+|---|---|
+| Bulk Import overview | <https://docs.flywheel.io/data_transfer/inbound/bulk_import/> |
+| Rule sets | <https://docs.flywheel.io/data_transfer/patterns/rule-sets/> |
+| Rule files | <https://docs.flywheel.io/data_transfer/patterns/rule-files/> |
+| Filtering & mapping guide | <https://docs.flywheel.io/data_transfer/patterns/filtering-and-mapping-guide/> |
+| Pattern syntax reference | <https://docs.flywheel.io/data_transfer/patterns/pattern-syntax-reference/> |
+| Pattern quick reference | <https://docs.flywheel.io/data_transfer/patterns/pattern-quick-reference/> |
+| CLI command reference | <https://flywheel-io.gitlab.io/tools/app/cli/main/flyw/import/> |

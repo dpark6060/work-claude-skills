@@ -58,5 +58,7 @@ Call: `getJiraIssueTypeMetaWithFields`, `cloudId=flywheelio.atlassian.net`,
 
 ## MCP Behavior Notes
 
+- Sprint on create (`customfield_10021` in `additional_fields`) must be a **bare integer** (`3555`), not `{"id": 3555}` — the object shape 400s with "Specify a valid value for Sprint" (2026-08-13, GEAR-22872).
+
 - `addCommentToJiraIssue` does not accept a `contentFormat` parameter — keep comments as plain prose.
 - `createJiraIssue` and `editJiraIssue` require `contentFormat: "markdown"` to prevent literal `\n` in descriptions.

@@ -89,7 +89,7 @@ mcp__claude_ai_Atlassian__createJiraIssue(
     parent="<epic key>",           # omit if no epic given
     additional_fields={
         "customfield_10108": [{"value": "<customer name>"}],
-        "customfield_10021": {"id": <sprint id>},
+        "customfield_10021": <sprint id>,   # bare integer — {"id": N} is rejected with "Specify a valid value for Sprint"
         "labels": ["Hourly", "<client label>"]
     }
 )

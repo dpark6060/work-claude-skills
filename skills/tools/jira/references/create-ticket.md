@@ -32,7 +32,7 @@ Collect the following before drafting anything. If the user has not provided a v
 
 **Billable field:** The custom field ID for "billable" has not been confirmed. Before setting it, run:
 ```
-mcp__atlassian__getJiraIssueTypeMetaWithFields(
+ATL__getJiraIssueTypeMetaWithFields(
     cloudId="flywheelio.atlassian.net",
     projectKey="GEAR",
     issueTypeName="Task"
@@ -46,7 +46,7 @@ Search the response for a field named "billable" or similar to get its `key` (e.
 
 Query the active sprint for the GEAR board before creating the ticket. Do not hardcode a sprint ID — sprints rotate quarterly.
 
-Use `mcp__atlassian__searchJiraIssuesUsingJql` with:
+Use `ATL__searchJiraIssuesUsingJql` with:
 ```
 jql: "project = GEAR AND sprint in openSprints()"
 fields: ["customfield_10021"]
@@ -84,7 +84,7 @@ Wait for explicit approval before proceeding.
 ## Phase 4 — Create the Ticket
 
 ```
-mcp__atlassian__createJiraIssue(
+ATL__createJiraIssue(
     cloudId="flywheelio.atlassian.net",
     projectKey="GEAR",
     issueTypeName="<type>",
@@ -95,7 +95,7 @@ mcp__atlassian__createJiraIssue(
     parent="<epic key>",           # omit if no epic given
     additional_fields={
         "customfield_10108": [{"value": "<customer name>"}],
-        "customfield_10021": {"id": <sprint id>},
+        "customfield_10021": <sprint id>,   # plain int — {"id": N} 400s ("Specify a valid value for Sprint"), confirmed 2026-08-14
         "labels": ["Hourly", "<client label>"]
     }
 )
@@ -104,8 +104,14 @@ mcp__atlassian__createJiraIssue(
 **Formatting the description:**
 - Always pass `contentFormat: "markdown"`
 - Use blank lines between paragraphs — do not use `\n` escape sequences
-- Use `**bold**`, `` `code` ``, and `- bullet` markdown as needed
+- Use `**bold**`, `` `code` ``, `- bullet`, and tables as needed
 - Headings (`##`) are fine for multi-section descriptions
+- Don't nest `**bold**` inside a code span — the asterisks print literally
+
+**Writing the description:** `~/.claude/skills/shared/writing/outbound-core.md`. A ticket
+description is read by whoever picks the work up, so the same rules apply — summarize and
+link (source Slack thread, commit, Confluence page), name exact identifiers, no preamble,
+no intensifiers. Put the reproduction or the decision, not a narrative.
 
 ---
 

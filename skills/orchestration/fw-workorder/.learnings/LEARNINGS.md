@@ -76,3 +76,19 @@ notes disagree with the code in two places; the code wins.
 - Worked cases: `GEAR-7595 [NACC] LONI Exporter` resolved 2026-05-28 (76 days → task
   `DONE`, needs manual reactivation); `GEAR-11687 [NACC] session-splitter` resolved
   2026-07-28 (15 days → task still `ACTIVE`, nothing to do).
+
+## 2026-08-14 — loni-upload JAR v2 run
+
+- **Jira sprint field on create: pass a plain int.** `createJiraIssue` with
+  `"customfield_10021": {"id": 3555}` 400s ("Specify a valid value for Sprint");
+  `"customfield_10021": 3555` works. create-ticket.md's example shows the dict form — wrong.
+- **`pm` dispatches can go idle without delivering a report.** Got two bare
+  idle_notifications and no status line. Recovery that worked: verify the repo state
+  directly (branch, commit, diff stat, md5, run pytest yourself) instead of ping-ponging
+  messages. The commit was complete and correct; only the report was missing.
+- **Sprint 26Q3 = id 3555 (`SSE - Board - 26Q3`, boardId 35), active through 2026-09-30.**
+- **GEAR-20969 has no children via `parent = GEAR-20969` JQL** even though the sync treats
+  it as an epic — new stories under it appear fine; don't rely on that query for convention
+  matching.
+- **Clockify SDK scripts need the skill's own venv**
+  (`~/.claude/skills/clockify/.venv/bin/python`) — system python3 lacks `fw_http_client`.

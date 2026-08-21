@@ -82,7 +82,7 @@ Two traps in the Epic table:
 Verify before relying on an ID — IDs are stable but board config changes:
 
 ```
-mcp__atlassian__getTransitionsForJiraIssue(
+ATL__getTransitionsForJiraIssue(
     cloudId="flywheelio.atlassian.net",
     issueIdOrKey="GEAR-7595"
 )
@@ -96,7 +96,7 @@ Work has arrived for an epic that is `DONE`. Reopen it to `IN PROGRESS` (`11`) �
 starting now, and `IN PROGRESS` also satisfies the Clockify sync's status requirement.
 
 ```
-mcp__atlassian__transitionJiraIssue(
+ATL__transitionJiraIssue(
     cloudId="flywheelio.atlassian.net",
     issueIdOrKey="GEAR-7595",
     transition={"id": "11"}
@@ -135,11 +135,15 @@ Missing labels is the usual cause. Real states from the GEAR board:
 []                          → will NOT sync
 ```
 
+> If you post a comment alongside a transition, write it per
+> `~/.claude/skills/shared/writing/jira-comments.md` — one or two lines saying what moved
+> and why is usually the whole comment. Do not narrate the transition you just made.
+
 **Labels replace, they do not merge.** Read the current labels first and write the full
 list back, or you will drop the client label:
 
 ```
-mcp__atlassian__editJiraIssue(
+ATL__editJiraIssue(
     cloudId="flywheelio.atlassian.net",
     issueIdOrKey="GEAR-7595",
     contentFormat="markdown",

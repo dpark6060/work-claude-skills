@@ -13,6 +13,45 @@ All Jira operations go through the Atlassian MCP. This skill covers the rules th
 
 ---
 
+## Tool namespace — RESOLVE it, never assume it
+
+**Do this before your first Jira call, every session.** The Atlassian MCP tool
+namespace is not stable, and this skill's examples cannot name it for you. Three
+spellings have shipped:
+
+| Prefix | Notes |
+|---|---|
+| `mcp__claude_ai_Atlassian_Rovo__` | the claude.ai connector after the 2026-08-17 "Atlassian Rovo" server rename — **the live one as of 2026-08-18** |
+| `mcp__claude_ai_Atlassian__` | the same connector before that rename |
+| `mcp__atlassian__` | a locally-configured Atlassian MCP server, when one is registered |
+
+Resolve which is live with one call, then use that prefix for everything:
+
+```
+ToolSearch("select:mcp__atlassian__getJiraIssue,mcp__claude_ai_Atlassian__getJiraIssue,mcp__claude_ai_Atlassian_Rovo__getJiraIssue")
+```
+
+Whichever spelling comes back with a schema is the one this session has. **Every
+`ATL__` in this skill and its reference files is a placeholder for that resolved
+prefix** — substitute it, don't paste `ATL__` or a guessed namespace.
+
+**In a headless / scheduled run these tools are DEFERRED**: absent from your startup
+tool list until you load them. A tool missing from that list means UNLOADED, never
+"the connector is down" — only a failed *call* proves that. And a permission error
+naming a tool (`requested permissions to use mcp__…, but you haven't granted it yet`)
+is an **allowlist mismatch in the calling wrapper's `--allowedTools`**, not a
+connector outage. A skill cannot fix that: `--allowedTools` is enforced by the harness
+before any skill runs, so the wrapper must list every spelling it might need. Report
+the exact denied tool string rather than reporting no results. Full rules:
+`~/.claude/skills/shared/harness/headless-connectors.md`; connector setup and cloudId
+provenance: `~/.claude/skills/shared/tools/atlassian/mcp-access.md`.
+
+> This bit for real: the pre-rename spelling silently ate an `fw-quest` sweep
+> (2026-08-17, reported as an empty board) and the Jira source of a `clockify` draft
+> run. Both wrappers now carry an `ATLASSIAN_PREFIXES` array listing every spelling.
+
+---
+
 ## Constants
 
 | Constant | Value |
@@ -32,7 +71,7 @@ Jira's default content format is ADF (Atlassian Document Format). When you pass 
 **Always fix this by specifying `contentFormat: "markdown"`:**
 
 ```
-mcp__atlassian__createJiraIssue(
+ATL__createJiraIssue(
     cloudId="flywheelio.atlassian.net",
     contentFormat="markdown",
     description="First paragraph.\n\nSecond paragraph."   # real newlines, not \\n
@@ -40,10 +79,19 @@ mcp__atlassian__createJiraIssue(
 ```
 
 Rules:
-- Always pass `contentFormat: "markdown"` on `createJiraIssue` and `editJiraIssue`
+- Always pass `contentFormat: "markdown"` on `createJiraIssue`, `editJiraIssue` **and `addCommentToJiraIssue`**
 - Write paragraph breaks as blank lines (two real newlines), not `\n`
-- Bold, code spans, and bullet lists follow standard markdown syntax
-- `addCommentToJiraIssue` does not have a `contentFormat` param — write comments as plain prose with no reliance on `\n` for formatting; use short paragraphs instead
+- Bold, code spans, bullet lists, and **tables** follow standard markdown syntax
+- Don't nest `**bold**` inside a code span — the asterisks print literally
+- `commentId` on `addCommentToJiraIssue` updates an existing comment instead of adding one (for broken formatting, not for changing a conclusion)
+- Reading a body back returns ADF unless you pass `responseContentFormat: "markdown"`
+
+> **Correction (2026-08-17):** this list used to say `addCommentToJiraIssue` has no
+> `contentFormat` param and that comments must be plain prose. That was wrong and made
+> every comment posted by these skills worse than it needed to be. Verified: markdown
+> tables and code spans render fine in comments.
+
+**Comment style, shape, and length: `~/.claude/skills/shared/writing/jira-comments.md`.**
 
 ---
 
@@ -59,7 +107,7 @@ Rules:
 | Epic/Parent | `parent` param | issue key string | `"GEAR-7595"` |
 | Story Points | `customfield_10016` | number | `3` |
 
-> **Billable field:** The field ID for "billable" is not confirmed. Run `mcp__atlassian__getJiraIssueTypeMetaWithFields` on the GEAR project to locate it before setting it.
+> **Billable field:** The field ID for "billable" is not confirmed. Run `ATL__getJiraIssueTypeMetaWithFields` on the GEAR project to locate it before setting it.
 
 All custom fields go in the `additional_fields` object:
 ```

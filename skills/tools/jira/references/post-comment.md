@@ -58,17 +58,25 @@ If `claude-work/` does not exist or is empty, note that and continue — the git
 
 ## Phase 3 — Synthesize the Comment
 
-Write a comment that covers:
+**Style, shape, and length: `~/.claude/skills/shared/writing/jira-comments.md`.** Voice and
+the summarize-and-link rule: `~/.claude/skills/shared/writing/outbound-core.md`. Follow
+those. Below is only what's specific to an end-of-session comment.
 
-1. **What was done** — derived from the diff stat and commit messages. Be specific about files and areas changed; avoid vague summaries like "made improvements".
-2. **Why / design decisions** — if work notes exist in `claude-work/`, extract any rationale, tradeoffs, or decisions captured there. If not present in the notes or commit messages, omit this section rather than inventing it.
-3. **What's left / open questions** — only include if explicitly mentioned in the work notes.
+Cover:
 
-Keep the tone factual and direct. This is an engineering log entry, not a status update for a manager. Aim for 3–8 sentences or a short bulleted list — enough detail to be useful in a future review, not a novel.
+1. **What changed** — from the diff stat and commit messages. Name files and areas; never vague summaries like "made improvements".
+2. **Why / design decisions** — only if `claude-work/` notes or commit messages actually contain rationale. Omit rather than invent.
+3. **What's left / open questions** — only if the work notes say so.
 
-Do not pad the comment with filler like "In this session, we worked on..." — start with the substance.
+Link commits by short SHA + subject and the MR by `!NN` rather than recapping their
+contents. Engineering log entry, not a status update for a manager. Under a screen — the
+work notes hold the detail.
 
-Write the comment as plain prose. Do not use `\n` escape sequences — write natural paragraphs. The `addCommentToJiraIssue` tool does not support a `contentFormat` parameter; keep formatting simple.
+> **Correction (2026-08-17):** this file previously said `addCommentToJiraIssue` has no
+> `contentFormat` parameter and that comments must be plain prose with simple formatting.
+> **That is wrong.** Pass `contentFormat: "markdown"` and tables, bullets, code spans, and
+> bold all render — verified. Write real newlines, never `\n` escapes. `commentId` updates
+> an existing comment (use it for broken formatting, not to change a conclusion).
 
 ---
 
@@ -88,7 +96,7 @@ Wait for explicit approval or an edited version before posting. Do not post with
 ## Phase 5 — Post the Comment
 
 ```
-mcp__atlassian__addCommentToJiraIssue(
+ATL__addCommentToJiraIssue(
     cloudId="flywheelio.atlassian.net",
     issue_key="<ticket key>",
     comment="<confirmed comment>"

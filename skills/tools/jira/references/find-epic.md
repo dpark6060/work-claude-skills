@@ -22,7 +22,7 @@ invisible.
 The Customer field is `customfield_10108`. In JQL, reference it as `cf[10108]`.
 
 ```
-mcp__atlassian__searchJiraIssuesUsingJql(
+ATL__searchJiraIssuesUsingJql(
     cloudId="flywheelio.atlassian.net",
     jql='project = GEAR AND issuetype = Epic AND cf[10108] = "UWash - NACC" ORDER BY updated DESC',
     fields=["key", "summary", "status", "labels"],

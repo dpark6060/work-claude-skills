@@ -11,6 +11,18 @@ Entry format:
 
 ---
 
+## [2026-08-20] | Priority: HIGH | Status: RESOLVED
+**Area:** Triggering pipelines with variables
+**Summary:** `glab api -X POST .../pipeline -f "variables[0][key]=..."` silently drops the variable, returns 201, and runs the branch's default pipeline instead — which on a customer deployment repo was `apply:terraform`
+**Details:** Tried to run a support bundle on `flywheel-io/customers/nacc/nacc-sandbox` with `-f "variables[0][key]=SUPPORT_BUNDLE" -f "variables[0][value]=true"`. `-f` sends `application/x-www-form-urlencoded`; the pipeline endpoint expects `variables` as a JSON array and does not parse PHP-style bracket notation. GitLab ignored it and returned `201 Created` with a valid pipeline object, so it looked like success. The gating rule `- if: '$SUPPORT_BUNDLE' when: never` (which correctly suppresses apply) never matched, so `op:support-bundle` did not run and `apply:terraform` did. Cancelled ~39s in, during `get_sources` — no terraform ran. Proof:
+```
+pipeline 2777709582  variables: []                                     -> apply:terraform
+pipeline 2777751100  variables: [{key: SUPPORT_BUNDLE, value: "true"}] -> op:support-bundle
+```
+**Fix:** Use `glab ci run -b master --variables KEY:value -R GROUP/REPO`, or send a real JSON body via `glab api ... --input -`. Then **always** confirm with `glab api "projects/<ID>/pipelines/<PID>/variables"` before letting jobs proceed — a 201 proves a pipeline exists, not that your variable was accepted. Cancel with `POST /pipelines/<PID>/cancel` if it comes back `[]`.
+
+**Two meta-lessons:** (1) don't treat a 2xx as confirmation of intent — verify the effect; (2) don't infer job behavior from a comment above a YAML anchor, confirm the job actually `extends` it.
+
 ## [2026-04-13] | Priority: HIGH | Status: RESOLVED
 **Area:** glab API write operations
 **Summary:** Moved/renamed projects reject PUT/POST with `405 Non GET methods are not allowed for moved projects`

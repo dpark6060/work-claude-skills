@@ -1,3 +1,11 @@
+---
+type: Reference
+title: GitLab CI Tools
+description: Shell wrappers around the glab CLI for MR babysitting — MR info, comments, pipelines, jobs, and job traces.
+tags: [gitlab, glab, ci, merge-requests, pipelines]
+timestamp: 2026-08-17T00:00:00Z
+---
+
 # GitLab CI Tools
 
 Shell scripts wrapping `glab` CLI for MR babysitting. All scripts live alongside this file.

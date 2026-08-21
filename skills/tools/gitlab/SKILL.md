@@ -171,6 +171,59 @@ Repos whose `origin` is GitHub rather than GitLab are not this skill's job — u
 
 ---
 
+## Triggering a Pipeline with Variables
+
+Many ops pipelines are gated on a variable (`SUPPORT_BUNDLE`, `KUBECTL_CMD`, `UPGRADE`, …).
+Getting the variable to actually land is the whole job — if it doesn't, the pipeline still
+runs, just as the branch's *default* pipeline. On a deployment repo that default may be
+`apply:terraform`.
+
+**Use the dedicated command. It encodes the variables correctly.**
+
+```bash
+glab ci run -b master --variables KEY:value -R GROUP/NAMESPACE/REPO
+```
+
+Multiple variables: repeat `--variables KEY:value`.
+
+If you must use the raw API, send a **JSON body** — not `-f` fields:
+
+```bash
+glab api -X POST projects/<NUMERIC_ID>/pipeline --input - <<'JSON'
+{"ref":"master","variables":[{"key":"SUPPORT_BUNDLE","value":"true"}]}
+JSON
+```
+
+### Always verify the variable landed
+
+A pipeline created without your variable still returns `201 Created` with a perfectly
+valid pipeline object. The 201 means "a pipeline exists", **not** "a pipeline with your
+variable exists". Check explicitly:
+
+```bash
+glab api "projects/<NUMERIC_ID>/pipelines/<PIPELINE_ID>/variables"   # must be non-empty
+glab api "projects/<NUMERIC_ID>/pipelines/<PIPELINE_ID>/jobs" \
+  | jq -r '.[] | "\(.status)\t\(.stage)\t\(.name)"'                  # expected job present?
+```
+
+If `variables` is `[]`, cancel immediately and retry:
+
+```bash
+glab api -X POST "projects/<NUMERIC_ID>/pipelines/<PIPELINE_ID>/cancel"
+```
+
+### Before triggering on a customer/deployment repo
+
+These pipelines can apply infrastructure. Confirm which job will run **before** you fire:
+
+- Read `.gitlab-ci.yml`, follow its `include:` chain, and find the job's `rules:`.
+- Do not infer behavior from a comment above a YAML anchor — confirm the target job
+  actually `extends` that anchor.
+- Prefer letting a human trigger it from the UI when the blast radius is a live customer
+  environment.
+
+---
+
 ## REST API (glab api)
 
 `glab api` is a direct authenticated wrapper around the GitLab REST API v4. Use it for anything not covered by a dedicated `glab` subcommand.

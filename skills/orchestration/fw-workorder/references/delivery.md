@@ -102,8 +102,11 @@ it. **Never un-draft and never merge.**
 Per story, in order:
 
 1. **`Skill(jira)`** — post a comment: what changed, the MR link, test results, and the work
-   order file path. Comments are plain prose; `addCommentToJiraIssue` has no
-   `contentFormat` param, so do not rely on `\n` for layout.
+   order file path. Style and length: `~/.claude/skills/shared/writing/jira-comments.md`
+   (summarize and link — the MR carries the diff, so don't recap it).
+   **Correction (2026-08-17):** the old note here said `addCommentToJiraIssue` has no
+   `contentFormat` param and to avoid `\n` for layout. Wrong — pass
+   `contentFormat: "markdown"` and tables/bullets/code spans render; write real newlines.
 2. **`Skill(clockify)`** in **unattended** mode — one entry, under that story's own epic
    task, using the tier-derived estimate from
    [depth-and-estimate.md](depth-and-estimate.md#estimate-rubric). Unattended skips

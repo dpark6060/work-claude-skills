@@ -9,3 +9,7 @@
 # Subdirectories
 
 * [Skill Authoring](skill-authoring/index.md) - Companion files to the skills best-practices rulebook: directory structure, frontmatter reference, behavior patterns, evaluation, and skill-creator alignment.
+* [Writing](writing/index.md) - Style rules for anything a skill posts for humans to read — Jira comments, Slack reports, MR descriptions.
+* [Tools](tools/index.md) - Reaching external systems: the Atlassian connector (Jira/Confluence) and GitLab code search plus MR/pipeline wrappers.
+* [Harness](harness/index.md) - How the Claude Code harness itself behaves — connector loading, allowlists, and unattended-run rules.
+* [Flywheel](flywheel/index.md) - Access to live Flywheel instances: where credentials live, how to use them safely, and what to do without a key.

@@ -1,8 +1,8 @@
 ---
-type: Reference
+type: Runbook
 title: GitLab CI Tools
-description: Shell wrappers around the glab CLI for MR babysitting — MR info, comments, pipelines, jobs, and job traces.
-tags: [gitlab, glab, ci, merge-requests, pipelines]
+description: The bundled glab wrapper scripts for MR babysitting (info, comments, pipelines, jobs, job traces), the correct glab output flag, known bad glab commands, and the step-by-step babysit workflow.
+tags: [gitlab, glab, ci, pipelines, merge-requests, scripts, shared]
 timestamp: 2026-08-17T00:00:00Z
 ---
 

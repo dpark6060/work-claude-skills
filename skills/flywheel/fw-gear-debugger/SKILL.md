@@ -82,6 +82,11 @@ cd <gear-name>-<version>-<job-id>/
 flyw gear config -i api_key=$MY_API_KEY
 ```
 
+The key must be for the site the job ran on. Which sites there are keys for, and where
+they live (`~/.fw/config.yml` profiles, env-var fallbacks):
+`~/.claude/skills/shared/flywheel/instance-access.md`. Export it into the environment —
+don't paste a key value into `config.json` or any file you keep.
+
 Optionally override config values (types inferred from manifest):
 
 ```bash

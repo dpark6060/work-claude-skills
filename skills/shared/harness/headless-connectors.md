@@ -124,3 +124,21 @@ To confirm a mismatch rather than an outage:
 - **Some tools are granted interactively but not headless.** Microsoft 365 email
   search is one; it exists but is not permission-granted in scheduled runs. Flag the
   check as un-runnable rather than treating its absence as a negative result.
+
+---
+
+## The rare real failure
+
+Occasionally a headless session gets **zero** connectors for its whole lifetime:
+actual calls error `No such tool available` even after retries, while
+`claude mcp list` shows everything `✔ Connected` (CLI health ≠ session
+attachment). Observed once (2026-07-10) and it self-healed on the next run. Treat
+it as transient — report the failed sources, let the next scheduled run catch up,
+and only debug the wrapper's MCP attach if it recurs.
+
+## Underlying mechanism
+
+Why connector auth behaves the way it does across interactive, headless, and cloud
+runs — documented vs. observed vs. genuine gaps, plus the tool-prefix collision
+bug that broke all three scheduled sweeps — is in
+`~/.claude/skills/scheduling-tasks/references/connector-auth.md`.

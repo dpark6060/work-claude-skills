@@ -314,19 +314,24 @@ def check_coverage(dirpath: Path, root: Path) -> t.List[Finding]:
     return findings
 
 
-def count_uncovered(dirpath: Path) -> int:
-    """Count concept files rolling up to a directory that lacks indexed coverage.
+def get_uncovered_files(dirpath: Path) -> t.List[Path]:
+    """Return concept files rolling up to a directory that lacks indexed coverage.
 
     Own concept files plus, recursively, those of subdirectories that lack their
     own index.md (an indexed subdirectory covers its whole subtree).
     """
     concepts, subdirs = get_children(dirpath)
-    total = len(concepts)
+    files = list(concepts)
     for subdir in subdirs:
         if (subdir / "index.md").exists():
             continue
-        total += count_uncovered(subdir)
-    return total
+        files.extend(get_uncovered_files(subdir))
+    return files
+
+
+def count_uncovered(dirpath: Path) -> int:
+    """Count concept files rolling up to a directory that lacks indexed coverage."""
+    return len(get_uncovered_files(dirpath))
 
 
 def check_missing_index(root: Path) -> t.List[Finding]:
@@ -415,38 +420,48 @@ def _iter_dirs(root: Path) -> t.List[Path]:
 
 
 def fix_missing_indexes(root: Path) -> t.List[str]:
-    """Create a generated index.md in each directory that lacks one but needs it.
+    """Create a generated index.md wherever the house rule (OKF007) requires one.
 
-    Safe, deterministic fix only: never edits an existing index.md and never
-    touches frontmatter. Descriptions/Load-when triggers and entries added to
-    existing indexes are left for the /okf-lint skill (agent judgment).
+    Enforces exactly the threshold: an index is created only in a directory
+    whose uncovered concept count reaches INDEX_THRESHOLD. Runs deepest-first
+    so a newly indexed subdirectory covers its subtree before its parent is
+    counted — mirroring the coverage semantics. Safe, deterministic fix only:
+    never creates an index below the threshold, never edits an existing
+    index.md, and never touches frontmatter. Descriptions/Load-when triggers
+    and entries added to existing indexes are left for the /okf-lint skill
+    (agent judgment).
     """
     created: t.List[str] = []
-    for dirpath in _iter_dirs(root):
+    for dirpath in sorted(_iter_dirs(root), key=lambda p: len(p.parts), reverse=True):
         if (dirpath / "index.md").exists():
             continue
-        concepts, subdirs = get_children(dirpath)
-        indexed_subdirs = [s for s in subdirs if (s / "index.md").exists()]
-        if not concepts and not indexed_subdirs:
+        if count_uncovered(dirpath) < INDEX_THRESHOLD:
             continue
-        _write_generated_index(dirpath, concepts, indexed_subdirs)
+        _write_generated_index(dirpath)
         created.append(str((dirpath / "index.md").relative_to(root)))
     return created
 
 
-def _write_generated_index(dirpath: Path, concepts: t.List[Path], subdirs: t.List[Path]) -> None:
-    """Write a pointer-list index.md from concept frontmatter."""
+def _write_generated_index(dirpath: Path) -> None:
+    """Write a pointer-list index.md covering the directory's uncovered files.
+
+    Files in unindexed subdirectories are listed directly by relative path,
+    per the house rule; indexed subdirectories get a # Subdirectories entry
+    pointing at their own index.md.
+    """
+    _, subdirs = get_children(dirpath)
+    indexed_subdirs = [s for s in subdirs if (s / "index.md").exists()]
     title = dirpath.name.replace("-", " ").replace("_", " ").title() or "Index"
     lines = [f"# {title}", ""]
-    for concept in concepts:
+    for concept in get_uncovered_files(dirpath):
         fm = parse_frontmatter(get_text(concept))
         display = str(fm.keys.get("title") or concept.stem)
         desc = str(fm.keys.get("description") or "").strip()
         suffix = f" - {desc}" if desc else ""
-        lines.append(f"* [{display}]({concept.name}){suffix}")
-    if subdirs:
+        lines.append(f"* [{display}]({concept.relative_to(dirpath).as_posix()}){suffix}")
+    if indexed_subdirs:
         lines.extend(["", "# Subdirectories", ""])
-        for subdir in subdirs:
+        for subdir in indexed_subdirs:
             display = subdir.name.replace("-", " ").replace("_", " ").title()
             lines.append(f"* [{display}]({subdir.name}/index.md)")
     (dirpath / "index.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -483,7 +498,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--json", action="store_true", help="emit JSON instead of text")
     parser.add_argument("--strict", action="store_true", help="treat warnings as failures (exit 1)")
     parser.add_argument("--errors-only", action="store_true", help="show and count errors only")
-    parser.add_argument("--fix", action="store_true", help="create missing index.md files (safe fixes only)")
+    parser.add_argument("--fix", action="store_true", help="create the index.md files the house rule requires (OKF007; safe fixes only)")
     parser.add_argument("--quiet", action="store_true", help="suppress the clean-bundle message")
     return parser
 

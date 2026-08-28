@@ -112,28 +112,21 @@ rejected by a condition can return without an obvious error.
 already closed, reopening the epic does not make time logging work — the sync has no path
 that reopens a closed task, and flipping task status needs Clockify manager/admin
 permissions. That combination is a stop-and-escalate, not a step. Check first per
-`~/.claude/skills/clockify/references/jira-sync-trigger.md`; read the task's real status
+`~/.claude/skills/shared/tools/clockify/jira-sync.md`; read the task's real status
 rather than inferring it from the epic's resolution date.
 
 ---
 
 ## Fixing sync labels
 
-An epic produces a Clockify task only when **all** of these hold:
+The epic needs `SOW` plus `Hourly` or `Fixed` before the Clockify sync will create its task.
+Those requirements — labels, `Customer/s`, the customer allowlist, and the status allowlist —
+live in `~/.claude/skills/shared/tools/clockify/jira-sync.md`. Read them there; the sync
+rules are not restated here. (Note in particular that the status filter is an explicit
+allowlist, not "anything except `New Request`" — see the six statuses in the Epic table
+above.)
 
-| Requirement | Detail |
-|---|---|
-| `Customer/s` set (`customfield_10108`) | Determines the client. `Internal` routes to the `SSE` project. |
-| Labels | `SOW` + `Hourly` → `Solutions Hourly`; `SOW` + `Fixed` → `Solutions Fixed` |
-| Status | Anything except `New Request` |
-
-Missing labels is the usual cause. Real states from the GEAR board:
-
-```
-["Hourly", "SOW"]           → syncs
-["Hourly", "NACC", "SOW"]   → syncs
-[]                          → will NOT sync
-```
+What belongs here is the write mechanics.
 
 > If you post a comment alongside a transition, write it per
 > `~/.claude/skills/shared/writing/jira-comments.md` — one or two lines saying what moved
@@ -152,9 +145,9 @@ ATL__editJiraIssue(
 ```
 
 After fixing labels, the task still will not exist until the sync runs. Trigger it and wait
-per the `clockify` skill's `references/flywheel-workflow.md` — playing the pipeline
-*schedule* is the only manual trigger that works. Never hand-create the Clockify task;
-a manual task does not match the sync's naming and duplicates on the next run.
+per `~/.claude/skills/shared/tools/clockify/jira-sync.md` — playing the pipeline *schedule*
+is the only manual trigger that works. Never hand-create the Clockify task; a manual task
+does not match the sync's naming and duplicates on the next run.
 
 ---
 

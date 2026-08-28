@@ -7,7 +7,7 @@ description: >
   create an MR — even if they don't explicitly say "GitLab". MANDATORY TRIGGERS: GitLab,
   MR, merge request, PR, glab, pipeline, review comments, MR diff, search code, fetch
   file, create MR, open pull request
-version: 2026-04-13
+version: 2026-08-17
 tags:
   - gitlab
   - search
@@ -38,38 +38,33 @@ Don't write an entry if nothing went wrong and nothing surprising happened.
 
 You have two complementary tools for working with GitLab:
 
-1. **GitLab MCP server** — for searching code, issues, MRs, pipelines. Already authenticated.
+1. **GitLab MCP server** — for issues, MRs, pipelines. Already authenticated. **Not for
+   code search** — its blob search returns `Invalid JSON response`; use `glab api`.
 2. **`glab` CLI** — for everything else: fetching files, viewing MRs, reading comments, hitting the REST API. Already authenticated via `~/.config/glab-cli/config.yml`. No PAT management needed.
 
 For `glab` commands that operate on a specific repo, use the `-R` / `--repo` flag with `OWNER/REPO` or `GROUP/NAMESPACE/REPO` format. This avoids needing to be in a git directory.
 
 ---
 
-## Searching for Code (MCP)
+## Searching for Code
 
-Use the `mcp__GitLab__search` tool with `scope: blobs` to search for code across a group.
+**Full runbook: `~/.claude/skills/shared/tools/gitlab/code-search.md`** — read it before
+searching code. Summary:
 
-**Key parameters:**
-- `scope`: `blobs` for code search
-- `search`: the search string — use double quotes for exact phrase matching (e.g., `"from fw_client import FWClient"`)
-- `group_id`: the numeric GitLab group ID
-- `per_page`: set to `100` to maximize results per page (GitLab caps at 100)
-- `page`: paginate if needed
+Use `glab api`, not the MCP `search` tool (its `scope="blobs"` returns
+`Invalid JSON response`). Only **global** blob search is disabled on gitlab.com
+(`403 Global Search is disabled for this scope`); **group** scope works and is the fastest
+path from a string to a file:
 
-**Pagination note:** Always set `per_page: 100`. If you get exactly 100 results and `has_more` is not explicitly false, fetch the next page.
-
-**Example:**
-```
-mcp__GitLab__search(
-    scope="blobs",
-    search='"from fw_client import FWClient"',
-    group_id="5096867",
-    per_page=100,
-    page=1
-)
+```bash
+glab api "groups/flywheel-io/search?scope=blobs&search=<string>&per_page=100"   # whole group
+glab api "projects/<id>/search?scope=blobs&search=<string>"                     # one repo
+glab api "search?scope=projects&search=<repo-name>"                             # find a repo
 ```
 
-Each result includes `path`, `project_id`, `ref`, `startline`, and `data` (surrounding lines).
+Each blob hit includes `path`, `project_id`, `ref`, `startline`, and `data` (surrounding
+lines). Results default to 20 — pass `per_page=100` or you silently see a slice. For
+repeated searching over one repo, shallow-clone and `rg` locally instead.
 
 ---
 
@@ -267,7 +262,10 @@ glab api -X PUT "projects/<NUMERIC_ID>/merge_requests/<IID>" -f title="new title
 
 ### MCP GitLab search returns `Invalid JSON response`
 
-The `mcp__GitLab__search` tool can return `Invalid JSON response` for some project paths. Fall back to `glab` CLI:
+The `mcp__GitLab__search` tool can return `Invalid JSON response` for some project paths.
+For **code** search, don't retry it at all — use the `glab api` route in
+`~/.claude/skills/shared/tools/gitlab/code-search.md`. For MR lookups, fall back to the
+`glab` CLI:
 ```bash
 glab mr list -s opened -R GROUP/REPO
 glab mr list --source-branch my-branch

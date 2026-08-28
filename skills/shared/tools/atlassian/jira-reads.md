@@ -57,6 +57,11 @@ access" as a request to a human, not a task to attempt.
 **Read the comments before classifying any ticket.** The title lies, and prior
 automated runs have completed work without transitioning the ticket.
 
+**These responses land straight in context — there is no file to redirect to.** So
+pass the tightest `fields` list that answers your question and keep `maxResults` low.
+Reach for `*all` when you actually need the custom fields, not by default; a handful
+of `*all` reads will eat a scan's entire budget.
+
 ---
 
 ## JQL scans and the truncation trap
@@ -101,7 +106,16 @@ report that you did, so nobody reads the number as a single clean scan.
 
 ## Response gotchas
 
-- **Comment bodies are ADF**, not markdown, unless you ask for markdown.
+- **Comment bodies are ADF dicts** under `body`, not markdown, unless you ask for
+  markdown. `renderedBody` stays empty even with `expand: "renderedFields"`. To pull
+  text out of ADF:
+  ```bash
+  jq '[.fields.comment.comments[] | {author: .author.displayName,
+      text: [.body.content[]?.content[]?.text] | join(" ")}]' response.json
+  ```
+- **`renderedFields` only populates for fields you explicitly list** in `fields`.
+  `description` must be in the list or `renderedFields.description` comes back empty —
+  which reads as "this ticket has no description."
 - **`updated` is not a close time.** It moves on any edit, including a bot touching a
   field. Don't infer "finished on" from it.
 - **Group `id` vs `_id`** — unrelated to Jira, but the same class of silent-empty

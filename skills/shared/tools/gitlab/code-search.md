@@ -49,6 +49,14 @@ on gitlab.com. Group-scoped search was conflated with it. A single
 The MCP `search(scope="blobs")` tool returning `Invalid JSON response` is a separate,
 still-real problem — use `glab api` for blob search, not the MCP tool.
 
+**Inference, not verified:** the MCP failure is plausibly a non-JSON error body the
+MCP wrapper can't parse. Nobody has captured the raw response to prove it. Either way
+the answer is the same — use `glab api`.
+
+**`mcp__GitLab__semantic_code_search` is untested.** The tool exists in the runtime
+MCP toolset, but no session has recorded a result from it — no working example, no
+known failure mode. If you try it, write down what happened.
+
 ---
 
 ## Recipes
@@ -82,6 +90,41 @@ glab api "search?scope=projects&search=condor"
 ```
 
 `scope=projects` works at global scope — it is only `blobs` that is blocked there.
+
+Already know the path? Resolve the numeric id directly:
+
+```bash
+glab api "projects/GROUP%2FSUBGROUP%2FREPO" | jq '.id'
+```
+
+Encode every `/` as `%2F`. This call follows redirects, so it resolves the id even
+from a moved or renamed project's old path.
+
+---
+
+## Reading files and walking the tree
+
+```bash
+# list a directory
+glab api "projects/<id>/repository/tree?path=docs/operations&ref=main&per_page=100"
+
+# raw file contents
+glab api "projects/GROUP%2FREPO/repository/files/path%2Fto%2Ffile.py/raw?ref=main"
+```
+
+Encode `/` as `%2F` in both the project path and the file path. `ref` takes a branch,
+tag, or SHA.
+
+**When you need more than a few greps, shallow-clone and search locally.** If you're
+going to search a repo repeatedly, or need real regex over the whole tree, a clone
+beats a pile of API calls:
+
+```bash
+glab repo clone <group/repo> -- --depth 1
+rg -n "from fw_client import FWClient" <repo>
+```
+
+Fast enough for a one-file edit plus an MR.
 
 ---
 

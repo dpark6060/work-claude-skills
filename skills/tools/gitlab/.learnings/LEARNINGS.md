@@ -11,6 +11,12 @@ Entry format:
 
 ---
 
+## [2026-08-13] | Priority: HIGH | Status: RESOLVED
+**Area:** Code search — promoted to shared knowledge
+**Summary:** All GitLab code-search findings now live in one shared file; SKILL.md no longer teaches the broken MCP blob search.
+**Details:** Three files disagreed: SKILL.md taught `mcp__GitLab__search(scope="blobs", group_id=…)` as THE code-search route, this file's 2026-06-16 entry said that MCP call fails with `Invalid JSON response` and per-project `glab api "projects/<id>/search?scope=blobs"` is reliable, and fw-quest's `where-things-live.md` said group-wide blob search is disabled outright (403 "Global Search is disabled for this scope") with `scope=projects` still working to find repos. All three are true at different scopes; the reconciled runbook is `~/.claude/skills/shared/tools/gitlab/code-search.md`. SKILL.md's search section is now a short summary + pointer, and fw-quest's `where-things-live.md` / `exploration.md` / `routing.md` point at the same file. Also noted there: `mcp__GitLab__semantic_code_search` exists in the runtime toolset but no session has recorded a result from it — untested, so don't assume it works.
+**Suggested action:** Don't re-learn or re-promote this. Add new search findings to the shared file, not to SKILL.md.
+
 ## [2026-07-16] | Priority: MED | Status: RESOLVED
 **Area:** create-mr / glab mr create
 **Summary:** `glab mr create` fails with "not a git repository" unless cwd is inside the repo clone — `-R` alone is not enough.

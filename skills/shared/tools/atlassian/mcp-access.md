@@ -56,6 +56,17 @@ It is never evidence that the connector is down. Only a failed *call* proves tha
 For the scheduled sweep the fix is one string appended to `ATLASSIAN_PREFIXES` in
 `unlinked/schedule/run_quest_sweep.sh`.
 
+### Prefixes that are NOT the connector
+
+**Never `mcp__atlassian__*`.** That binds to a stale **user-scoped** MCP server that is
+not authenticated. Headless it cannot surface an auth prompt, so a run either hangs or
+silently reads nothing. That failure mode took out three scheduled sweeps before it was
+found.
+
+A **local token-auth** Atlassian server (`sooperset/mcp-atlassian` via `uvx`) is a
+separate thing and a fallback only. Its tools are named `jira_search` etc. — neither
+claude.ai spelling.
+
 ---
 
 ## Constants
@@ -73,6 +84,10 @@ and fall back to the UUID.
 The same cloudId serves both scope groups; `getAccessibleAtlassianResources` returns
 it **twice**, once with Confluence scopes and once with `read:jira-work` /
 `write:jira-work`. That duplicate is normal, not two sites.
+
+Both cloudId forms work — the connector accepts the host and the UUID interchangeably.
+Existing docs use both; neither is wrong, so don't "fix" one to the other. The host is
+`flywheelio.atlassian.net`, not `flywheel.atlassian.net` (that one 401s).
 
 ---
 
@@ -100,6 +115,30 @@ markdown. Reading: pass `responseContentFormat: "markdown"` to get plain text ba
 or `"adf"` for full fidelity. Writing: the tools accept markdown and convert, but
 anything round-tripped through a read comes back as ADF unless you asked for
 markdown — don't feed raw ADF JSON into a comment body expecting it to render.
+
+### Writing: `contentFormat` and the `\n` trap
+
+Pass a plain string to an ADF field without declaring a format and newlines get stored
+as literal `\n` characters that render as raw text in the ticket.
+
+**Never use `\n` escape sequences in text passed to Jira MCP tools.**
+
+- Always pass `contentFormat: "markdown"` on `createJiraIssue` and `editJiraIssue`.
+- Write paragraph breaks as blank lines — real newlines, not `\n`.
+- Bold, code spans, and bullet lists then follow standard markdown syntax.
+- `addCommentToJiraIssue` **does** take `contentFormat` (verified against the live tool
+  schema 2026-08-28). Pass `"markdown"` and tables, bullets, and code spans render.
+  An older note claiming this param doesn't exist was wrong.
+
+```
+createJiraIssue(
+    cloudId="flywheelio.atlassian.net",
+    contentFormat="markdown",
+    description="First paragraph.
+
+Second paragraph."          # real newlines, not \n
+)
+```
 
 Before setting any field on create/edit, get its real id and allowed values from
 `getJiraIssueTypeMetaWithFields` rather than guessing. GEAR's are recorded in

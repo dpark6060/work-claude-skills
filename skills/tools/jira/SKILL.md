@@ -1,8 +1,8 @@
 ---
 name: jira
-description: All Jira write operations via the Atlassian MCP — posting end-of-session comments and creating new tickets. Triggers on "comment on the Jira ticket", "update Jira", "log work to Jira", "create a Jira ticket", "file a ticket", "open a ticket".
+description: All Jira operations — reading issues without blowing context, posting end-of-session comments, and creating new tickets via the Atlassian MCP. Triggers on "comment on the Jira ticket", "update Jira", "log work to Jira", "create a Jira ticket", "file a ticket", "open a ticket", "read the ticket", "pull the Jira issue".
 
-MANDATORY TRIGGERS: Jira, ticket, GEAR, story, bug, sprint, epic, create ticket, open ticket, file a bug, raise a bug, log work, add comment, end of session, post to Jira, update ticket, link ticket
+MANDATORY TRIGGERS: Jira, ticket, GEAR, story, bug, sprint, epic, create ticket, open ticket, file a bug, raise a bug, log work, add comment, end of session, post to Jira, update ticket, link ticket, read ticket, fetch ticket, pull issue
 version: 1.0.0
 disable-model-invocation: true
 ---
@@ -10,6 +10,11 @@ disable-model-invocation: true
 # Jira Skill
 
 All Jira operations go through the Atlassian MCP. This skill covers the rules that apply to every operation. Load the appropriate reference file for the specific task.
+
+**Reads:** MCP JQL search silently truncates to 5 issues and pagination is dead, so a scan
+that must be complete needs the two-ends trick, not a bigger `maxResults`. There is no REST
+fallback on this machine. Pass the tightest `fields` list you can — responses land straight
+in context. Full procedure: `~/.claude/skills/shared/tools/atlassian/jira-reads.md`.
 
 ---
 
@@ -23,7 +28,7 @@ spellings have shipped:
 |---|---|
 | `mcp__claude_ai_Atlassian_Rovo__` | the claude.ai connector after the 2026-08-17 "Atlassian Rovo" server rename — **the live one as of 2026-08-18** |
 | `mcp__claude_ai_Atlassian__` | the same connector before that rename |
-| `mcp__atlassian__` | a locally-configured Atlassian MCP server, when one is registered |
+| `mcp__atlassian__` | a locally-configured server. **Usually a trap** — it binds to a stale user-scoped server that is not authenticated, and headless it cannot prompt, so a run hangs or silently reads nothing. Prefer either `claude_ai` spelling. |
 
 Resolve which is live with one call, then use that prefix for everything:
 
@@ -56,9 +61,12 @@ provenance: `~/.claude/skills/shared/tools/atlassian/mcp-access.md`.
 
 | Constant | Value |
 |---|---|
-| `cloudId` | `flywheelio.atlassian.net` |
+| `cloudId` | `flywheelio.atlassian.net` (UUID form `27a9c1e5-5c70-4dad-a559-80493dd1429d` also accepted) |
 | Default project | `GEAR` |
 | Your accountId | `5d88bebcc7d4e30dc282e6e0` |
+
+Connector setup, cloudId provenance, and the full ADF rules:
+`~/.claude/skills/shared/tools/atlassian/mcp-access.md`.
 
 ---
 
@@ -74,7 +82,9 @@ Jira's default content format is ADF (Atlassian Document Format). When you pass 
 ATL__createJiraIssue(
     cloudId="flywheelio.atlassian.net",
     contentFormat="markdown",
-    description="First paragraph.\n\nSecond paragraph."   # real newlines, not \\n
+    description="""First paragraph.
+
+Second paragraph."""   # real newlines, not \\n
 )
 ```
 
@@ -95,28 +105,19 @@ Rules:
 
 ---
 
-## GEAR Board Field Quick Reference
+## GEAR board fields
 
-| Field | Jira key | Format | Example |
-|---|---|---|---|
-| Customer | `customfield_10108` | `[{"value": "<name>"}]` | `[{"value": "UWash - NACC"}]` |
-| Customer *in JQL* | `cf[10108]` | `cf[10108] = "<exact option>"` | `cf[10108] = "UWash - NACC"` |
-| Sprint | `customfield_10021` | `{"id": <int>}` | `{"id": 3522}` |
-| Labels | `labels` | `["tag1", "tag2"]` | `["Hourly", "NACC"]` |
-| Assignee | `assignee_account_id` | accountId string | `"5d88bebcc7d4e30dc282e6e0"` |
-| Epic/Parent | `parent` param | issue key string | `"GEAR-7595"` |
-| Story Points | `customfield_10016` | number | `3` |
+**Every GEAR field id, option id, priority id, issue-type id, `additional_fields` shape, and
+JQL form is in `~/.claude/skills/shared/tools/atlassian/gear-board-fields.md`.** Read it
+before setting any field; do not work from memory of the ids.
 
-> **Billable field:** The field ID for "billable" is not confirmed. Run `ATL__getJiraIssueTypeMetaWithFields` on the GEAR project to locate it before setting it.
+Three things that used to be wrong here and are now settled:
+Acceptance Criteria **is** a real field — `customfield_11394`, textarea, on Story and Task
+(live createmeta, 2026-08-13). There is **no Billable field** on GEAR; billable-ness rides on
+the `Hourly`/`Fixed`/`SOW` labels. Sprint takes a **plain int**, not `{"id": ...}` — the dict
+form 400s (live 2026-08-14).
 
-All custom fields go in the `additional_fields` object:
-```
-additional_fields={
-    "customfield_10108": [{"value": "UWash - NACC"}],
-    "customfield_10021": {"id": 3522},
-    "labels": ["Hourly", "NACC"]
-}
-```
+Sprint ids rotate quarterly — always query `openSprints()`, never hardcode.
 
 ---
 
@@ -124,6 +125,7 @@ additional_fields={
 
 | Task | Reference file to load |
 |---|---|
+| Read an issue, search with JQL, or fetch comments | `~/.claude/skills/shared/tools/atlassian/jira-reads.md` |
 | Post an end-of-session work summary comment | `references/post-comment.md` |
 | Create a new ticket | `references/create-ticket.md` |
 | Find the epic a piece of work belongs under | `references/find-epic.md` |

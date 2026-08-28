@@ -1,3 +1,13 @@
+# General Coding
+
+## The Golden Rule
+
+**As simple as possible, and no simpler.**
+
+This is the guiding principle above every other rule in this directory. When two rules
+conflict, or a rule would make the code more complicated than the problem requires, the
+simpler code wins.
+
 # Data
 
 ## Data objects
@@ -36,3 +46,13 @@
     - GOOD: "process zip dicom" can orchestrate calling helpers
   - Private helper methods (prefixed with `_`) are encouraged for breaking up logic
   - Public methods should be high-level orchestrators, not implementation details
+
+## Build the happy path first
+- Implement the straight-line flow the user described. Match any pseudocode they give: same
+  steps, same order, same granularity.
+- Handle only common, likely failures: a file that will not open, an API timeout, a missing
+  required input. Do not imagine other failure scenarios; no defensive try/except, cleanup,
+  retries, gates or fallbacks for edge cases unless asked. Let unexpected failures propagate.
+- Docstrings are 1-3 lines. Put the "why" in a 1-2 line inline comment at the line it explains.
+- Code, comments and tests describe finished behavior only. Never reference planning history,
+  sessions, revisions, design docs, other repos, review rounds or people.

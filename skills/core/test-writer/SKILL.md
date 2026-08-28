@@ -54,6 +54,39 @@ Then, depending on the method's classification:
 
 ---
 
+## Docstrings
+
+Every test function, fixture and test-module helper gets a docstring. One line, on the line
+after the signature, before the `# Arrange` comment.
+
+```python
+def test_get_phi_result_absent_columns_skips_them_without_error():
+    """A column missing from the schema is skipped, not reported as a finding."""
+    # Arrange
+    ...
+```
+
+What to write: **the behavior being pinned, or why the case matters** — the thing the test
+name had to leave out because it was already 70 characters long.
+
+- Say the contract, not the mechanics. "A blank SerialNr degrades to the hash alone with a
+  warning, never a raise" — not "calls get_manifest and asserts archive_id".
+- Do not restate the test name in a sentence. If the docstring is the name with spaces in it,
+  it earns nothing; write the *reason the case exists* instead, or the consequence if the
+  behavior regressed.
+- Fixtures describe what they hand back: "A Patient row anonymized the way GE's samples are."
+- One line is the default. Go multi-line only when the case is genuinely non-obvious — a
+  subtle failure mode, a footgun that a past bug walked into, an external ruling the
+  assertion encodes. Then it's a one-line summary, a blank line, and two or three lines of
+  why. Never an `Args:`/`Returns:` block on a test.
+- Keep it under the line-length limit — these are one-liners, not paragraphs.
+
+Helpers inside a test module (`_build_zip_with_verbatim_member`, `_get_expected_hash8`) follow
+Functions.md instead: they are real functions, so they get a real docstring with `Args:` and
+`Returns:` when they take arguments and return something.
+
+---
+
 ## Mocking Rules
 
 - Use `unittest.mock` — specifically `mock.patch` for methods, `MagicMock` for objects
@@ -91,6 +124,8 @@ When you hit one of these, write the best test you can, but flag the issue expli
 Self-check:
 - Are all imports at the top?
 - Does each test name follow `test_methodundertest_scenario_behavior`?
+- Does every test, fixture and helper have a docstring, and does it say something the test
+  name doesn't already say?
 - For orchestration methods: is every direct call verified (right args, not-called branches)?
 - For logic methods: are any internal helpers mocked that should run for real? Would the test survive a refactor that extracts or inlines a helper?
 - Are any assertions testing mock return values directly instead of behavior?

@@ -84,6 +84,18 @@ Re-confirmed 2026-08-17: cap is **5**, and pagination is dead **even at
 `maxResults: 50`** (`hasNextPage: false`, `endCursor: null`, `remainingCount: 2`,
 `totalCount: 7`). Raising `maxResults` does nothing.
 
+**Counter-observation 2026-09-08: the cap did not appear.** `parent = "GEAR-14843"` with
+`searchResultMode: "all"` and `maxResults: 50` returned **14 nodes against `totalCount:
+14`** — no truncation, `hasNextPage: false` with nothing missing. ASC and DESC runs held the
+identical key set. The tool schema now also carries a `nextPageToken` parameter, which the
+August runs did not have, so the connector looks to have gained real pagination.
+
+Treat the cap as **unknown and possibly lifted**, not as a fixed 5. Nothing above is retired:
+keep passing `searchResultMode: "all"` and keep reading `totalCount`, because that is what
+told us the result was complete. The two-ends trick costs one cheap call and remains the
+proof — just do not pre-emptively slice an epic-sized query on the assumption it will
+truncate.
+
 ---
 
 ## The two-ends trick

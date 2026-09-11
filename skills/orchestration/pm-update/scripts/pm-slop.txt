@@ -1,0 +1,57 @@
+\blong pole\b
+\blow.hanging fruit\b
+\bmoving parts\b
+\bheavy lift\b
+\bbandwidth\b
+\bin flight\b
+\bon the radar\b
+\bboil the ocean\b
+\btable stakes\b
+\bnorth star\b
+\bquick win\b
+\bswim ?lane\b
+\bdeep dive\b
+\btouch base\b
+\blevel.set\b
+\bsynerg(y|ies|istic)\b
+\balign(ed|ment)?\b
+\bvisibility\b
+\blearnings\b
+\bgoing forward\b
+\bmoving forward\b
+\bat this time\b
+\bin terms of\b
+\bfrom a .{3,20} perspective\b
+\bslight(ly)? (delay|behind|slip)\b
+\bminor (delay|slip|issue)\b
+\bsome risk\b
+\ba bit behind\b
+\bmostly (done|complete|finished)\b
+\bnearly (done|complete|finished|there)\b
+\balmost (done|complete|finished|there)\b
+\b(good|solid|great|significant|steady|nice) progress\b
+\bmaking progress\b
+\bshould be fine\b
+\bshould not be a problem\b
+\bshouldn.t be a problem\b
+\ba few (days|weeks)\b
+\ba couple (of )?(days|weeks)\b
+\bsoon\b
+\bshortly\b
+\bin the near future\b
+\bas soon as possible\b
+\bASAP\b
+\bhopefully\b
+\bideally\b
+\bpotentially\b
+\barguably\b
+\bfairly\b
+\brelatively\b
+\bsomewhat\b
+\bpretty much\b
+\bmore or less\b
+\bsignificant(ly)?\b
+\bchallenges\b
+\bwrapping up\b
+\bramping up\b
+\bkicking off\b

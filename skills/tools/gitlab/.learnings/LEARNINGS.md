@@ -11,6 +11,14 @@ Entry format:
 
 ---
 
+## [2026-09-01] | Priority: MED | Status: RESOLVED
+**Area:** MR review comments — replying into a thread
+**Summary:** SKILL.md covers reading `/merge_requests/<iid>/notes`, but a reply needs a *discussion* id, which that endpoint does not give you.
+**Details:** To answer review comments you need two calls. `GET /merge_requests/<iid>/discussions --paginate` lists threads; each has an `.id` (40-char hex) and `.notes[]`. Filter with `jq '.[] | select(.notes[0].system == false)'` and read `.notes[0].position.new_path` / `.new_line` for where the comment sits. Then
+`glab api -X POST "projects/<enc>/merge_requests/<iid>/discussions/<discussion_id>/notes" --field body='...'`
+posts a threaded reply. `--field` (not `-f`) matters for multi-line bodies with newlines and backticks; single-quote the value and escape any embedded apostrophe. Note ids from `/notes` are NOT discussion ids and will 404 here.
+**Suggested action:** Worth a short "Replying to a review thread" block under Working with Merge Requests in SKILL.md.
+
 ## [2026-08-13] | Priority: HIGH | Status: RESOLVED
 **Area:** Code search — promoted to shared knowledge
 **Summary:** All GitLab code-search findings now live in one shared file; SKILL.md no longer teaches the broken MCP blob search.

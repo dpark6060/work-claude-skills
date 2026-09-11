@@ -16,11 +16,23 @@ MODAL_HEDGE = ["it is important to note","it should be noted","it is worth notin
     "as mentioned","as noted above"]
 BE = r"(?:am|is|are|was|were|be|been|being)"
 PP_IRREG = r"(?:done|made|sent|read|built|kept|held|set|put|run|written|shown|given|taken|found|got|gotten|seen|known|thrown|drawn)"
+# Stems where "'s" is a contraction rather than a possessive.
+CONTRACTION_S_STEMS = r"(?:it|that|there|here|he|she|what|who|let|where|how|one|nothing|everything|everyone|someone)"
 
 def strip_code(t):
     t = re.sub(r"```.*?```", " ", t, flags=re.S)
     t = re.sub(r"`[^`]*`", " ", t)
     return t
+
+def strip_tables(t):
+    # A markdown table row is not a prose sentence. Counting rows as sentences
+    # makes the paragraph cap unreachable for any table over five rows.
+    return "\n".join(l for l in t.split("\n") if not l.strip().startswith("|"))
+
+def strip_frontmatter(t):
+    # YAML frontmatter is metadata, not prose. Its "key:" lines each read as a
+    # sentence, which trips the paragraph cap on every knowledge doc.
+    return re.sub(r"\A---\n.*?\n---\n", "", t, flags=re.S)
 
 def sentences(text):
     out = []
@@ -48,15 +60,19 @@ def count_ci(text, phrases):
     return n, hits
 
 def lint(text):
-    raw = text
-    text = strip_code(text)
+    raw = strip_frontmatter(text)
+    text = strip_code(raw)
     sents = sentences(text)
     words = sum(wc(s) for s in sents) or 1
     v = {}
     longs = [(wc(s), s) for s in sents if wc(s) > 20]
     v["long_sentence(>20w)"] = len(longs)
     v["semicolon"] = text.count(";")
-    v["contraction"] = len(re.findall(r"\b\w+['’](?:t|re|ve|ll|d|s|m)\b", text))
+    # "'s" is ambiguous: "it's" contracts, "the validator's" is possessive. Only
+    # count "'s" after a stem that cannot take a possessive.
+    v["contraction"] = len(re.findall(r"\b\w+['’](?:t|re|ve|ll|d|m)\b", text)) + len(
+        re.findall(rf"\b{CONTRACTION_S_STEMS}['’]s\b", text, re.I)
+    )
     v["passive_voice"] = len(re.findall(rf"\b{BE}\s+(?:\w+ed|{PP_IRREG})\b", text, re.I))
     v["ing_main_verb"] = len(re.findall(rf"\b{BE}\s+\w+ing\b", text, re.I))
     v["nominalization"] = len(re.findall(r"\b(?:perform(?:s|ed)?|conduct(?:s|ed)?|provide(?:s|d)?|carry out|carries out|make use of|makes use of)\b", text, re.I)) + len(re.findall(r"\b\w{4,}(?:tion|ment|ance|ence)\s+of\b", text, re.I))
@@ -65,7 +81,7 @@ def lint(text):
     v["marketing_adjective"], mh = count_ci(text, MARKETING)
     v["modal_hedge"], _ = count_ci(text, MODAL_HEDGE)
     paras = [p for p in re.split(r"\n\s*\n", raw) if p.strip()]
-    v["long_paragraph(>6s)"] = sum(1 for p in paras if len(sentences(strip_code(p))) > 6)
+    v["long_paragraph(>6s)"] = sum(1 for p in paras if len(sentences(strip_tables(strip_code(p)))) > 6)
     em = raw.count("—") + raw.count("–")
     total = sum(v.values())
     per100 = {k: round(x*100.0/words, 2) for k, x in v.items()}

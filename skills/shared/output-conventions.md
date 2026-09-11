@@ -41,6 +41,7 @@ Skill-specific output files go in `claude-work/<skill-name>/`. Create the direct
 | `fw-verify` | `claude-work/fw-verify/<run-id>/` | `report.md` + probe scripts |
 | `fw-workorder` | `claude-work/fw-workorder/` | `<date>-<slug>.md` (the work order) |
 | `fw-quest` | `claude-work/fw-quest/` | `<ticket>.md` (full findings per ticket) |
+| `pm-update` | `claude-work/pm-update/` | `<EPIC-KEY>-<date>.md` (draft) + `<EPIC-KEY>-<date>-input.json` |
 
 ### Adding a new skill
 

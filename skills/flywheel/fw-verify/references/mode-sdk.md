@@ -47,7 +47,7 @@ Rules:
 - Print `repr()` of values so types are unambiguous (`'None'` vs `None`).
 - Record the SDK version and site in every script's output — verdicts without
   versions are worthless later.
-- Read `~/.claude/rules/flywheel_specific/sdk/FinderBehaviors.md` before writing any
+- Read `~/.claude/skills/shared/flywheel/finder-behaviors.md` before writing any
   finder query.
 - **`.reload()` before asserting on `info` or `classification`.** Finder/list
   results are a projection that omits both (`info == {}`, file `info == None`) —
@@ -62,7 +62,7 @@ Rules:
 ## Source cross-check
 
 Observed behavior is half the evidence; the other half is what the installed code
-says (per `~/.claude/rules/flywheel_specific/sdk/SdkUse.md`):
+says (per `~/.claude/skills/shared/flywheel/sdk-investigation.md`):
 
 ```bash
 python -c "import flywheel, pathlib; print(pathlib.Path(flywheel.__file__).parent)"

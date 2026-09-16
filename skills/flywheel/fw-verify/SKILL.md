@@ -181,7 +181,7 @@ exactly what blocked the test. Chat summary = one verdict line per claim.
 - **Re-run a REFUTED claim once** before reporting it. A single-run refutation is the
   most expensive thing to get wrong, and dev instances are flaky.
 - **Finder queries have quoting rules that fail silently** (numeric labels, parent
-  filters). Read `~/.claude/rules/flywheel_specific/sdk/FinderBehaviors.md` before
+  filters). Read `~/.claude/skills/shared/flywheel/finder-behaviors.md` before
   writing one, or you will verify your own typo.
 - **Verify metadata only on a reloaded container.** Finder and list results omit
   `info` and `classification` (`info == {}`, file `info == None`) even when the

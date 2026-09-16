@@ -34,11 +34,11 @@ Before building anything, confirm a skill is the correct artifact. The cost of a
 | The need is... | Build a... |
 |---|---|
 | An always-on rule for every session (style, conventions, behavior) | CLAUDE.md addition |
-| A standing coding/domain standard referenced on demand | `rules/` file |
+| A standing coding/domain standard referenced on demand by 2+ skills | `skills/shared/` reference file |
 | A specialized workflow needed *sometimes* | Skill (continue below) |
 | A prompt you've pasted 3+ times | Skill (continue below) |
 
-Rule of thumb: if the instructions wouldn't hurt to have loaded in *every* conversation, they belong in CLAUDE.md or a rule, not a skill. If it's only needed occasionally, it's a skill. (See the doc's "Skills vs. CLAUDE.md" section.) If a skill isn't the right call, say so and stop.
+Rule of thumb: if the instructions wouldn't hurt to have loaded in *every* conversation, they belong in CLAUDE.md, not a skill. If several skills need the same standard on demand, it's a shared reference file. If it's only needed occasionally, it's a skill. (See the doc's "Skills vs. CLAUDE.md" section.) If a skill isn't the right call, say so and stop.
 
 ---
 
@@ -92,7 +92,7 @@ Ask the user the following as a single grouped message. Don't proceed until you 
 
 Based on the answers, design the structure before writing. Match the body to the skill type:
 
-**Action skill:** What rules files should it read before acting (check `rules/`)? What are the non-negotiables — the rules most likely to be violated? What are the Before / While / After phases?
+**Action skill:** What shared standards should it read before acting (check `skills/shared/coding/` and `skills/shared/flywheel/`)? What are the non-negotiables — the rules most likely to be violated? What are the Before / While / After phases?
 
 **Planning skill:** What are the numbered steps (typical: Explore → Ask → Design → Present → Write)? What's the output file called and where does it go? Does it reference a shared format file (e.g. `~/.claude/skills/shared/plan_format.md`)?
 
@@ -244,6 +244,6 @@ If an agent was created, also remind them Claude Code may need a restart to pick
 
 - Don't restate the rulebook's mechanics in the new SKILL.md — link to `~/.claude/skills/shared/claude-skills-best-practices.md` so there's one source of truth.
 - Don't duplicate content between SKILL.md and its reference files — SKILL.md points, references hold the detail.
-- Don't invent rule files that don't exist — only reference files that actually exist in `rules/`.
+- Don't invent shared reference files that don't exist — only point at files that actually exist under `skills/shared/`.
 - Don't add logging instructions unless the skill type warrants it.
 - Don't write implementation code in the skill file — skills are instructions, not implementations.

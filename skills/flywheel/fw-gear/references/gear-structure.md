@@ -1,3 +1,11 @@
+---
+type: Library Reference
+title: Gear Structure
+description: The skeleton gear's sanctioned file and module names (never rename run.py, main.py, parser.py), the reject table for common renames, and how to decouple main.py from Flywheel via run.py.
+tags: [fw-gear, gears, structure, decoupling, skeleton]
+timestamp: 2026-09-16T00:00:00Z
+---
+
 # Gear Structure
 
 ## Sanctioned File Names

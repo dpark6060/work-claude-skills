@@ -1,4 +1,12 @@
-# Gear Readme's
+---
+type: Library Reference
+title: Gear README
+description: How to generate a gear README from manifest.json — which manifest keys map to which README fields, the Inputs/Config/Outputs templates, and the Usage sections to fill from code.
+tags: [fw-gear, gears, readme, manifest, documentation]
+timestamp: 2026-09-16T00:00:00Z
+---
+
+# Gear README
 
 ## Requirements
 - Must have manifest.json in top-level directory (quit if missing)

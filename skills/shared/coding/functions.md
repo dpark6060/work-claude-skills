@@ -1,6 +1,12 @@
-# Functions
+---
+type: Coding Standard
+title: Functions
+description: Function naming (allowed prefixes, name-the-goal-not-the-failure), type hints, Google-style docstrings, and single-responsibility rules.
+tags: [python, coding-standards, functions, naming]
+timestamp: 2026-09-16T00:00:00Z
+---
 
-<!-- Removed: Glossary section - obvious from context -->
+# Functions
 
 **Most Important**: Readability > following rules
 

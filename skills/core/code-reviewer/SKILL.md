@@ -25,9 +25,10 @@ This gives you enough context to evaluate rules that span a whole function — w
 ## Step 2 — Read the Rules
 
 Read the rule files that apply to what you're reviewing:
-- `~/.claude/rules/general_coding/GeneralCoding.md` — always
-- `~/.claude/rules/general_coding/Functions.md` — if reviewing functions or methods
-- `~/.claude/rules/general_coding/Classes.md` — if reviewing classes
+- `~/.claude/skills/shared/coding/general-coding.md` — always
+- `~/.claude/skills/shared/coding/functions.md` — if reviewing functions or methods
+- `~/.claude/skills/shared/coding/classes.md` — if reviewing classes
+- `~/.claude/skills/shared/coding/unit-tests.md` — if the diff touches tests
 
 Do not rely on memory. Read them.
 

@@ -368,7 +368,7 @@ was told to write.
 |---|---|---|
 | Shared reference file | 2+ skills need the same knowledge | Put it in `skills/shared/`, point at `~/.claude/skills/shared/<file>.md` from each SKILL.md with a load-when trigger |
 | Skill referenced by multiple agents | Several agents need the same full playbook | List the skill in each agent's `skills:` frontmatter array — the content is injected into every one of their system prompts |
-| Rule file | The guidance is standing policy, not skill-specific | Leave it in `rules/` and reference the path. Never copy rule content into a skill |
+| CLAUDE.md | The guidance must apply in every session regardless of skill | Put it in the global CLAUDE.md. Keep it to a few lines — it costs tokens in every conversation |
 
 **Reference a shared file exactly like a local one** — absolute path plus the condition that should
 make Claude read it. It's still progressive disclosure; the file just isn't inside the skill dir:

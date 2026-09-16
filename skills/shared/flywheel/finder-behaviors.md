@@ -1,3 +1,11 @@
+---
+type: Reference
+title: Flywheel SDK Finder / Filter Behaviors
+description: Confirmed quoting and filter rules for fw.<containers>.find() — when to quote, never quote parent filters, booleans on parents always return nothing, groups use _id.
+tags: [flywheel, sdk, finder, filter, gotchas]
+timestamp: 2026-09-16T00:00:00Z
+---
+
 # Flywheel SDK Finder / Filter Behaviors
 
 Reference for `fw.<containers>.find()` and `fw.<containers>.find_first()` queries. These rules reflect confirmed SDK behaviors and known gotchas — deviating from them causes silent failures (empty results, no error raised).

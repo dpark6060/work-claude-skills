@@ -16,9 +16,6 @@ CLAUDE.md                  # this file — guide for editing the repo
 global_config/CLAUDE.md    # reference copy of global instructions (linked by Personal repo, not here)
 link_to_main_claude.sh     # creates all the ~/.claude symlinks (safe to re-run)
 README.md                  # human-facing overview (may lag the actual layout)
-rules/                     # standing instructions Claude reads as rules → ~/.claude/rules/
-  general_coding/          #   GeneralCoding, Functions, Classes, UnitTests
-  flywheel_specific/       #   sdk/, gears/, bug_reports/ guides
 skills/                    # on-demand skill modules → ~/.claude/skills/ (flattened)
   core/                    #   code-architect, code-writer, code-reviewer, debugger, ...
   flywheel/                #   fw-gear, fw-client, flyw-cli, fw-instance-inspector, ...
@@ -26,6 +23,8 @@ skills/                    # on-demand skill modules → ~/.claude/skills/ (flat
   orchestration/           #   pipeline-babysitter, lint-fixer
   tools/                   #   gitlab, jira
   shared/                  #   reference files shared across skills (no SKILL.md)
+    coding/                #     general-coding, functions, classes, unit-tests standards
+    flywheel/              #     instance access, SDK investigation, finder behaviors
 agents/                    # subagent definitions (one .md each) → ~/.claude/agents/
 hooks/  scripts/  misc/    # supporting material, not linked
 ```
@@ -33,7 +32,6 @@ hooks/  scripts/  misc/    # supporting material, not linked
 ## How linking works
 
 `link_to_main_claude.sh` is the install step. It:
-- symlinks each subdir of `rules/` → `~/.claude/rules/<name>`
 - finds every `skills/**/SKILL.md`, symlinks its **parent dir** into `~/.claude/skills/<name>`
   — the category dirs (`core/`, `flywheel/`, …) are organizational only and get **flattened**
   at the `~/.claude/skills/` level, so every skill directory name must be globally unique
@@ -41,7 +39,10 @@ hooks/  scripts/  misc/    # supporting material, not linked
 - symlinks each `agents/*.md` → `~/.claude/agents/<name>.md`
 - symlinks every file in `hooks/` → `~/.claude/hooks/<name>` (any file type, not just `.md`)
 
-Re-run it after adding a new skill, agent, rule subdir, or hook. Existing symlinks pick up edits
+Re-run it after adding a new skill, agent, or hook. (The script still has a `rules/` linking
+step for parity with the Personal repo's copy; it prints `[SKIP]` here because this repo has no
+`rules/` directory. Standards that used to live there are now `skills/shared/coding/` and
+`skills/shared/flywheel/`, loaded on demand by the skills that need them.) Existing symlinks pick up edits
 and `git pull`s automatically. The script never clobbers a real (non-symlink) file at a target.
 
 **Default run** creates only *missing* links; an existing symlink is left alone (so a stale one
@@ -77,7 +78,8 @@ that spot in both — keep the shared machinery in sync when editing either.
   the full skill content into the agent's system prompt at startup.
 - **Agent/skill changes need a Claude Code restart** to take effect — definitions load at session
   start.
-- **Don't duplicate rule content into skills** — reference the rule file path instead.
+- **Don't duplicate shared standards into skills** — point at the `~/.claude/skills/shared/...`
+  path with a load-when condition instead.
 - Editing `global_config/CLAUDE.md` changes your global Claude behavior the moment it's saved
   (it's symlinked live). Treat it with care.
 

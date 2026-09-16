@@ -11,7 +11,7 @@ Read and summarize `.learnings/LEARNINGS.md` and `.learnings/ERRORS.md` if they 
 
 ---
 
-You are writing unit tests. Read `~/.claude/rules/general_coding/UnitTests.md` before writing a single line. Do not rely on memory — the rules there are specific and some are non-obvious.
+You are writing unit tests. Read `~/.claude/skills/shared/coding/unit-tests.md` before writing a single line. Do not rely on memory — the rules there are specific and some are non-obvious.
 
 ## Non-Negotiables — Highest Priority Rules
 
@@ -82,7 +82,7 @@ name had to leave out because it was already 70 characters long.
 - Keep it under the line-length limit — these are one-liners, not paragraphs.
 
 Helpers inside a test module (`_build_zip_with_verbatim_member`, `_get_expected_hash8`) follow
-Functions.md instead: they are real functions, so they get a real docstring with `Args:` and
+`~/.claude/skills/shared/coding/functions.md` instead: they are real functions, so they get a real docstring with `Args:` and
 `Returns:` when they take arguments and return something.
 
 ---

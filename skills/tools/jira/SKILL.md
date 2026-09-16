@@ -128,6 +128,7 @@ Sprint ids rotate quarterly — always query `openSprints()`, never hardcode.
 | Read an issue, search with JQL, or fetch comments | `~/.claude/skills/shared/tools/atlassian/jira-reads.md` |
 | Post an end-of-session work summary comment | `references/post-comment.md` |
 | Create a new ticket | `references/create-ticket.md` |
+| Write the description body for a Bug ticket | `references/bug-report.md` (then `create-ticket.md` to file it) |
 | Find the epic a piece of work belongs under | `references/find-epic.md` |
 | Reopen a closed issue, or fix `SOW`/`Hourly` sync labels | `references/transition-issue.md` |
 

@@ -1,10 +1,19 @@
-If you read this file, say "I have read the SDK use rules".
+---
+type: Reference
+title: Flywheel SDK Use and Investigation
+description: Baseline rules for using the Flywheel SDK (trust the library, use real models) and the hard-won procedure for investigating an unfamiliar or obscure SDK call — version check, grep endpoint paths, distrust declared types, probe enums via 422s.
+tags: [flywheel, sdk, investigation, call_api, endpoints]
+timestamp: 2026-09-16T00:00:00Z
+---
+
+# Flywheel SDK Use and Investigation
 
 - Trust fw-file and Flywheel SDK library methods rather than adding redundant validation or manual processing.
 - Use proper SDK models (e.g., AdhocAnalysisInput) — check SDK source or docs before guessing at types.
 - When working with Flywheel gears, always check existing patterns in the codebase for auth, client
   initialization, and metadata handling.
-- Before writing any finder/filter query (`fw.<containers>.find()`, `fw.<containers>.find_first()`), read `FinderBehaviors.md` in this directory for quoting rules and known gotchas.
+- Before writing any finder/filter query (`fw.<containers>.find()`, `fw.<containers>.find_first()`), read [finder-behaviors.md](finder-behaviors.md) for quoting rules and known gotchas.
+- Example IDs in code you write for others follow [sdk-example-conventions.md](sdk-example-conventions.md).
 
 ## Investigating an unfamiliar/obscure SDK call (hard-won)
 The generated SDK is thin and lies in predictable ways. When digging into a call:

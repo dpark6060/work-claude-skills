@@ -57,7 +57,15 @@ Every teammate ends its report with exactly one status line. Handle each:
 
 A teammate report with no status line is treated as DONE_WITH_CONCERNS — read it skeptically.
 
+**Re-spawn stalled teammates.** If a teammate goes off-script, asks meta-questions about its own
+role, or stops producing useful output, dispatch a fresh one with a clearer prompt. Do not try to
+coach the existing one back on track.
+
 ## Verification Gates
+
+**Baseline first.** Before the first `code-writer` dispatch, run the test suite yourself and
+record the pass/fail count. Failures present at baseline are pre-existing: note them in the
+final report, do not attribute them to this work, and do not fix them unless the ticket asks.
 
 Do not take "done" on faith:
 
@@ -131,6 +139,7 @@ If a mid-pipeline task reveals the plan is wrong (BLOCKED with a plan problem, o
 
 - **Curate context.** Each teammate starts fresh — it knows nothing about this conversation. Include the original request (or the relevant part), the plan file path, file paths from earlier steps, and answers to anything a prior teammate flagged. A vague dispatch produces a vague result.
 - **Pass file paths for artifacts, full text for findings.** Plans live on disk — pass the path. Review findings that need fixing — quote them verbatim in the dispatch.
+- **Signature changes carry their tests.** When a task changes a function's signature, tell `code-writer` explicitly to find existing test calls to it and update them in the same pass.
 - **Run independent work in parallel.** The two post-implementation reviews always. Anything else with no data dependency.
 - **Don't run dependent steps in parallel.** Code can't be reviewed before it's written.
 

@@ -19,11 +19,13 @@ Pull up the relevant rule file(s) based on what you're writing. Do not rely on m
 
 | If you're writing... | Read this file |
 |---|---|
-| Any code | `~/.claude/rules/general_coding/GeneralCoding.md` — always |
-| A function or method | `~/.claude/rules/general_coding/Functions.md` |
-| A class | `~/.claude/rules/general_coding/Classes.md` |
-| Any file in a Flywheel gear repo | `~/.claude/rules/flywheel_specific/gears/GearStructure.md` — sanctioned filenames and run.py/main.py decoupling |
-| Example code for Flywheel | `~/.claude/rules/flywheel_specific/writing_examples.md` |
+| Any code | `~/.claude/skills/shared/coding/general-coding.md` — always |
+| A function or method | `~/.claude/skills/shared/coding/functions.md` |
+| A class | `~/.claude/skills/shared/coding/classes.md` |
+| Existing tests touched by a change | `~/.claude/skills/shared/coding/unit-tests.md` |
+| Any file in a Flywheel gear repo | `~/.claude/skills/fw-gear/references/gear-structure.md` — sanctioned filenames and run.py/main.py decoupling |
+| Flywheel SDK calls | `~/.claude/skills/shared/flywheel/sdk-investigation.md`; finder queries also `finder-behaviors.md` in that directory |
+| Example code for Flywheel | `~/.claude/skills/shared/flywheel/sdk-example-conventions.md` |
 
 ---
 

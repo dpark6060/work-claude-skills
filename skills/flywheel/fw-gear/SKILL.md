@@ -67,8 +67,9 @@ Gears start from the skeleton template, and its file and module names are the st
 them** — not to `gear_config.py`, not to `pipeline.py`, not because a design doc or module tree
 says otherwise. Adding modules (`models.py`, `fw_ops.py`, …) is fine; renaming what ships is not.
 
-Read `~/.claude/rules/flywheel_specific/gears/GearStructure.md` before creating or renaming any
-file in a gear repo. It has the full sanctioned list and the reject table.
+Read [gear-structure.md](references/gear-structure.md) before creating or renaming any
+file in a gear repo. It has the full sanctioned list, the reject table, and the run.py/main.py
+decoupling rules.
 
 ## Guide Index
 
@@ -86,6 +87,12 @@ Load the relevant guide(s) based on your task:
   Nipype integration, resource/FD monitoring
 - **[gear-manifest.md](references/gear-manifest.md)** - `manifest.json` structure, config
   and input field definitions, api-key inputs, output metadata spec
+- **[gear-structure.md](references/gear-structure.md)** - Sanctioned file/module names,
+  the rename reject table, and decoupling `main.py` from Flywheel via `run.py`
+- **[gear-skeleton-setup.md](references/gear-skeleton-setup.md)** - Placeholder values to
+  replace in `manifest.json` and `pyproject.toml` when starting from the skeleton
+- **[gear-readme.md](references/gear-readme.md)** - Generating a gear README from the
+  manifest: key mappings and the Inputs/Config/Outputs templates
 
 ## Guide Selection Strategy
 
@@ -99,7 +106,14 @@ Load the relevant guide(s) based on your task:
 
 **Defining or editing manifest.json?** Load gear-manifest.md.
 
-**Full gear from scratch?** Load all four guides.
+**Adding, moving, or renaming a file in a gear repo?** Load gear-structure.md.
+
+**Starting from the skeleton template?** Load gear-skeleton-setup.md, then gear-structure.md.
+
+**Writing or regenerating the gear's README?** Load gear-readme.md.
+
+**Full gear from scratch?** Load gear-basics, gear-metadata, gear-utils, gear-manifest, and
+gear-structure.
 
 ## Key Concepts
 
@@ -122,4 +136,4 @@ All gear code you write should:
 5. Use correct method names from the guides (not outdated `flywheel-gear-toolkit` names)
 6. Only access `context.client` if the gear manifest declares an `api-key` input
 7. Access the destination via `context.config.destination["id"]` (a dict on `context.config`) — **never** `context.destination.id`. That attribute does not exist and will raise `AttributeError`. For the SDK container, use `context.config.get_destination_container()`. See gear-basics.md.
-8. Follow project coding conventions (`~/.claude/rules/general_coding/`) and gear structure rules (`~/.claude/rules/flywheel_specific/gears/GearStructure.md`)
+8. Follow project coding conventions (`~/.claude/skills/shared/coding/`) and gear structure rules ([gear-structure.md](references/gear-structure.md))

@@ -1,4 +1,15 @@
+---
+type: Coding Standard
+title: General Coding
+description: The golden rule (as simple as possible, no simpler), data-object rules, nesting and early-return structure, method decomposition, and build-the-happy-path-first.
+tags: [python, coding-standards, structure]
+timestamp: 2026-09-16T00:00:00Z
+---
+
 # General Coding
+
+Read this before writing or reviewing any Python. Companions: [functions.md](functions.md),
+[classes.md](classes.md), [unit-tests.md](unit-tests.md).
 
 ## The Golden Rule
 

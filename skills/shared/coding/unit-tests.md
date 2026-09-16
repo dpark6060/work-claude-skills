@@ -1,4 +1,12 @@
-# Unit tests:
+---
+type: Coding Standard
+title: Unit Tests
+description: pytest and unittest.mock conventions — imports at top, naming, orchestration-vs-logic testing strategy, one-level-deep assertions, robustness rules, and mocking at architectural boundaries.
+tags: [python, coding-standards, pytest, mocking, unit-tests]
+timestamp: 2026-09-16T00:00:00Z
+---
+
+# Unit Tests
 
 ## Rules:
 - CRITICAL: All imports must go at the top of the file. NEVER add imports within test methods.
@@ -20,7 +28,7 @@
 ## What to Test:
 
 Classify the method under test first — the testing strategy depends on which kind it is. Per
-GeneralCoding.md, public methods orchestrate and private helpers do the work, so most methods are
+[general-coding.md](general-coding.md), public methods orchestrate and private helpers do the work, so most methods are
 clearly one or the other. A method that is genuinely both is a code smell — flag it.
 
 **Orchestration methods** (call other methods; little or no logic of their own):

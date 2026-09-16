@@ -1,3 +1,11 @@
+---
+type: Coding Standard
+title: Classes
+description: Class naming, docstrings, type hints, single responsibility, and inheritance rules (super().__init__, pull shared child code up to the parent).
+tags: [python, coding-standards, classes, inheritance]
+timestamp: 2026-09-16T00:00:00Z
+---
+
 # Classes
 
 ## Rules:

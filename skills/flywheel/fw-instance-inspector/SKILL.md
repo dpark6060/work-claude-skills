@@ -75,6 +75,8 @@ session  = fw.get("69b3862da150d9bf039b10e3")
 ```
 
 ### Finding containers by label
+Finder filters fail silently on quoting mistakes (numeric labels, parent filters). Read
+`~/.claude/skills/shared/flywheel/finder-behaviors.md` before writing one.
 ```python
 project = fw.projects.find_first("label=my-project")
 subject = project.subjects.find_first("label=NACC813352")
@@ -235,3 +237,4 @@ Don't write an entry if nothing went wrong and nothing surprising happened.
 - **Use `.reload()`** before reading `.info` — slim containers don't include it.
 - **IDs from URLs** are 24-char hex strings. Pull them directly; don't search by label unless the ID isn't available.
 - **Print `repr(value)`** when inspecting data values — it shows the type clearly (`'None'` vs `None`).
+- **Unfamiliar SDK call?** Follow `~/.claude/skills/shared/flywheel/sdk-investigation.md` — grep the endpoint path in the installed source, distrust declared return types, and probe enums via the 422.

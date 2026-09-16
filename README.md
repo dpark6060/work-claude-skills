@@ -1,6 +1,6 @@
 # Claude Code Configuration
 
-This repository contains rules, skills, and agent definitions for
+This repository contains skills and agent definitions for
 [Claude Code](https://docs.anthropic.com/en/docs/claude-code). It is designed to be
 cloned once and symlinked into `~/.claude/`, so that pulling updates to this repo
 automatically updates your Claude configuration.
@@ -9,8 +9,8 @@ automatically updates your Claude configuration.
 
 | Directory | Purpose |
 |---|---|
-| `rules/` | Coding standards and domain guides that Claude reads as instructions |
 | `skills/` | Reusable skill modules that extend what Claude can do |
+| `skills/shared/` | Reference files several skills load on demand — coding standards, Flywheel SDK gotchas, writing rules |
 | `agents/` | Subagent definitions for the Claude Code agent team feature |
 
 ---
@@ -33,14 +33,10 @@ cd "$CLONE_DIR"
 bash link_to_main_claude.sh
 ```
 
-The script creates symlinks from `~/.claude/rules/`, `~/.claude/skills/`, and
-`~/.claude/agents/` into this repo. The output will look like:
+The script creates symlinks from `~/.claude/skills/` and `~/.claude/agents/` into this
+repo. The output will look like:
 
 ```
-=== Linking rules ===
-[LINKED] rules/general_coding → ~/.claude/rules/general_coding
-[LINKED] rules/flywheel_specific → ~/.claude/rules/flywheel_specific
-
 === Linking skills ===
 [LINKED] skills/architect_planner → ~/.claude/skills/architect_planner
 ...
@@ -54,7 +50,7 @@ The script is safe to re-run — it skips anything already linked.
 
 ### Why Symlinks?
 
-Because Claude reads rules and skills directly from `~/.claude/` at runtime, symlinking
+Because Claude reads skills directly from `~/.claude/` at runtime, symlinking
 means **any `git pull` to this repo is immediately live** — no copy step needed. New
 content from the remote shows up the next time Claude starts a session.
 
@@ -67,8 +63,6 @@ automatically.
 If you prefer not to keep the repo around, copy the directories manually:
 
 ```bash
-cp -r rules/general_coding ~/.claude/rules/
-cp -r rules/flywheel_specific ~/.claude/rules/
 cp -r skills/* ~/.claude/skills/
 cp agents/*.md ~/.claude/agents/
 ```
@@ -77,20 +71,21 @@ You'll need to repeat this after any updates.
 
 ---
 
-## Rules
+## Shared Standards
 
-Rules are markdown files Claude reads as standing instructions. They define coding
-standards and domain knowledge that Claude should apply across all tasks.
+Coding and domain standards live in `skills/shared/` and are loaded only by the skills that
+need them, so they cost nothing in sessions that don't.
 
-| Rule File | When Claude Uses It |
+| File | Loaded by |
 |---|---|
-| `rules/general_coding/GeneralCoding.md` | Always — primary coding standards |
-| `rules/general_coding/Functions.md` | When writing functions |
-| `rules/general_coding/Classes.md` | When writing classes |
-| `rules/general_coding/UnitTests.md` | When writing tests |
-| `rules/flywheel_specific/bug_reports/BugReport.md` | When writing Flywheel bug reports |
-| `rules/flywheel_specific/gears/NewGear.md` | When scaffolding a new Flywheel gear |
-| `rules/flywheel_specific/gears/Readmes.md` | When writing gear README files |
+| `skills/shared/coding/general-coding.md` | code-writer, code-reviewer, fw-gear |
+| `skills/shared/coding/functions.md` | code-writer, code-reviewer, test-writer |
+| `skills/shared/coding/classes.md` | code-writer, code-reviewer |
+| `skills/shared/coding/unit-tests.md` | test-writer, code-writer, code-reviewer |
+| `skills/shared/flywheel/finder-behaviors.md` | fw-verify, fw-instance-inspector, code-writer |
+| `skills/shared/flywheel/sdk-investigation.md` | fw-verify, fw-instance-inspector, code-writer |
+| `skills/flywheel/fw-gear/references/gear-structure.md` | fw-gear, code-writer |
+| `skills/tools/jira/references/bug-report.md` | jira |
 
 ---
 
@@ -98,8 +93,8 @@ standards and domain knowledge that Claude should apply across all tasks.
 
 Skills are structured knowledge modules that Claude loads on demand. Each skill lives
 in its own directory with a `SKILL.md` entry point and optional reference files for
-deeper topics. Unlike rules, skills are only loaded when you invoke them (either
-directly or via an agent that has the skill configured).
+deeper topics. Skills are only loaded when you invoke them (either directly or via an
+agent that has the skill configured).
 
 ### `architect_planner`
 Designs software architecture before code is written. Explores the codebase, asks

@@ -1,5 +1,14 @@
+---
+type: Reference
+title: Flywheel SDK Example Conventions
+description: How to write Flywheel example code for other people — container IDs must match the 24-hex format, and identifiers go in variables at the top of the example so readers can swap them.
+tags: [flywheel, sdk, examples, container-id]
+timestamp: 2026-09-16T00:00:00Z
+---
 
-# Container IDs
+# Flywheel SDK Example Conventions
+
+## Container IDs
 When writing code that uses container IDs, make sure your example IDs follows 
 the flywheel container UID format, described with the regex: `"^[0-9a-fA-F]{24}$"`
 something simple could be: `000123456789abcdefABCDEF`

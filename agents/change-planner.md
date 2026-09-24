@@ -2,7 +2,7 @@
 name: change-planner
 description: Plans focused changes to existing codebases for feature requests and tickets. Explores the codebase first, then designs the minimum change needed. Use when adding a feature to an existing repo, implementing a ticket, or scoping a small change. Triggers on "implement this ticket", "add this feature", "what needs to change", "plan this FR".
 tools: Read, Glob, Grep, Edit, Write
-model: opus
+model: claude-opus-4-8
 skills:
   - change-planner
 ---

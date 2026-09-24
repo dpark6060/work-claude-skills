@@ -52,6 +52,11 @@ Work through these in priority order — it mirrors the team's review pyramid in
 - Over-engineering for hypothetical future needs
 - I/O mixed in with business logic (also makes the code hard to test)
 - Raw dicts where a dataclass or Pydantic model belongs (any dict whose keys are referenced by name); complex return values with no defined return type
+- Machinery the requirement never asked for — a report builder, an aggregator, a summary, an extra status field. Ask which sentence of the requirement demands it; if there isn't one, it is a design choice and has to pay for itself
+- Placeholders standing in for work that didn't happen, or a `skipped`-style flag that makes the object's other fields meaningless (a skipped check with `passed=True`)
+- Work performed that a config flag turned off
+- A structure whose shape changes with the count — a key promoted to the top level "when there's only one"
+- The same fact recorded in two places (per-item problems flattened into a top-level list *and* kept in the item entries)
 
 **3. Clarity — can someone understand and maintain this?**
 - Methods that do more than one thing (AND/THEN test)
@@ -59,6 +64,10 @@ Work through these in priority order — it mirrors the team's review pyramid in
 - Nesting deeper than two levels
 - Logic wrapped in an `if` block that should use an early return instead
 - Names that don't convey what the thing is or does
+- Two names in the same module that differ only by a plural or a suffix — the reader has to diff them to tell them apart
+- A name whose meaning takes a sentence to explain; that sentence usually contains the better name
+- A condition whose plain-English reading is absurd (`if not checkable: return VALIDATED` reads "if we could not check it, call it valid"), even when the surrounding logic is right
+- A deliberate non-obvious choice with no inline comment saying why the obvious alternative was rejected
 
 **4. Tests — will they catch regressions?**
 - New or changed behavior is covered

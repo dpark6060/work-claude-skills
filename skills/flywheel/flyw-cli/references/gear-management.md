@@ -43,6 +43,16 @@ flyw gear ls -o json                                  # JSON output
 | `-d, --disabled` | Include disabled gears |
 | `-o, --output OUTPUT` | Output format (e.g. `json`) |
 
+### Gotcha: the default list is truncated
+
+`gear ls` applies a default result limit even with a name filter. To see every version of a gear
+(including disabled and old `-rc` builds), pass `-a -d` **and** a generous `-l`. Verify the count
+before claiming a version does not exist.
+
+```bash
+flyw gear ls -f gear.name=session-splitter -a -d -l 100
+```
+
 ## `gear upload` — Build + Upload to Flywheel
 
 Builds, tags, pushes to instance registry, and registers the gear:
@@ -51,6 +61,7 @@ Builds, tags, pushes to instance registry, and registers the gear:
 flyw gear upload                      # Upload from current dir
 flyw gear upload /path/to/gear        # Specify directory
 flyw gear upload -c analysis          # Override category
+flyw --no-interactive --assume-yes gear upload .   # Unattended (scripts, agents)
 ```
 
 ### Options
@@ -59,6 +70,24 @@ flyw gear upload -c analysis          # Override category
 |---|---|
 | `PATH` | Directory containing gear [default: PWD] |
 | `-c, --category CATEGORY` | Override manifest category |
+
+### Gotchas (confirmed 2026-09, CLI 0.36.1)
+
+- **Platform**: `flyw gear build` / `gear upload` already build `linux/amd64` on Apple Silicon.
+  No `docker buildx build --platform linux/amd64 --load` step is needed.
+- **Docker must be running**: `docker info` failing means Docker Desktop is stopped; `open -a Docker`
+  and wait for the daemon. The first `gear upload` right after daemon start can fail at the tag step
+  with `No such image: flywheel/<gear>:<ver>`; just rerun it.
+- **Slow uplink**: the push step fails with `net/http: timeout awaiting response headers` on a
+  single layer. Retry the push directly; already-accepted layers are skipped, so each retry gets
+  further. When it succeeds, rerun `gear upload` to do the (now instant) registration step.
+
+  ```bash
+  until docker push <host>/<gear>:<ver>; do sleep 5; done
+  flyw --profile <p> --no-interactive --assume-yes gear upload .
+  ```
+- **Push succeeded but gear not registered** is a valid intermediate state. `gear ls` shows nothing
+  until the `gear upload` registration step completes.
 
 ### Gear Categories
 

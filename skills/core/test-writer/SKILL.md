@@ -33,11 +33,29 @@ A test for `method_a` asserts only on what `method_a` does directly. If `method_
 
 ## What to Test For Each Method
 
-For every method under test, cover:
+Not every piece of code needs the same level of testing:
 
-1. **Happy path** — correct inputs, expected outputs, expected calls
-2. **Edge cases** — empty input, None, zero, boundary values relevant to the logic
-3. **Error/exception paths** — what happens when a dependency raises, when validation fails, when input is malformed
+### Level 1: slim
+
+  - **Happy path** — correct inputs, expected outputs, expected calls
+
+### Level 2: light
+
+  - Level 1 Tests, and:
+  - **Single Error/exception path** — Identify the SINGLE most likely error case for each method, and test for it
+
+### Level 3: moderate
+
+  - Level 2 Tests, and:
+  - **Error/exception paths** — Identify the most common errors we are most likely to get 80% of the
+  time, and tst for them
+
+### Level 4: extreme
+  
+  - Level 3 Tests, and:
+  - **Edge cases** — empty input, None, zero, boundary values relevant to the logic
+
+By default, operate at level 2
 
 Then, depending on the method's classification:
 

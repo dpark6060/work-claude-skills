@@ -58,9 +58,8 @@ If `claude-work/` does not exist or is empty, note that and continue — the git
 
 ## Phase 3 — Synthesize the Comment
 
-**Style, shape, and length: `~/.claude/skills/shared/writing/jira-comments.md`.** Voice and
-the summarize-and-link rule: `~/.claude/skills/shared/writing/outbound-core.md`. Follow
-those. Below is only what's specific to an end-of-session comment.
+**Prose: `Skill(write-for-human)`, Email mode, Jira comment channel** (the user can name
+another mode in the prompt). Below is only what's specific to an end-of-session comment.
 
 Cover:
 

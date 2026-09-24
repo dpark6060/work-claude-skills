@@ -2,6 +2,83 @@
 
 Patterns that worked, non-obvious behaviors, workflow adjustments. Append-only; newest first.
 
+## 2026-09-22 (fwv-0922-6a21) — running a gear over a fixed case set, alatest
+
+- **Resetting a gear's own metadata is three deletes, and the third has a trap.** Verdict
+  tags come off with `fw.delete_file_tags(id, body=[tag])`; a top-level info key with
+  `fw.get_file(id).delete_info(key)`. A *nested* QC namespace has no delete path — the API
+  deletes fields, not paths. Read `info["qc"]`, drop the namespace, and
+  `update_info({"qc": remaining})`: the set-info endpoint replaces each top-level key it is
+  given, so writing a rebuilt `qc` removes the namespace while leaving other top-level info
+  alone. When `qc` ends up empty, `delete_info("qc")` instead — do not write `{"qc": {}}`.
+- Back up `tags` + full `info` per file to JSON before any reset. It costs one extra
+  `get_file` per file and makes the whole operation undoable.
+- `fw.gears.iter_find()` yields the SAME gear document ~140 times on this site (the /gears
+  pagination cursor bug). Deduplicate on `gear.id` before counting versions, or you will
+  report a gear as having 140 versions.
+- **A gear that resolves its file's parents must guard every level for None.** A trigger file
+  on a session/subject/project has `parents.acquisition is None`, and
+  `client.get_acquisition(None)` raises `ValueError: Missing the required parameter
+  acquisition_id` *client-side*, before any HTTP call — so it does not look like an API
+  error in the log. Found live in 4dv-archive-validator 1.0.0-rc5: the crash happens in the
+  first line of the write phase, so the job dies with no tag and no QC result written at all.
+  When a gear declares project/subject/session/acquisition levels, test at least one non-
+  acquisition parent.
+- Old test data encodes old gear behavior. A file sitting in a `quarantine` container is a
+  *fixture of the previous build*, not a neutral starting state — it is exactly the input
+  shape the new build never anticipated. Check where each case file actually lives before
+  assuming the case set is uniform.
+
+## 2026-09-22 (fwv-0922-022b) — tag and nested-QC filters on `/files`, SDK 22.0.0, alatest
+- `fw.files.find("tags=<value>")` is a real exact match against one element of the tag
+  array. Value may be quoted or not; hyphens need no escaping; case-sensitive. Works
+  site-wide with no parent scope. `tags=~<pattern>` matches a tag family — but quoting
+  a `=~` value still silently returns 0.
+- **A deeply nested `info` path with hyphens AND a leading digit filters fine written
+  bare**: `info.qc.4dv-archive-validator.4dv-validation.outcome=PHI_HIT` returned exactly
+  the one matching file. Every attempt to protect the segments — double quotes, single
+  quotes, `[brackets]`, `\-` escapes, quoting the whole path — silently returned 0. The
+  rule is: quote the VALUE if you like, never the KEY PATH.
+- A filter on an intermediate path that resolves to an OBJECT returns 0
+  (`info.qc=~.` -> 0) while the scalar leaf under it returns the full set
+  (`....outcome=~.` -> 6). Key-exists probes only work on scalar leaves — do not read a
+  zero on an object path as "the key is absent".
+- `fw.acquisitions.find("parents.project=<pid>,files.tags=<tag>")` parses and returns a
+  plausible-looking non-zero count that is WRONG (2 acquisitions for 3 matching files).
+  `file.tags=` on the same finder returns 0. Filter files with `fw.files`, not with a
+  child-file join off a container finder.
+- `tags.0=<value>` returned the correct set even for files whose matching tag is not
+  first — it is not really positional. Don't build on it.
+- Ground-truth-first pays off: the fixture project carried 15 unrelated tags from other
+  gears, so a filter that silently matched everything would have been visible in the
+  counts rather than passing as CONFIRMED.
+
+## 2026-09-22 (fwv-0922-d487) — smart copy endpoints, gear-rule keys, alatest
+- Smart copy and "copy by reference" are the same thing: `POST
+  /{projects|subjects|sessions|acquisitions}/{id}/copy`. Container copies return the
+  new container synchronously; project copy returns `{task_id, snapshot_id,
+  project_id}` and takes `group_id`+`project_label`. Copied files carry a `copy_of`
+  block (source file_id/version/parents).
+- **`filter` is a REQUIRED body field on all four copy endpoints.** Omit it and you
+  get a bare `422 invalid_request` (`loc=["body","filter"]`) raised before any
+  permission check — a probe that reports that as a permission failure is wrong. An
+  operator-key control call is the cheapest way to pin a call's body shape before
+  reading a 4xx as a verdict.
+- The generated SDK exceptions expose the useful detail only in `exc.body`;
+  `exc.reason` is `None` on FastAPI validation errors. Log `body` in probe failure
+  details or you learn nothing from a 422.
+- Gear-rule key and copy: in-project copy PASSes at rule role admin and rw, 403 at
+  ro; copy to ANY other project is 403 `containers_create_hierarchy` (checked on the
+  DESTINATION) at every role; project copy is 403 "User does not have admin access to
+  group" at every role, since a gear-rule key has no group access.
+- The `copy_by_reference` RBAC action is carried only by the built-in admin role, but
+  rw passed the copy without it — it does NOT gate these endpoints on this version.
+  Do not infer capability from an action name matching an endpoint's summary.
+- `fw.lookup("gears/<name>")` resolves to the newest version, which may not be the
+  version a pinned (`auto_update=False`) rule spawns. A job finder keyed on the
+  looked-up `gear_id` then never finds the rule's job. Read `rule.gear_id` and use
+  that for both the finder and any baseline `gear.run`.
+
 ## 2026-09-14 (fwv-0914-5421) — gear-rule job keys, file-curator 1.0.6, alatest
 - A gear-RULE job's `api-key` input is a project-scoped key: `/auth/status` returns
   `origin.type=gear_rule`, `origin.id=<rule id>`, `user_id=None`, `roles=["user"]`.

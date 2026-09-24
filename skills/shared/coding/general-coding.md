@@ -1,7 +1,7 @@
 ---
 type: Coding Standard
 title: General Coding
-description: The golden rule (as simple as possible, no simpler), data-object rules, nesting and early-return structure, method decomposition, and build-the-happy-path-first.
+description: The golden rule (as simple as possible, no simpler), requirement-traceability and simplicity rules, data-object rules, nesting and early-return structure, method decomposition, and build-the-happy-path-first.
 tags: [python, coding-standards, structure]
 timestamp: 2026-09-16T00:00:00Z
 ---
@@ -18,6 +18,81 @@ Read this before writing or reviewing any Python. Companions: [functions.md](fun
 This is the guiding principle above every other rule in this directory. When two rules
 conflict, or a rule would make the code more complicated than the problem requires, the
 simpler code wins.
+
+### Worked example: a logging requirement
+
+The requirement said: results go to the gear log, no output file. What got built: a
+`build_report_lines` function that ran after the whole pipeline, walked every archive's result,
+and rendered a header per archive, a status word per check, the PHI lines, the file counts and a
+verdict line, backed by nine string templates, a status-word helper and fourteen tests pinning
+the layout. What the requirement needed: each function that produces a result logs it at the
+moment it has it. `get_presence_result` logs `presence: passed` or `presence: failed, 3
+problem(s)`; the builder that produces an archive's outcome logs its one message; the loop logs
+one header per archive. The log comes out grouped by archive because the loop runs one archive
+at a time. The report builder and its tests were deleted.
+
+The check to run on yourself: read the requirement's words and build exactly what they say.
+The moment a plan grows a formatter, an aggregator or a summary that the requirement never
+mentioned, stop and ask whether the simplest thing already satisfies it. "Nicely formatted" is
+not a requirement unless someone wrote it down.
+
+### Trace every element back to a requirement
+
+Before building a report, an aggregator, a status field, a summary or an extra payload key,
+find the sentence that asks for it. If there is no sentence, it is a design choice — say so out
+loud and price it. The price of a design choice is everything it drags behind it: the field, the
+constructors that set it, the branch that reads it, the key in the output, the paragraph in the
+spec, and every test pinning all of that.
+
+Worked example: "log what was skipped" was never a requirement. Dropping it deleted a dataclass
+field, two builder helpers, the placeholder objects they produced, a "check `skipped` before you
+trust `passed`" gotcha, an output key and a spec paragraph.
+
+### Record what happened, not what didn't
+
+Accumulate the results of work that actually ran. Do not construct placeholder objects for work
+that was skipped, and never carry a `skipped` flag that makes the object's other fields
+meaningless — a skipped check with `passed=True` is a trap for the next reader. A list holding
+only what ran already answers what did not run: the missing names are the answer, derived at the
+one place that needs them, if any place does.
+
+Corollary: never execute a check whose config flag is off, not even to produce a placeholder
+result for symmetry.
+
+### One shape, whatever the count
+
+A structure's shape must not depend on how many things are inside it. No "put the id at the top
+level when there is only one." One is not a special case of N, it is N=1. The same rule kills
+conditional keys, conditional nesting, and collapsing a wrapper when the list has one entry. The
+consumer should be able to write one parser and never branch on the count.
+
+### Say each fact once
+
+The parent describes the whole; each child describes itself. Do not flatten every child's
+problems into a top-level list *and* keep them in the child entries — a reader cannot tell the
+two lists are the same data, and they drift the first time one side changes. Whole-scope problems
+belong at the top; everything else lives under the thing it belongs to.
+
+### Pick the container that survives the awkward case
+
+A list beats a dict keyed on a value that can be missing or duplicated. Keying archives by
+`archive_id` looked tidier until an unreadable archive had no id to key on, and two byte-identical
+archives collapsed into one entry silently. A list, with the identifier as a field inside each
+entry, handles both without a fallback-key rule.
+
+### Comment the road not taken
+
+Where you deliberately chose the option that looks worse at a glance, say why in one line, at that
+line. A lookup that refuses to get-or-create needs the comment saying that creating would let two
+concurrent jobs race to create the same container — without it, the next reader "fixes" it. The
+same obligation applies to the error it raises: when a failure means a human has to go do
+something, the message names what to create, where, and under what label.
+
+### Show one real example of any contract shape
+
+Anything another system reads — a metadata payload, an API response, a file format — gets a
+concrete, filled-in example in the docstring or README, including a failing one. A field list
+never tells the reader what it looks like when three archives are in the zip and one has PHI.
 
 # Data
 

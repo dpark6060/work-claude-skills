@@ -114,5 +114,5 @@ GE ranked this gear behind the other two. No budget split exists, so the 120h to
 
 # Citations
 
-[1] [Jira comment conventions](../../../shared/writing/jira-comments.md)
-[2] [ste-writing skill](../../../core/ste-writing/SKILL.md)
+[1] [Jira comment conventions](../../../core/write-for-human/references/jira-comments.md)
+[2] [write-for-human skill](../../../core/write-for-human/SKILL.md)

@@ -67,6 +67,20 @@ args/returns gets the full Google-style format. Use `import typing as t` for con
 Multiple lines of readable code is better than one super complex line, even with a small
 efficiency hit.
 
+**7. Build what the requirement says, and nothing beside it.**
+Before adding a report builder, an aggregator, a summary, a status field or an extra output key,
+find the sentence in the requirement or plan that asks for it. If there isn't one, don't build it —
+raise it instead. A design choice costs the field, the constructor that sets it, the branch that
+reads it, the output key, the spec paragraph and every test pinning them.
+
+**8. Never model the absence of work.**
+Accumulate results for work that ran. No placeholder objects for skipped work, no `skipped` flag
+that makes the object's other fields meaningless, and never run a check whose config flag is off.
+
+**9. One shape regardless of count.**
+A structure's shape must not depend on how many items it holds. No key promoted to the top level
+"when there's only one." One is N=1.
+
 ---
 
 ## Coding Philosophy
@@ -92,6 +106,9 @@ Before presenting code, do a self-check:
 - Does every function/method have type hints and a docstring?
 - Are any complex return objects or shared data structures raw dicts that should be dataclasses?
 - Does the structure match the architecture plan, if one exists?
+- Is anything here that no requirement or plan sentence asked for?
+- Does any output change shape based on how many items it holds?
+- Are two names in this file distinguishable at a glance, or only by diffing them?
 
 If any answer is "yes" / "no" in the wrong direction, fix it before showing the code.
 

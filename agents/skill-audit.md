@@ -9,7 +9,7 @@ description: >
   MANDATORY TRIGGERS: spawned with a skill path to audit, audit-only pass,
   implement approved fixes from a prior audit report.
 tools: Read, Glob, Grep, Edit, Write, Bash
-model: sonnet
+model: claude-sonnet-4-6
 skills:
   - skill-audit
 ---

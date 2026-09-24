@@ -128,9 +128,9 @@ above.)
 
 What belongs here is the write mechanics.
 
-> If you post a comment alongside a transition, write it per
-> `~/.claude/skills/shared/writing/jira-comments.md` — one or two lines saying what moved
-> and why is usually the whole comment. Do not narrate the transition you just made.
+> If you post a comment alongside a transition, write it with `Skill(write-for-human)`,
+> Email mode, Jira comment channel — one or two lines saying what moved and why is usually
+> the whole comment.
 
 **Labels replace, they do not merge.** Read the current labels first and write the full
 list back, or you will drop the client label:

@@ -2,7 +2,7 @@
 name: code-reviewer
 description: Reviews Python code for quality, correctness, and adherence to project conventions. Use when asked to review code, check code quality, look for issues, or get feedback on an implementation. This is a code quality review — not an architecture review.
 tools: Read, Glob, Grep, Bash, Write
-model: opus
+model: claude-opus-4-8
 skills:
   - code-reviewer
 ---

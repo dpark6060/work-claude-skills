@@ -1,7 +1,7 @@
 ---
 name: omni-writer
 description: Orchestrates multi-section documentation projects with parallel writing, technical validation, and review cycles. Use when asked to write multiple documentation pages from a task file, ticket, or requirements document.
-model: opus
+model: claude-opus-4-8
 tools: Read, Glob, Grep, Bash, Edit, Write, Agent, Task, mcp__atlassian, mcp__claude_ai_Slack, mcp__claude_ai_Microsoft_365, mcp__GitLab
 ---
 

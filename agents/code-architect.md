@@ -2,7 +2,7 @@
 name: code-architect
 description: High-level software architecture planning. Use when a problem statement or feature needs design before code is written — file structure, module responsibilities, data flow, patterns. Triggers on "help me design", "how should I structure this", "plan this out", "how should I break this up".
 tools: Read, Glob, Grep, Edit, Write
-model: opus
+model: claude-opus-4-8
 skills:
   - code-architect
 ---

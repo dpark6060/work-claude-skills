@@ -2,7 +2,7 @@
 name: code-architect-reviewer
 description: Reviews code against an architecture plan to check compliance, identify structural drift, and assess whether the plan itself needs to change. Use when code has been written and needs architectural validation. Triggers on "review against the plan", "does this follow the plan", "check the architecture", "audit this implementation".
 tools: Read, Glob, Grep, Write
-model: opus
+model: claude-opus-4-8
 skills:
   - code-architect-reviewer
 ---

@@ -2,7 +2,7 @@
 name: code-writer
 description: Writes Python code following project conventions. Use when asked to implement a feature, write a function or class, add code to an existing file, or translate a plan into working code.
 tools: Read, Glob, Grep, Edit, Write, Bash, Skill
-model: sonnet
+model: claude-sonnet-4-6
 skills:
   - code-writer
   - fw-gear

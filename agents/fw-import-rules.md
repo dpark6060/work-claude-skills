@@ -2,7 +2,7 @@
 name: fw-import-rules
 description: Flywheel import-rules author and debugger. Assign when a data directory needs a bulk-import rules YAML (mapping folders/files to subjects, sessions, acquisitions, attachments), when an existing rules file needs review or extension, or when import behavior needs diagnosing (skipped files, wrong labels, DICOM grouping). Produces rules files and coverage reports — does not start real imports without being told to.
 tools: Read, Glob, Grep, Bash, Edit, Write, Skill
-model: opus
+model: claude-opus-4-8
 skills:
   - fw-import-rules
   - flyw-cli

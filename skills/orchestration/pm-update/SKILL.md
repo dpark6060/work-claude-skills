@@ -17,7 +17,7 @@ one status report as a comment on the epic. A project manager reads it and decid
 That is the only audience.
 
 **You own no domain knowledge.** Jira mechanics belong to the `jira` skill, GitLab mechanics
-to `gitlab`, Clockify to `clockify`, and prose style to `ste-writing`. Call them. When you
+to `gitlab`, Clockify to `clockify`, and prose style to `write-for-human`. Call them. When you
 find a gap, it gets fixed in the owning skill, never reimplemented here.
 
 **There is no human gate on this skill.** It posts on its own, to a permanent and often
@@ -95,7 +95,7 @@ Copy this checklist and track it:
 - [ ] 5. GitLab     branch, MR and commit for each live ticket
 - [ ] 6. Snapshot   the previous pm-update-snapshot, or record that this is the first
 - [ ] 7. Compute    write the input JSON, run compute_progress.py   === GATE 2 ===
-- [ ] 8. Draft      Skill(ste-writing), then fill the template      === GATE 3 ===
+- [ ] 8. Draft      Skill(write-for-human), Email mode, then the template === GATE 3 ===
 - [ ] 9. Check      ste-lint · pm-slop · placeholders               === GATE 4 ===
 - [ ] 10. Post      re-read the epic first (the budget can land mid-run), then comment
 - [ ] 11. Report    the verdict, both gate scores, anything you could not read
@@ -141,14 +141,19 @@ every number so that two runs a week apart are comparable.
 | 2 | bad input | fix the input, do not post |
 | 3 | no deliverables, no live tickets, no consumed hours | **do not post.** Report the epic is empty |
 
-### GATE 3 — ste-writing wrote the prose
+### GATE 3 — write-for-human wrote the prose
 
-**Call `Skill(ste-writing)` before you write a single sentence of the report.** Not after, not
-"in spirit". The report is prose a client may read, and this skill's whole output is that
+**Call `Skill(write-for-human)` before you write a single sentence of the report.** Not after,
+not "in spirit". The report is prose a client may read, and this skill's whole output is that
 prose.
 
-Mode: apply every mechanical rule and both length caps, and keep enough technical vocabulary
-for ticket keys, gear names, and field names. The target is a lint total of zero.
+**Use Email mode** unless the user names another mode in the prompt. A Jira epic comment lands in a PM's inbox as a notification and gets read
+the same way: the verdict line is the subject, the headline is the opening summary, and the
+ask goes in the first two sentences. Email caps apply — one concept per point, one or two
+sentences each, no background section, no recap of what the reader already knows.
+
+Run its full pipeline (no-slop, STE, deletion-pass). Keep enough technical vocabulary for
+ticket keys, gear names, and field names. The target is a lint total of zero.
 
 ### GATE 4 — the draft passes four mechanical checks
 
@@ -171,8 +176,9 @@ template would pass the linter and then post to Jira as raw text.
 - `em_dash` is 1 or less. The one allowed em dash is the sign-off.
 - `longest_sentence_words` is 20 or less.
 
-The other two checks pass when `rg` finds nothing and exits 1. `pm-slop.txt` catches the PM
-euphemisms the STE linter does not know. A surviving `<PLACEHOLDER>` means you posted the
+The lint script belongs to `ste-writing`, which `write-for-human` runs as pipeline step 2, so
+this check scores the pass that already happened. The other two checks pass when `rg` finds
+nothing and exits 1. `pm-slop.txt` catches the PM euphemisms the STE linter does not know. A surviving `<PLACEHOLDER>` means you posted the
 template instead of a report.
 
 **You may not call `addCommentToJiraIssue` until all three come back clean.** Print the final
@@ -350,8 +356,9 @@ Draft and input JSON go in `claude-work/pm-update/` per
 `~/.claude/skills/shared/output-conventions.md`. Keep both: they make a posted number
 traceable to the figure that produced it.
 
-Comment shape and the sign-off rule: `~/.claude/skills/shared/writing/jira-comments.md`. This
-skill is that file's stated exception — the report is the deliverable, so it posts inline
+Comment shape and the sign-off rule: write-for-human's Jira comment channel
+(`~/.claude/skills/write-for-human/references/jira-comments.md`). This skill is that file's
+stated exception — the report is the deliverable, so it posts inline
 rather than linking to a local file.
 
 ## Learnings

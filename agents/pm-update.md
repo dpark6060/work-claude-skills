@@ -9,7 +9,7 @@ description: >
   project manager or client, or wants to know whether an epic will hit its date.
   Read-only on GitLab; the one write it makes is the epic comment.
 tools: Read, Write, Bash, Skill, mcp__claude_ai_Atlassian_Rovo__getJiraIssue, mcp__claude_ai_Atlassian_Rovo__searchJiraIssuesUsingJql, mcp__claude_ai_Atlassian_Rovo__addCommentToJiraIssue, mcp__claude_ai_Atlassian__getJiraIssue, mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql, mcp__claude_ai_Atlassian__addCommentToJiraIssue, mcp__GitLab
-model: opus
+model: claude-opus-4-8
 skills:
   - pm-update
   - jira

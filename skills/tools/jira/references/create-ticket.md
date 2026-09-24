@@ -106,10 +106,8 @@ ATL__createJiraIssue(
 - Headings (`##`) are fine for multi-section descriptions
 - Don't nest `**bold**` inside a code span — the asterisks print literally
 
-**Writing the description:** `~/.claude/skills/shared/writing/outbound-core.md`. A ticket
-description is read by whoever picks the work up, so the same rules apply — summarize and
-link (source Slack thread, commit, Confluence page), name exact identifiers, no preamble,
-no intensifiers. Put the reproduction or the decision, not a narrative.
+**Writing the description: `Skill(write-for-human)`, Docs mode, Jira ticket description
+channel** (the user can name another mode in the prompt).
 
 ---
 

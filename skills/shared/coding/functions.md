@@ -1,7 +1,7 @@
 ---
 type: Coding Standard
 title: Functions
-description: Function naming (allowed prefixes, name-the-goal-not-the-failure), type hints, Google-style docstrings, and single-responsibility rules.
+description: Function naming (allowed prefixes, name-the-goal-not-the-failure, names that need explaining), type hints, Google-style docstrings, and single-responsibility rules.
 tags: [python, coding-standards, functions, naming]
 timestamp: 2026-09-16T00:00:00Z
 ---
@@ -48,6 +48,26 @@ takes an extra step to implement.
   the property being measured, not the failure being hunted for.
 - If a negative name is the only one that reads naturally (e.g. `is_expired`), that is fine — the
   rule is about defaulting to the goal, not banning every negative word.
+
+## Two names that differ by one character are one name
+
+If a reader has to diff two identifiers to tell them apart — `_build_skipped_check_result` next to
+`_build_skipped_check_results` — the names are broken no matter how accurate each one is. Rename so
+the difference is the word that carries the meaning, and before you do, ask why both functions
+exist: near-identical names usually mark a split that should not have happened.
+
+## A name that needs explaining is the wrong name
+
+`indexing_enabled` drew the question "what is this, and when is it false?". The answer was "the user
+turned completeness checking off" — so the name was `check_completeness`. When explaining a name
+takes a sentence, that sentence contains the better name.
+
+## Read the condition out loud
+
+`if not completeness_checkable: return Outcome.VALIDATED` reads as "if we could not check it, call it
+valid." That is indefensible as written, even when the surrounding logic happens to produce the right
+answer. A condition whose plain-English reading is absurd means either the logic is wrong or the names
+are lying about it. Fix it before a reviewer has to ask.
 
 ## Responsibilities:
 - Keep methods as simple as possible - make more simple methods vs fewer complex methods.

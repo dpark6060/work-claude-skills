@@ -102,8 +102,8 @@ it. **Never un-draft and never merge.**
 Per story, in order:
 
 1. **`Skill(jira)`** — post a comment: what changed, the MR link, test results, and the work
-   order file path. Style and length: `~/.claude/skills/shared/writing/jira-comments.md`
-   (summarize and link — the MR carries the diff, so don't recap it). Pass
+   order file path. Prose: `Skill(write-for-human)`, Email mode, Jira comment channel,
+   unless the user names another mode (the MR carries the diff, so don't recap it). Pass
    `contentFormat: "markdown"` and tables/bullets/code spans render; write real newlines,
    never `\n` escapes. ADF rules: `~/.claude/skills/shared/tools/atlassian/mcp-access.md`.
 2. **`Skill(clockify)`** in **unattended** mode — one entry, under that story's own epic

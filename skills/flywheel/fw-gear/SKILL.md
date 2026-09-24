@@ -91,8 +91,8 @@ Load the relevant guide(s) based on your task:
   the rename reject table, and decoupling `main.py` from Flywheel via `run.py`
 - **[gear-skeleton-setup.md](references/gear-skeleton-setup.md)** - Placeholder values to
   replace in `manifest.json` and `pyproject.toml` when starting from the skeleton
-- **[gear-readme.md](references/gear-readme.md)** - Generating a gear README from the
-  manifest: key mappings and the Inputs/Config/Outputs templates
+- **[gear-readme.md](references/gear-readme.md)** - Skeleton README template URL, and how to
+  hand README writing to the `doc-writer` skill (or follow the template if it isn't installed)
 
 ## Guide Selection Strategy
 

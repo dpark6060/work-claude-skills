@@ -2,7 +2,7 @@
 name: debugger
 description: Diagnoses bugs, errors, and unexpected behavior in code. Use when there is broken or failing code, a test that won't pass, an unexpected result, an exception or stack trace, or behavior that can't be explained. Triggers on "this is broken", "why is this failing", "I'm getting an error", "fix this bug".
 tools: Read, Glob, Grep, Bash, Edit, Write
-model: opus
+model: claude-opus-4-8
 skills:
   - debugger
 ---

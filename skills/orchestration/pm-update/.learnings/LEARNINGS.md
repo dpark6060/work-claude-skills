@@ -97,3 +97,36 @@ measuring a process as a defect.
   first real run and record the answer here.
 - The real truncation cap for `searchJiraIssuesUsingJql` on an epic-children query. Recorded
   as 5 and 7 on different days in the shared Jira notes. Log what this skill observes.
+
+## 2026-09-17 — GEAR-14843 rescoped from umbrella to validator-only
+
+- **The umbrella epic split into per-gear epics between runs.** GEAR-14843 was "GE .4dv
+  archive support" (Scoping/Validator/Ingest/Export, 51h across all gears). It is now
+  "[GE-AVS] 4dv-archive-validator", validator-only, with siblings GEAR-26287 (import) and
+  GEAR-26288 (export). The key matched but the scope did not.
+- **A matching snapshot key is not a matching scope.** The posted 2026-09-08 snapshot carried
+  consumed 51h (all three gears). Feeding it as prior_snapshot would have produced a false
+  "consumed fell 51->33" trend. Omitted the trend, treated as first report on the new scope,
+  and put the split in "Since the last update". Check the epic summary against the snapshot,
+  not just the key.
+- **Cache and posted snapshot disagreed.** cache/GEAR-14843-snapshot.json said budget 157 /
+  burn 32; the posted comment (hand-edited by the owner) said budget null / burn null /
+  consumed 51. The posted comment is authoritative per Step 6. The cache was stale.
+- **My Clockify attribution reconciled to the owner's figure.** Validator ticket-key hours
+  through 2026-09-03 summed to 27.15h against the owner's stated "27h". Attribution by
+  time-entry description (not ticket title) held up.
+- **Clockify lagged the work.** Session 5 (GEAR-27929, MR !12, 20 commits to Sep 16) had zero
+  logged hours; the last entry was Sep 10. Consumed understated real spend. Reported it as a
+  finding rather than inventing the hours.
+- **Auto-mode classifier blocked `uv run pytest` as "credential exploration"** because
+  CLOCKIFY_API sat in the env. Fell back to the repo's stated 279 tests plus a greppable count
+  of 257 `def test_`. The gap is pytest parametrization.
+
+## 2026-09-22 — GEAR-14843 run 3: Clockify backfill and the shared 4dv task
+
+- **The 09-17 report's 33.3h was low because Clockify only held entries through ~09-10 at post time.** By 09-22 the backfill was in: validator-attributed consumed rose to 48.5h, and burn jumped 63->92 (+29pp). The rise is catch-up logging, not new spend. Headline must say so, or a reader reads a 29-point burn spike as a blowup.
+- **All three 4dv gears log to one Clockify task, `[GEAR-14843]`.** The task does not distinguish validator vs ingest (GEAR-26287) vs export (GEAR-26288). Attribute by entry description: excluded 6.34h of ingest work ("ingest technical spec", GEAR-18559, GEAR-15394) and 1.0h (2/3) of a 3-epic restructure entry. Summing the whole task would have overstated this epic by ~7h.
+- **Clockify still lags the newest work.** No entries after 09-17, so today's GEAR-29701 rev-w rework (MR !16, real hours) is not logged. Reported 48.5h as understated rather than inventing the rework hours.
+- **Build ran over its estimate and it is a real finding.** Build cost ~43h against a 33h line (130%) and is 100% built, so burn_ahead_of_work is +30pp — spend ahead of work, i.e. over budget, which the top-down model surfaces cleanly.
+- **compute_progress.py rejects Jira status names.** An INBOX ticket must map to `not_started`, not `inbox`; the script only accepts done/in_review/in_progress/blocked/not_started (exit 2 otherwise).
+- **Verdict BUDGET AT RISK fired correctly:** burn >=80% with Testing (7h) not started.

@@ -166,7 +166,7 @@ You are reviewing [X]. Your job is [goal]. You produce [output].
 name: <name>
 description: <what it does; when to assign it>
 tools: <see below>
-model: sonnet        # use opus for judgment-heavy roles (architects, reviewers, debugger)
+model: claude-sonnet-4-6    # judgment-heavy roles (architects, reviewers, debugger): claude-opus-4-8
 skills:
   - <skill-name>
 ---

@@ -292,13 +292,10 @@ For each approved draft, `createJiraIssue` per `local/tracker.md`:
   in R5.
 - Load the `createJiraIssue` schema first and follow the description-formatting
   guidance in `local/tracker.md`.
-- **Prose style:** `~/.claude/skills/shared/writing/outbound-core.md` — brevity, no
-  preamble, no intensifiers, name exact things, summarize and link.
-  **Two deliberate exceptions for this skill:** (1) the bot sign-off required by
-  `shared/writing/jira-comments.md` does **not** apply — these tickets are written *as
-  David*, and a sign-off would be exactly the automation fingerprint the rule above
-  forbids; (2) don't link the transcript as a source. "Came up in `<meeting>`, `<date>`"
-  is the whole citation.
+- **Prose: `Skill(write-for-human)`, Docs mode, Jira ticket description channel** (the user
+  can name another mode in the prompt). R4's short user-voiced format wins over its
+  executive summary. **Exception for this skill:** don't link the transcript as a source.
+  "Came up in `<meeting>`, `<date>`" is the whole citation.
 
 ### R5 — Write back
 Update each draft in the file so it can't be re-processed:

@@ -1,8 +1,8 @@
 ---
 name: doc-writer
-description: Writes technical documentation for code, features, and projects. Use when asked to write a README, document a module or feature, write usage guides, or produce any human-facing documentation. Triggers on "write docs", "document this", "write a README", "explain how to use this".
+description: Writes technical documentation for code and repos — gear READMEs, general READMEs, client-handoff developer guides, and module or feature docs. Use when asked to write or regenerate a README, write a developer guide for handing code off to a client, document a module or feature, or produce any human-facing documentation that lives with code. Triggers on "write docs", "document this", "write a README", "gear README", "developer guide", "handoff guide", "explain how to use this".
 tools: Read, Glob, Grep, Edit, Write, Bash
-model: sonnet
+model: claude-sonnet-4-6
 skills:
   - doc-writer
 ---

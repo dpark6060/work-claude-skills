@@ -107,12 +107,9 @@ git log origin/<target>...HEAD --oneline
 git diff origin/<target>...HEAD --stat
 ```
 
-Use this to write a description that covers:
-- What changed (from the diff stat and commit messages)
-- Why, if inferable from commit messages or recent context in the conversation
-- Any notable files or areas touched
-
-Keep the description factual and concise. Do not invent motivation that isn't in the diff or conversation.
+Write the description from that output with **`Skill(write-for-human)`, Docs mode, MR
+description channel** (the user can name another mode in the prompt). Do not invent
+motivation that isn't in the diff or conversation.
 
 ---
 

@@ -7,7 +7,7 @@ description: >
   Triggers on: "fix the lint failure in", "run pre-commit and push", any invocation
   from pipeline-babysitter with a failure-report path.
 tools: Read, Write, Bash, Glob
-model: sonnet
+model: claude-sonnet-4-6
 skills:
   - lint-fixer
 ---

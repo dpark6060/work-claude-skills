@@ -6,7 +6,7 @@ description: Checks and repairs Open Knowledge Format (OKF) conformance in a dir
   structural checks, then handles judgment-call fixes (writing a `type`, good
   descriptions, index entries with Load-when triggers) with agent review. Use for a spot
   check, to enforce the spec, or to bring a drifted directory back to spec. MANDATORY
-  TRIGGERS — "okf-lint", "lint the wiki", "check OKF", "is this OKF valid", "bring this
+  TRIGGERS — "okf", "OKF", "okf-lint", "lint the wiki", "check OKF", "is this OKF valid", "bring this
   directory to spec", "OKF conformance", "check frontmatter", "audit this knowledge base",
   "why isn't this file showing up in the index".
 ---

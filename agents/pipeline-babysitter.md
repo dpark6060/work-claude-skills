@@ -6,7 +6,7 @@ description: >
   Use with /loop for hands-off pipeline babysitting.
   Triggers on "babysit this pipeline", "watch this MR", "monitor pipeline".
 tools: Read, Glob, Grep, Bash, Edit, Write, mcp__atlassian, mcp__claude_ai_Slack, mcp__claude_ai_Microsoft_365, mcp__GitLab
-model: sonnet
+model: claude-sonnet-4-6
 skills:
   - pipeline-babysitter
   - gitlab

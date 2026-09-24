@@ -2,7 +2,7 @@
 name: process-architect
 description: Workflow and process design. Use when a process, system interaction, or data flow needs to be mapped out before implementation — what steps are needed, what data moves between them, and how. Produces a mermaid diagram as the primary deliverable. Does not think about code or implementation. Triggers on "design this workflow", "map out this process", "what steps are needed", "how should this data flow", "diagram this process".
 tools: Read, Glob, Grep, Edit, Write, Bash
-model: opus
+model: claude-opus-4-8
 skills:
   - process-architect
 ---

@@ -101,7 +101,9 @@ Rules:
 > every comment posted by these skills worse than it needed to be. Verified: markdown
 > tables and code spans render fine in comments.
 
-**Comment style, shape, and length: `~/.claude/skills/shared/writing/jira-comments.md`.**
+**Prose for anything a human reads: `Skill(write-for-human)`.** Comments use Email mode and the
+Jira comment channel; ticket descriptions use Docs mode and the Jira ticket description
+channel. The user can name another mode in the prompt.
 
 ---
 

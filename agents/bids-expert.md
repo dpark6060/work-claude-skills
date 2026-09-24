@@ -2,7 +2,7 @@
 name: bids-expert
 description: BIDS standard and Flywheel BIDS-curation expert. Assign for questions about BIDS validity/naming/metadata, planning relabel (precuration) CSVs, authoring or debugging curation templates, and diagnosing why files did or didn't curate. Advises and generates artifacts (CSVs, template JSON) — does not mutate live instances.
 tools: Read, Glob, Grep, Bash, Edit, Write, Skill, mcp__atlassian, mcp__claude_ai_Slack, mcp__claude_ai_Microsoft_365, mcp__GitLab
-model: sonnet
+model: claude-sonnet-4-6
 skills:
   - bids-expert
 ---

@@ -4,7 +4,8 @@ description: >
   Posts a high level project status report as a comment on a Jira epic. Reads the epic's
   hours budget, the hours consumed from the time tracker, and the tickets live on the board
   right now, then posts budget burn, what is in motion, blockers, and an on-budget or
-  at-risk call. Read-only on GitLab; the one write it makes is the epic comment.
+  at-risk call. Two detail levels: low (default) posts an executive summary, high posts
+  the full report. Read-only on GitLab; the one write it makes is the epic comment.
   MANDATORY TRIGGERS: pm-update, status update, epic status, project status, progress
   update, how is this epic going, update for the PM, client status report, burn report,
   will this epic hit its date.
@@ -23,6 +24,22 @@ find a gap, it gets fixed in the owning skill, never reimplemented here.
 **There is no human gate on this skill.** It posts on its own, to a permanent and often
 client-visible record. The four gates below are the only thing standing between a wrong
 number and a posted comment, so none of them is optional.
+
+---
+
+## Detail level
+
+The request picks the level. "High detail", "full report", "detailed update" mean high;
+anything else, including no mention at all, means **low — the default**.
+
+Everything through GATE 2 is identical at both levels: you gather the same evidence and run
+the same script, because the low report's numbers come from the same computation and the next
+run's trend needs the same snapshot. Only the drafting differs.
+
+| Level | Template | Shape |
+|---|---|---|
+| low (default) | `assets/report-template-low.md` | verdict line with bar, done bullets, one current-work sentence |
+| high | `assets/report-template.md` | full report: burn table, board, needs attention, per-deliverable detail |
 
 ---
 
@@ -95,7 +112,7 @@ Copy this checklist and track it:
 - [ ] 5. GitLab     branch, MR and commit for each live ticket
 - [ ] 6. Snapshot   the previous pm-update-snapshot, or record that this is the first
 - [ ] 7. Compute    write the input JSON, run compute_progress.py   === GATE 2 ===
-- [ ] 8. Draft      Skill(write-for-human), Email mode, then the template === GATE 3 ===
+- [ ] 8. Draft      Skill(write-for-human), Email mode, then the detail-level template === GATE 3 ===
 - [ ] 9. Check      ste-lint · pm-slop · placeholders               === GATE 4 ===
 - [ ] 10. Post      re-read the epic first (the budget can land mid-run), then comment
 - [ ] 11. Report    the verdict, both gate scores, anything you could not read
@@ -106,7 +123,8 @@ It holds the JQL, the completeness protocol, the budget and time-tracker sources
 worked-day rule, and the GitLab queries.
 
 **Before drafting: read [references/report-example.md](references/report-example.md).** It is
-one full report that passes both gates. Match its density and its sentence form.
+one full high-detail report that passes both gates. Match its density and its sentence form at
+either level — a low report is that prose cut down, not a looser register.
 
 ---
 
@@ -166,7 +184,7 @@ rg -n '<[A-Z_]+>' <draft>.md                                            # want n
 head -1 <draft>.md | rg -q '^---$' && echo "STRAY FRONTMATTER"          # want no output
 ```
 
-The fourth check exists because `assets/report-template.md` carries frontmatter and
+The fourth check exists because both report templates carry frontmatter and
 `ste-lint.py` strips frontmatter before linting. A frontmatter block copied out of the
 template would pass the linter and then post to Jira as raw text.
 
@@ -262,14 +280,39 @@ beats "8.3h per week", because the reader can check it.
 
 ## The report
 
-Fill [assets/report-template.md](assets/report-template.md). Every placeholder gets replaced
-or its whole section gets deleted.
+Fill the template for the detail level. Every placeholder gets replaced or its whole section
+gets deleted.
+
+### Low detail (default)
+
+Fill [assets/report-template-low.md](assets/report-template-low.md). An executive summary:
+the verdict line with the bar, remaining hours, and the exhaustion date; a bullet list of what
+got done; one sentence naming the work in motion now; the snapshot block. Nothing else.
+
+| Part | Cap |
+|---|---|
+| Done bullets | 5, one sentence each |
+| Current work | 1 sentence |
+| Blocked line | 1 sentence, only when a ticket is ⛔ |
+
+The done bullets are the since-the-last-update facts: what merged, what finished, since the
+prior snapshot, or since the epic started on the first run. The current-work sentence comes
+from the live board. A ⛔ anywhere on the board forces the blocked line — name what it waits
+on and for how many days. That is the one fact a PM cannot afford to lose to brevity.
+
+Vocabulary is unchanged: write "of budget used", never "complete" — burn is not completion at
+any detail level. When a measured `percent_complete` exists, the verdict line adds
+"· <N>% built".
+
+### High detail
+
+Fill [assets/report-template.md](assets/report-template.md).
 
 **Above the `---` is everything a project manager needs.** The verdict line, the burn table,
 what is on the board, what needs attention, and what changed. Per-deliverable detail goes
 below it. Somebody reading only the top must still be able to act.
 
-### Caps
+#### Caps
 
 | Part | Cap |
 |---|---|

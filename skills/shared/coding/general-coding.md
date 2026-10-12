@@ -1,9 +1,9 @@
 ---
 type: Coding Standard
 title: General Coding
-description: The golden rule (as simple as possible, no simpler), requirement-traceability and simplicity rules, data-object rules, nesting and early-return structure, method decomposition, and build-the-happy-path-first.
+description: The golden rule (as simple as possible, no simpler), requirement-traceability and simplicity rules, contracts (explicit inputs, unknown-is-error, explicit silencing, dispatch over branches, module themes), data-object rules, nesting and early-return structure, method decomposition, and build-the-happy-path-first.
 tags: [python, coding-standards, structure]
-timestamp: 2026-09-16T00:00:00Z
+timestamp: 2026-10-08T00:00:00Z
 ---
 
 # General Coding
@@ -93,6 +93,70 @@ something, the message names what to create, where, and under what label.
 Anything another system reads — a metadata payload, an API response, a file format — gets a
 concrete, filled-in example in the docstring or README, including a failing one. A field list
 never tells the reader what it looks like when three archives are in the zip and one has PHI.
+
+# Contracts
+
+## Every input is a parameter
+
+A function's inputs are its parameters and `self`. The body does not read an environment
+variable, a module global, or another object's private attribute, and an argument the caller
+passed is never overridden by one. When a value can come from several places, resolve in this
+order: explicit argument, then values derived from other arguments, then the environment, then
+raise.
+
+```python
+# BAD: the env var is tested before "was project passed?", so an explicit
+# argument is silently replaced whenever FW_WS_PROJECT_ID is set
+elif os.environ.get("FW_WS_PROJECT_ID"):
+    project = client.get(os.environ["FW_WS_PROJECT_ID"])
+elif not project:
+    raise ValueError("project, dataset_id or path is required")
+
+# GOOD
+if not project:
+    project = _get_project(dataset_id, path)  # args, then env, then raise
+```
+
+## Unknown input is an error, not a default
+
+When a key, type, or value is not one the code knows, raise. Do not return `None`, pick a
+default, or infer intent from the shape of the input (a string that starts with `{` is not
+therefore a dict). Pydantic models get `model_config = ConfigDict(extra="forbid")`, so an
+unexpected key fails at the line that passed it instead of being dropped silently.
+
+## Silence an exception explicitly or not at all
+
+A swallowed exception names the type, wraps only the one call that can raise it, and carries a
+one-line comment saying why ignoring it is correct. `contextlib.suppress(SomeError)` is the
+idiom. A `try` never wraps more than the call that can raise and never nests inside another
+`try`.
+
+```python
+# BAD
+try:
+    return dict(value)
+except:
+    return default
+
+# GOOD
+with contextlib.suppress(FileNotFoundError):  # cache is optional; absent means cold start
+    cache_path.unlink()
+```
+
+## More than three branches is a dispatcher
+
+Complex is many small parts composed; complicated is one part with many branches. A function
+with more than three mutually exclusive branches has no single name that describes it. Make it
+one function per branch plus a dispatcher that only delegates (a dict of callables, or a short
+`if`/`elif` whose every arm is a single call).
+
+## A module has one theme and imports go one direction
+
+Every function in a module fits the theme stated in its module docstring; a file that holds
+six unrelated concerns is a namespace, not a module. Lower layers (models, paths, storage)
+never import higher ones (clients, builders). A function-local import added to break a cycle
+is a layering bug, not a fix. Import a name from the module that defines it, never through a
+re-export.
 
 # Data
 

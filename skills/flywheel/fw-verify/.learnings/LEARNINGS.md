@@ -2,6 +2,47 @@
 
 Patterns that worked, non-obvious behaviors, workflow adjustments. Append-only; newest first.
 
+## 2026-10-09 (fwv-1009-a375) — .metadata.json on a failed job, fw-gear 0.3.7, alatest
+- **The engine applies `.metadata.json` AND uploads outputs for a job that exits 1.** Canonical
+  fw-gear pattern (with-block exits clean, `sys.exit(1)` after) -> job `failed`, yet container
+  tags/info, file tags, and file QC all landed, and `saved_files` listed the output. Exit-0
+  control on a sibling acquisition gave the identical shape.
+- Two jobs on sibling acquisitions with the exit code as the only config difference makes a
+  clean control/test pair; both finished in ~15 s on the `static` tag.
+- The `"real"` content flag in a spec leaves files in `pending_uploads`. For throwaway text
+  inputs, upload a placeholder via `acq.upload_file()` instead of pausing for the user.
+- Probe gears that use fw-gear need `fw-gear[sdk]` pip-installed in the Dockerfile and an
+  `api-key` input (keyless `context.metadata` raises on 0.3.x, see fwv-1007-6c82).
+
+## 2026-10-09 (fwv-1009-483f) — xfer export rule tag filters, xfer 22.5.3, alatest
+- `POST /xfer/exports` accepts inline `rules` (validated server-side: bad regex / bad field
+  -> 422). Unknown top-level keys are silently ignored, so read the export back.
+- Export `rules` are first-match-wins; a file matching rule 1 never reaches rule 2.
+- Tag filters are case-INSENSITIVE (`SetFilter` lowercases filter value + tags); the whole
+  value is lowercased so `\D`/`\S` in a regex become `\d`/`\s`.
+- `!r` = raw regex; without it `.` becomes a literal dot and `[x]` an optional group.
+- Export report endpoint returns `{"url": ...}`; `created` rows have NO `src_stat`/file_id.
+- Storage 68d434b5... on alatest is GCS (`gs://fw-parker/dataset_testing`), not Azure.
+  `/xfer/storage-creds/<id>` returns a URL whose `application_credentials` query value must
+  be `unquote()`d raw — `parse_qs` turns `+` into space and corrupts the PEM.
+
+## 2026-10-07 (fwv-1007-6c82) — GEAR-27907 guide conflicts, fw-gear 0.3.7, all mode 0
+
+- **Keyless `context.metadata` dies client-side on fw-gear 0.3.7.** `update_container`/
+  `update_file_metadata` -> `_validate_container_type` -> `Config.get_destination_container`
+  -> `RuntimeError: Requires authenticated API key...` with `client=None`. No
+  `.metadata.json` is written, so a planned mode-3 engine run was unnecessary — when the
+  library raises before the artifact exists, the engine half of the question is moot.
+  Only keyless escape: `update_file_metadata(container_type="analysis")` skips validation.
+- `fw_gear/manifest.schema.json` (0.3.7) is identical (sorted-key hash) to
+  `flywheel-io/public/gears` spec/manifest.schema.json @ master. Schema-authority disputes
+  can be settled by hashing before anyone argues provenance.
+- Classification `suite`/`function` enums live in `fw_gear/gear_spec_schema.json` (top-level
+  keys, not under definitions) and are enforced only by `validate(validate_classification=True)`.
+- A claims list where everything is "which doc is right" tends to be 100% mode 0: schema
+  reads, source reads, repo-HEAD fetches, and a local runtime probe covered 7/7 — the auth
+  check was the only instance touch. Classify hard before provisioning anything.
+
 ## 2026-09-22 (fwv-0922-6a21) — running a gear over a fixed case set, alatest
 
 - **Resetting a gear's own metadata is three deletes, and the third has a trap.** Verdict

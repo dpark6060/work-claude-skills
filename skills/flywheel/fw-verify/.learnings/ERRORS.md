@@ -2,6 +2,14 @@
 
 Failures, wrong assumptions, and how they were fixed. Append-only; newest first.
 
+## 2026-10-09 (fwv-1009-a375)
+- `flyw --profile latest gear upload` failed with `ConnectError ... latest.sse.flywheel.io`:
+  the `latest` flyw profile is NOT the site config.json calls `latest`/`alatest`
+  (sse-latest-azure). Use `flyw --profile alatest`. Check `flyw --profile X auth status` host
+  against the SDK's api_url before uploading.
+- Probe template echoes `raw["inputs"]`, which includes the job-scoped api-key when the
+  manifest declares one. Per David: job-scoped keys are not a meaningful risk; don't flag it.
+
 ## 2026-09-14 (fwv-0914-5421)
 - Curator `import requests` → `ModuleNotFoundError` in file-curator 1.0.6; then
   `import urllib3` → same. Fixed by using `fw.api_client.call_api` for the raw call.

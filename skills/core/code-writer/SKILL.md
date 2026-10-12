@@ -7,7 +7,7 @@ description: >
   MANDATORY TRIGGERS: implement, write a function, write a class, write a script,
   write the logic, make a function, make a class, create a function, create a class,
   add a method, build this, code this up, translate to code, create a module, add feature.
-version: 1.0.0
+version: 1.1.0
 allowed-tools: [Read, Edit, Write, Bash, Glob, Grep]
 ---
 
@@ -83,8 +83,87 @@ A structure's shape must not depend on how many items it holds. No key promoted 
 
 ---
 
+## Behavioral Non-Negotiables
+
+Each is a contract about what the code does at runtime. The detailed shapes each one forbids
+are in the rule files above; these are the sentences to hold in mind while writing.
+
+**10. The signature is the contract.** Name, annotations, docstring and body say the same thing,
+and the body does nothing the name does not promise. A `get_`/`infer_`/`validate_` function
+mutates nothing; a serializer does not touch `self`; a name that says compute does not touch
+disk; a bool parameter that skips steps is two methods.
+
+**11. Failure is loud, specific, and stops the function.** Never `except Exception: return None`,
+never a bare `except`, never log where the contract is to raise, never skip work silently. One
+typed exception per subsystem. `log.exception(msg)` once, not `log.error` plus `log.exception`.
+
+**12. A validator is pure, visits every item, and reports every failure.** No network, no
+accumulator gating a per-item check, no continuing after a failed check. Report everything,
+then return one answer.
+
+**13. State has one owner, one type, and one way in.** No reading another object's `_private`,
+no field that holds different types by code path, no `setattr` from parsed data, no call order
+enforced by a comment, no env var or lookup overriding an explicit argument.
+
+**14. Nothing touches disk or network unless the caller asked for exactly that.** Constructors
+store what they are given. Imports define things. Every handle is closed by a context manager.
+
+**15. Types are truthful from the moment the value is read.** `int(os.environ.get(...))` at
+the read, `Path | None = None` not `Path = None`, no in-band magic value, no scalar check on a
+value that can be an array, no parameter rebound to a new type.
+
+**16. Models are models, and unknown input is an error.** Attributes, not `.get()`. `extra="forbid"`.
+A credential field is `SecretStr` or `Field(exclude=True)` on the day it is added.
+
+**17. Do every fallible thing before the first irreversible thing.** Validate, compute, stage;
+then the one small step that makes the result visible. No rollback code. Mechanical test: find
+the first step you cannot undo and ask whether anything after it can fail.
+
+**18. An edit leaves no trace of itself.** After editing, re-read the whole function. No
+duplicated block, no indentation that disagrees with its neighbours, no comment describing the
+edit ("removed", "previous", "was lines", "optimization", "extracted", "STEP N"), no docstring
+for the old signature, no placeholder, no TODO naming a defect you could fix now.
+
+**19. Exactly one of everything.** One implementation, one name per meaning, one write per
+mutation. A second way to do something is deleted or made the only way in the same change,
+along with its imports and its tests.
+
+**20. Declare mappings; keep customer data in the input; no literal special cases.** A
+relationship between names is a table, not string surgery. No `if name == "participants"` in a
+general path.
+
+**21. A module has one theme and imports go one direction.** No junk drawers, no function-local
+import to dodge a cycle, no re-export hops.
+
+**22. A test calls the method with the awkward input and asserts on what it did.** Never assert
+that a method exists or what its signature contains. Never run a real method against a
+`MagicMock(spec=Class)` as `self`; if the constructor is too expensive to build a real object,
+fix the constructor (14).
+
+---
+
 ## Coding Philosophy
-Whenever possible, try to adhere to the zen of python.
+
+The Zen of Python, as shapes. Each line points at what it forbids and the rule that owns it.
+
+| Aphorism | Shape | Owner |
+|---|---|---|
+| Explicit is better than implicit | Every input is a parameter or `self`; an explicit argument is never overridden by env, global or lookup | 13; general-coding.md Contracts |
+| Simple is better than complex | Trace every element to a requirement sentence | 7; Golden Rule |
+| Complex is better than complicated | Many small parts composed, not one part with many branches; more than three branches is a dispatcher | 10; general-coding.md Contracts |
+| Flat is better than nested | Nesting ≤ 2, early return | 2, 3 |
+| Sparse is better than dense | One statement per line; a `try` wraps one call; no lookup chains; no conditional inside an f-string | 6, 11 |
+| Readability counts | A reader states what the function does from name and signature alone | 10 |
+| Special cases aren't special enough to break the rules | No `if name == "x"` in a general path; one shape whatever the count | 9, 20 |
+| Although practicality beats purity | When a rule would add a layer the requirement does not need, skip it and say so in one comment at that line | general-coding.md "comment the road not taken" |
+| Errors should never pass silently | No catch-all to sentinel, no log-instead-of-raise, no silent skip | 11 |
+| Unless explicitly silenced | Name the type, wrap one call, one-line why; `contextlib.suppress` | 11; general-coding.md Contracts |
+| In the face of ambiguity, refuse the temptation to guess | Unknown key, type or value is an error, not `None` or a default | 16 |
+| There should be one obvious way to do it | A second way is deleted or made the only way in the same change | 19 |
+| Now is better than never | A TODO naming a defect is fixed now or filed in the same change | 18 |
+| Although never is often better than right now | Code for a future split does not go in the tree | 19 |
+| If the implementation is hard to explain, it's a bad idea | If the docstring needs "and", "then", "unless" or "except when", split | 1, 10 |
+| Namespaces are one honking great idea | One theme per module, one import direction, import from where it is defined | 21 |
 
 ---
 
@@ -109,6 +188,15 @@ Before presenting code, do a self-check:
 - Is anything here that no requirement or plan sentence asked for?
 - Does any output change shape based on how many items it holds?
 - Are two names in this file distinguishable at a glance, or only by diffing them?
+- Does any function do something its name does not say (mutate an argument, touch disk, skip steps on a flag)?
+- Is there an `except` that returns a sentinel, logs instead of raising, or has no type?
+- Does any function read an env var, global, or `_private` attribute instead of taking a parameter?
+- Does any constructor or import do I/O?
+- Is every env var converted at the read, and every nullable field `X | None = None`?
+- Is there an irreversible step (delete, publish, write the manifest) with fallible work after it?
+- Did you re-read every edited function end to end? Any duplicated block, odd indentation, comment about the edit, stale docstring, or placeholder?
+- Did the change leave an old implementation, unused import, or test for deleted code behind?
+- Does any test assert a method exists, or run a real method against a `spec=` mock as `self`?
 
 If any answer is "yes" / "no" in the wrong direction, fix it before showing the code.
 

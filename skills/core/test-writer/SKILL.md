@@ -70,6 +70,9 @@ Then, depending on the method's classification:
 - The test must survive an internal refactor (helper extracted, inlined, or renamed) without
   changing — if it wouldn't, restructure the test
 
+
+**Level Indicator**
+Add an inline comment at the top of the test file what level you're designing tests for.
 ---
 
 ## Docstrings

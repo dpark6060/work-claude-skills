@@ -37,6 +37,12 @@ Format:
 **Details:** Confirmed by David. The gear-manifest.md reference used to present a read-only variant as "preferred when the gear doesn't write"; that guidance is stale. Updated the reference to say don't use read-only.
 **Suggested action:** Never emit `read-only` on an api-key input, regardless of whether the gear writes back.
 
+## [2026-10-09] | Priority: HIGH | Status: RESOLVED
+**Area:** .metadata.json on failure (gear-metadata.md, gear-basics.md exit lifecycle)
+**Summary:** A failed job still gets its `.metadata.json` applied and its outputs uploaded, as long as the `with GearContext()` block itself exits cleanly.
+**Details:** `GearContext.__exit__` writes `.metadata.json` when `exc_type is None` or `SystemExit(0)`. The canonical pattern (run() catches, returns 1, sys.exit outside the with) therefore writes it. Engine-verified (fw-verify fwv-1009-a375, fw-gear 0.3.7, sse-latest-azure 22.5): exit-1 job state `failed`, and container tags/info, file tags, file QC `FAIL`, and the output file all landed. An exception or non-zero sys.exit escaping the with-block writes nothing (source). `fail_on_validation=True` also exits 1 before writing.
+**Suggested action:** Any metadata recorded before a failure is persisted. Write a QC `fail`/error tag before returning 1 if you want failures visible on the container. Don't record partial "success" metadata before a step that can still fail.
+
 ## [2026-07-23] | Priority: HIGH | Status: OPEN (needs engine verification)
 **Area:** context.metadata / .metadata.json (gear-metadata.md, metadata-capability-matrix.md)
 **Summary:** OPEN QUESTION — does `context.metadata` need an `api-key` input in fw-gear 0.3.x? The SOURCE says yes; the fw-gear DOCS say no. Do not assert either as fact without a live engine run. (Also confirmed: tag the destination container via `update_container(type, tags=[...])`; there is no `add_container_tags` helper.)

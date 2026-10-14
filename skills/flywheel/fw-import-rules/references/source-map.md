@@ -46,16 +46,8 @@ flyw CLI ──POST /xfer/imports──▶ xfer API (control plane) ◀──web
 
 ## The repos and how to clone them
 
-| Repo | What it owns | Clone |
-|---|---|---|
-| fw-meta | `ImportRule`, `MetaExtractor`, filters, field catalog — THE rule semantics | `git clone https://gitlab.com/flywheel-io/tools/lib/fw-meta.git` (public) |
-| fw-utils | `Pattern`, `Template`, `StringFilter` etc. — the syntax engines | `git clone https://gitlab.com/flywheel-io/tools/lib/fw-utils.git` (public) |
-| cli | `flyw` — flag parsing, `import test`, local uploads, rule-set CRUD, client validation | `git clone https://gitlab.com/flywheel-io/tools/app/cli.git` (public) |
-| xfer | `/xfer` API + scheduler — validation, rule-set storage, conflicts, progress/reports | **private**: `git clone git@gitlab.com:flywheel-io/tools/app/xfer.git` (SSH; anonymous HTTPS 404s and `git` may hang on a credential prompt — set `GIT_TERMINAL_PROMPT=0`) |
-| connector | server-side execution: storage walk, rule evaluation, DICOM handling, transfer | `git@gitlab.com:flywheel-io/tools/app/connector.git` (private, SSH) |
-
-Clone into the scratchpad/session temp dir, `--depth 1`. Key libs are also on PyPI
-(`uv run --with fw-meta==<ver> python ...`) — often faster than cloning for simulation.
+Repo table, clone commands (xfer and connector are private, SSH) and the PyPI shortcut
+are in `~/.claude/skills/shared/flywheel/xfer-rules-common.md` → Repos.
 
 ## Primary entrypoints per topic
 
@@ -170,16 +162,6 @@ acquisition-level dicom rules with no path mappings.
 
 ## Version-skew checks
 
-Three fw-meta copies participate in one import: the CLI's, xfer's, and the
-connector's. Observed pins (2026-07): xfer locks fw-meta **4.13.0**; the CLI locks
-**4.12.1** with NO upper bound; the connector pins its own. When a rule validates in
-one place and misbehaves in another, first compare:
-
-```bash
-uv pip show fw-meta            # or: importlib.metadata.version("fw-meta") in the CLI env
-rg -n "fw-meta" <repo>/pyproject.toml <repo>/uv.lock
-```
-
-The server's rule-set JSON schema (`GET /xfer/rule-sets/schema`) is generated from the
-server's models — when in doubt about what a given instance accepts, that endpoint
-beats every doc and every local library version.
+Three fw-meta copies participate in one import: the CLI's, xfer's, and the connector's.
+Pins and the comparison command are in `xfer-rules-common.md` → Version skew. The
+server's `GET /xfer/rule-sets/schema` beats every doc and every local library version.

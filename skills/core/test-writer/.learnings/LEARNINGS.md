@@ -13,6 +13,12 @@ Project-specific fixture patterns, mocking approaches, and testing conventions w
 
 <!-- Append new entries below this line -->
 
+## [2026-10-14] | Priority: MED | Status: RESOLVED
+**Area:** mocking, exact-call assertions (v7-export-from-fw / xfer.py)
+**Summary:** To pin exact URL and params for an HTTP client, assert on `session.get.assert_called_once_with(url, params=..., timeout=...)` — all three kwargs matter.
+**Details:** The `_get` method always passes `params` and `timeout` as keyword args, so `assert_called_once_with` needs all three. Using `call_args[0][0]` to grab just the URL works for base-URL-derivation tests where the point is the URL shape, not the full call; `assert_called_once_with` is cleaner when all args are deterministic. Module-level `_REQUEST_TIMEOUT = 30` is private, so mirror it as a local constant in the test file rather than importing it.
+**Suggested action:** For base-URL-derivation edge cases (host with/without trailing /api), build an inline fw_client mock with the specific host rather than using the shared conftest fixture — they're single-use and the variant host is the whole point of the test.
+
 ## [2026-07-24] | Priority: MED | Status: RESOLVED
 **Area:** fixtures, project conventions (loni-metadata-processor)
 **Summary:** Consolidated the repeated `MagicMock(spec=GearContext)` + `.config`/`.metadata` setup from ~7 tests in `test_run.py` and 1 in `test_parser.py` into a `mock_gear_context` fixture in `tests/conftest.py`.

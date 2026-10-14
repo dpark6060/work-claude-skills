@@ -164,6 +164,7 @@ and documentation is premature.
 - **Curate context.** Each teammate starts fresh — it knows nothing about this conversation. Include the original request (or the relevant part), the plan file path, file paths from earlier steps, and answers to anything a prior teammate flagged. A vague dispatch produces a vague result.
 - **Pass file paths for artifacts, full text for findings.** Plans live on disk — pass the path. Review findings that need fixing — quote them verbatim in the dispatch.
 - **Signature changes carry their tests.** When a task changes a function's signature, tell `code-writer` explicitly to find existing test calls to it and update them in the same pass.
+- **Test depth defaults to the test-writer skill's default level** (level 2: one happy path plus the single most likely error path per method). This applies to every dispatch that produces tests — `test-writer`, and `code-writer` when a plan task includes tests. Never ask for edge cases, boundary values, exhaustive error mapping, or a long scenario list on your own initiative, and strip such lists from plan tasks before dispatching. If you think more is warranted, stop and ask the user first: name the methods, the level you want, and a one-line justification for each. Dispatch the deeper level only after they approve.
 - **Run independent work in parallel.** The two post-implementation reviews always. Anything else with no data dependency.
 - **Don't run dependent steps in parallel.** Code can't be reviewed before it's written.
 

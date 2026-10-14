@@ -54,19 +54,12 @@ it matches the docs and survives templates containing `=` poorly in dict form.
 
 ## Template syntax (left side)
 
-f-string-like formatting of source fields into a string (`fw_utils.formatters.Template`):
-
-| Syntax | Meaning |
-|---|---|
-| `{field}` | Insert the field value. Bare `field` with no curlies anywhere is an implicit `{field}`. |
-| `{field/pat/sub}` | `re.sub(pat, sub, value)` before inserting. Escape literal `/` in pat/sub as `\/`. |
-| `{field:format}` | Python format spec (e.g. `:.5` truncates to 5 chars); `strftime` pattern for timestamp fields. |
-| `{field\|default}` | Use default when the value is None/empty. Without it, empty values render as `UNKNOWN`. |
-| `{a}_{b}` | Multiple fields joined with literal text between. |
-| `\{` `\}` | Literal curly braces. |
-
-Modifier order when combined: `/pat/sub` → `:format` → `|default`, e.g.
-`{file.name/\.dicom\.zip$//}` or `{PatientName/\^/_:.20|anon}`.
+The left side is a `fw_utils.formatters.Template`. Its full syntax (`{field}`,
+`{field/pat/sub}`, `{field:format}`, `{field|default}`, modifier order) is in
+`~/.claude/skills/shared/flywheel/xfer-rules-common.md` → Templates. Import-specific
+notes: a bare `field` with no curlies anywhere is an implicit `{field}`, and the regex
+substitution closes with a single slash, e.g. `{file.name/\.dicom\.zip$/}` or
+`{PatientName/\^/_:.20|anon}`.
 
 **Empty-value skip:** if ANY field referenced by the template is empty/None for a file,
 the whole mapping is skipped for that file (no partial `UNKNOWN` extraction happens in

@@ -1,7 +1,7 @@
 ---
 type: Schema Reference
 title: Import Rule YAML Schema
-description: Complete ImportRule field reference, filter expression semantics, and destination metadata field catalog, from the fw-meta source.
+description: Complete ImportRule field reference, import filter fields, DICOM behavior, and destination metadata field catalog, from the fw-meta source.
 tags: [flywheel, import, rules, yaml, schema]
 timestamp: 2026-07-14T00:00:00Z
 resource: https://gitlab.com/flywheel-io/tools/lib/fw-meta/-/blob/main/fw_meta/imports.py
@@ -10,71 +10,47 @@ resource: https://gitlab.com/flywheel-io/tools/lib/fw-meta/-/blob/main/fw_meta/i
 # Import Rule YAML Schema
 
 Verified against source: `fw_meta/imports.py` (`ImportRule`, `ImportFilter`,
-`IMPORT_FIELD_LOADERS`) and `fw_utils/filters.py`. The pydantic model `ImportRule` is
-the single source of truth — the server validates against it.
+`IMPORT_FIELD_LOADERS`). The pydantic model `ImportRule` is the single source of truth;
+the server validates against it. Shared machinery lives in
+`~/.claude/skills/shared/flywheel/xfer-rules-common.md`: rule evaluation order, filter
+operators and string-match semantics, template syntax, field aliases, the spec envelope,
+managed rule sets and the 8192-char limit.
 
 ## Contents
 
-- Rules file document shapes
-- Rule evaluation model
+- Import-only spec keys
+- Import-specific evaluation notes
 - ImportRule fields
-- Filter expressions (fields, operators, semantics)
+- Filter fields (plain files, DICOM sources)
 - Zip member filters (`::`)
 - `type: dicom` behavior and DICOM default mappings
 - Destination metadata field catalog
-- Field name aliases
 
-## Rules file document shapes
+## Import-only spec keys
 
-A rules YAML comes in two accepted shapes:
+The spec envelope (`type`, `label`, `storage_kind`, `rules`, `fail_fast`) is in the
+common reference. Import adds:
 
 ```yaml
-# shape 1 — bare list of rules (the original format)
-- level: acquisition
-  include: ["path=~**/*.dcm"]
-  type: dicom
-
-# shape 2 — full spec (xfer ImportSpec model; what managed rule sets store)
-type: import                  # import rules in an export rule set = validation error
-label: "{refs.project.label} import"   # optional job-label template
+type: import
 storage_kind: blob            # blob (default) | dicom (DICOMweb) | dicom_connector
-rules:                        # min 1, max 50 rules
-  - level: acquisition
-    type: dicom
 scan_params: {prefixes: [site-a/imaging]}   # server-side scan narrowing
 conflict_strategy: review     # skip | update | force_update | review (default review)
 fail_fast: "5%"               # error threshold: count or percent string (default "5%")
 uid_scope: project            # UID-duplicate search scope: site|group|project|none
 ```
 
-The CLI normalizes a bare list into `{"type": "import", "rules": [...]}` and validates
-spec files against the JSON schema the server publishes at `GET /xfer/rule-sets/schema`
-(skipped silently if the fetch fails). Managed rule sets (Core >= 21.5.0) store shape 2,
-are scoped to site/group/project, versioned, and referenced by ID via `--rule-set <id>`;
-`--rule-set` also accepts a local file path (rules get inlined into the import payload).
-
-**Docs discrepancy:** the Rule Files docs page shows a `job:` + `rules:` wrapper shape.
-No `job` key exists in xfer 22.3.0 or CLI 0.35.0 source, and the spec schema is
-`extra="forbid"`, so it would be rejected — use the flat spec shape above. If a target
-instance disagrees, `GET /xfer/rule-sets/schema` on that instance is the truth.
-
-**Managed rule-set size limit:** the stored `yaml` string maxes at 8192 chars. A heavily
-commented file can exceed this — keep the commented master copy in the repo and strip
-comments only if pushing it as a managed rule set complains.
-
 **`storage_kind: dicom` (DICOMweb) constraints** (xfer `validate_rules_on_storage_kind`):
 every rule must be `level: acquisition` and `type: dicom` (auto-set if omitted), and
 `path` cannot be used in mappings — filter and map on DICOM keywords instead.
 
-## Rule evaluation model
+## Import-specific evaluation notes
 
-- Rules are evaluated **in list order**; the **first rule whose filters match** a file
-  handles it. Later rules never see that file.
-- Files matching NO rule are **silently skipped** — no error, no report line. This is
-  the #1 source of "my data didn't import" tickets: order rules specific→general and
-  end with an explicit catch-all (or a comment stating what is intentionally skipped).
-- Within one rule: a file matches when (ANY include matches OR include list is empty)
-  AND (NO exclude matches). Exclude beats include.
+First-match-wins and include/exclude semantics are in the common reference. For
+imports, the silent skip is the #1 source of "my data didn't import" tickets. Order
+rules specific→general and end with an explicit catch-all, or a comment stating what is
+intentionally skipped. On **local-directory** imports, rule-skipped files are absent
+from the report even with `report_skip`.
 
 ## ImportRule fields
 
@@ -103,10 +79,10 @@ fw-meta): limits which source paths get scanned at all. Currently supports
 `prefixes: [list of path prefixes]`. Use it for sources with millions of objects; it
 narrows the walk itself, unlike include filters which run per walked file.
 
-## Filter expressions
+## Filter fields
 
-Format: `<field><operator><value>`, e.g. `path=~**/*.nii.gz`, `size>1GB`,
-`mtime>=2024-01-01`.
+Expression format, operators and the `=~` glob/substring semantics are in the common
+reference. Examples: `path=~**/*.nii.gz`, `size>1GB`, `mtime>=2024-01-01`.
 
 **Fields (plain files):**
 
@@ -135,26 +111,6 @@ does NOT validate filter expressions (they compile lazily); xfer validates them 
 `StudyInstanceUID`, `SeriesInstanceUID`, `SOPClassUID`, `InstanceNumber`,
 `NumberOfFrames`, `AccessionNumber`, etc. Hex tag aliases work (`00100020` →
 `PatientID`). DICOM push additionally has `calling_aet` / `called_aet`.
-
-**Operators:**
-
-| Op | Meaning | Applies to |
-|---|---|---|
-| `=~` | pattern match | strings (and sets: "any element matches") |
-| `!~` | pattern non-match | strings/sets |
-| `=` (or `==`) | equal | all |
-| `!=` | not equal | all |
-| `<` `>` `<=` `>=` | comparisons | number, size, time |
-
-**String matching semantics (source-verified, differs from most docs):**
-
-- Always **case-insensitive** (both value and filter are lowercased / `re.I`).
-- `=~` values use the same simplified glob syntax as patterns (`*` no-slash, `**/`
-  any-depth, `.` literal, `[opt]` optional) — append `!r` for raw regex.
-- `=~` uses `re.search`, i.e. **substring** semantics: `path=~sub-01` matches any path
-  containing `sub-01`. Anchor explicitly (`!r` with `^...$`) or match full structure
-  (`path=~**/*.dcm`) when substring matching would over-match.
-- Plain `=` on strings is exact (case-insensitive) equality.
 
 ## Zip member filters (`::`)
 
@@ -242,15 +198,5 @@ Valid destination fields (`IMPORT_FIELD_LOADERS`) with their load-time processin
 Values that load to empty/None are silently dropped, which can make a "successful"
 mapping produce no metadata (e.g. an invalid `subject.sex` value).
 
-## Field name aliases
-
-Resolved via `fw_meta/aliases.py` + prefix matching — all of these are accepted in
-mappings/defaults/overrides and canonized: `sub`/`subj` → `subject`, `ses`/`sess` →
-`session`, `acq` → `acquisition`, `proj` → `project`, `grp` → `group`; bare `subject`
-→ `subject.label` (same for project/session/acquisition); bare `group` → `group._id`;
-bare `file` → `file.name`; `timestamp` → `acquisition.timestamp`; `session.time`/`ts`
-→ `session.timestamp`; `info.*` → `file.info.*`; `classification.*` →
-`file.classification.*`; `.id` → `._id`. Unique prefixes of any field also resolve
-(`weight` → `session.weight`).
-
-Write canonical names in authored files; aliases are for interactive shorthand.
+Field-name aliases (`sub`, `ses`, `acq`, bare `subject`, ...) are listed in the common
+reference.

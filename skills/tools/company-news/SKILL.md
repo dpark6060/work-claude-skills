@@ -39,8 +39,13 @@ A source that fails (tool error, connector never loads after ToolSearch) goes in
 - **[allhands]** `outlook_calendar_search` with `query: "All Hands"`,
   `organizer: "nikkicarlsoncullina@flywheel.io"` and the window. For each event, call
   `read_resource` on its `meetingTranscriptUrl` verbatim; that's the same Teams method
-  the meeting-tickets skill uses. If the event body or a follow-up email links slides,
-  read them. Link items to the event's `webLink`.
+  the meeting-tickets skill uses. Then read the slides: `sharepoint_search` for the
+  meeting's date in the "All Hands Presentations" folder (a follow-up email or #general
+  post usually points there), and `read_resource` on the PDF. Link items to the event's
+  `webLink`, or to the PDF when the item comes from the slides.
+  David often can't read the transcript; a 403 "does not have access to lookup meeting"
+  is expected. When that happens, the slides are the source. `allhands` has failed only
+  if **neither** the transcript nor the slides could be read.
 - **Slack**, with `slack_read_channel`. Set `oldest` to 7 days before the channel's
   window, because replies land on older parents. Treat a message as new when it was
   posted inside the window. For any message with replies, call `slack_read_thread` and
@@ -88,8 +93,15 @@ Slack echo, into one item that links to the best source.
 - `link`: `https://flywheelio.atlassian.net/servicedesk/customer/portal/<desk_id>/<KEY>`,
   using each request's `desk_id` from the sync output.
 
-Also give a theme to **every** ticket in the diff, including ones you score 1–2 and drop.
-These go in `ticket_themes` (key → theme), so the lifetime counts are true counts.
+Give a theme to **every** ticket, including ones you score 1–2 and drop. These go in
+`ticket_themes` (key → theme), so the lifetime counts are true counts:
+- Every key in `new[]`, `updated[]`, `closed[]`, `newly_stale[]` and `open[]`, on
+  every desk.
+- Re-theming an open ticket each night is expected. Keep it on the same theme name it
+  had before (see `CONTEXT.themes` and `recent_ticket_items`) so the counts stay stable.
+
+Before writing the file, count the distinct keys in those lists and check that
+`ticket_themes` has exactly that many. Put "themed N of N tickets" in the report.
 
 Write `ITEMS_FILE` in exactly this shape. No extra keys, and no ticket keys on
 non-ticket items:

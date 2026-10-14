@@ -13,7 +13,8 @@ commented rules YAML plus a coverage summary the user can trust.
 
 | File | Load when |
 |---|---|
-| `references/rule-schema.md` | Always, before drafting — document shapes, every rule field, filter semantics, destination field catalog, DICOM behavior |
+| `~/.claude/skills/shared/flywheel/xfer-rules-common.md` | Always, before drafting — evaluation order, filter operators and `=~` semantics, template syntax, aliases, spec envelope, rule sets, repo map |
+| `references/rule-schema.md` | Always, before drafting — import-only spec keys, every rule field, filter fields, destination field catalog, DICOM behavior |
 | `references/template-pattern-syntax.md` | Always, before drafting — mapping syntax, the metadata cascade, pattern gotchas |
 | `references/examples.md` | Drafting — worked tree→YAML examples to pattern-match against |
 | `references/source-map.md` | Verifying or debugging — local simulation harness, repo/entrypoint map, per-symptom recipes |

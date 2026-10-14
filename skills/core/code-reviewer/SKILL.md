@@ -71,6 +71,7 @@ Work through these in priority order — it mirrors the team's review pyramid in
 - A whole object taken as a parameter to read two fields from it at construction
 - A module with no single theme (six unrelated concerns in one file); a function-local import added to dodge a cycle; a name imported through a re-export instead of from its definition
 - A second implementation of something that already exists (an abandoned refactor, a passthrough with a copy-pasted docstring, the same file parsed in five places); a helper that exists and is reimplemented inline
+- A function whose whole body calls another function and returns its result (`raw = _build_raw(ctx); return validate_config(raw)`); collapse the pair into one function
 - Persisting inside the loop that mutates (`save()` per item)
 - A relationship between names derived by string surgery (`name[:-1]` for the singular) instead of a declared mapping; one customer's schema or column names hardcoded in a general path (`if table == "participants"`)
 - A sentinel that changes a field's meaning (`version == "latest"`) re-resolved in every consumer

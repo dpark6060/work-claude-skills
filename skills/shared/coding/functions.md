@@ -75,6 +75,15 @@ are lying about it. Fix it before a reviewer has to ask.
 - Multiple returns must have same format
 - Complex return objects → use dataclass/pydantic
 
+## A function that only calls another function is a layer to collapse
+
+If function A's whole body is "call B, return what B returned" (or build one value and hand it
+straight to B), A adds a layer and no behavior. That is a code smell. Collapse the two into one
+function. Example: `parse_config` that only did `raw = _build_raw(ctx); return validate_config(raw)`
+belongs inline as one `parse_config` that builds `raw` and returns `validate_config(raw)`.
+Reviewers flag every such pair. A wrapper is fine only when it is a deliberate seam the design
+names (e.g. a public API boundary or a single source-selection point), and the comment says so.
+
 ## Example:
 ```python
 from typing import List, Optional

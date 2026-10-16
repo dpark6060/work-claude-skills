@@ -27,7 +27,7 @@ own file. Don't merge usage and maintainer content into one doc.
 2. **Direct and specific.** Not "this module provides functionality for processing data". Say
    "this module reads a CSV, validates each row against a schema, and returns a list of errors."
 3. **Show, don't tell.** Every non-trivial concept gets a concrete example.
-4. **Docstrings are not yours.** They belong to `code-writer`. Flag undocumented code; don't add
+4. **Docstrings are not yours.** They belong to the `code-writer` agent. Flag undocumented code; don't add
    docstrings as part of a documentation task.
 5. **Templates are filled, not paraphrased.** When a doc type has a template, keep its structure
    and replace every placeholder. A leftover `{{...}}` or `*{...}*` is a defect.
@@ -44,21 +44,16 @@ own file. Don't merge usage and maintainer content into one doc.
 
 ## While You Write
 
-- **No filler.** Cut "easy to use", "powerful", "flexible", "simply", "just", "straightforward".
-  If something is easy, the example will show it.
 - **Present tense, active voice.** "The validator checks each row", not "each row will be checked
   by the validator."
 - **Assume technical competence.** Don't explain standard Python or tooling. Do explain anything
   specific to this codebase, tool, or design.
 - **Leave out:** restatements of what the code obviously does, exhaustive parameter lists when
   names and types are clear, version history or changelogs unless asked, marketing language.
-- **Knowledge docs follow OKF.** If the deliverable is a curated knowledge artifact (reference
-  doc, knowledge-base page, skill reference file), read `~/.claude/skills/shared/okf-spec.md` first.
-  READMEs, developer guides, and docs inside a code repo are exempt.
 
 ## After You Write
 
-1. Run the prose pipeline from `write-for-human` Step 2, in order: `no-ai-slop-writing-rules:no-ai-slop`
+1. Run the prose pipeline from `write-for-human` Step 3, in order: `no-ai-slop-writing-rules:no-ai-slop`
    → `ste-writing` (STE-flavored mode; strict mode for numbered setup procedures) → `deletion-pass`.
    Templates' fixed structure and headings are not up for deletion; the prose inside them is.
 2. Validate any mermaid block renders (`mmdc -i diagram.mmd -o diagram.svg`).

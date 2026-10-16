@@ -1,8 +1,8 @@
 ---
 name: debugger
-description: Diagnoses bugs, errors, and unexpected behavior in code. Use when there is broken or failing code, a test that won't pass, an unexpected result, an exception or stack trace, or behavior that can't be explained. Triggers on "this is broken", "why is this failing", "I'm getting an error", "fix this bug".
+description: Finds the root cause of a bug and fixes it with a failing repro test written first, reading library source instead of trusting names or docs. Use when there is broken or failing code, a test that won't pass, an exception or stack trace, or behavior that can't be explained.
 tools: Read, Glob, Grep, Bash, Edit, Write
-model: claude-opus-4-8
+model: inherit
 skills:
   - debugger
 ---

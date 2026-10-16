@@ -1,15 +1,15 @@
 ---
 type: Coding Standard
 title: General Coding
-description: The golden rule (as simple as possible, no simpler), requirement-traceability and simplicity rules, contracts (explicit inputs, unknown-is-error, explicit silencing, dispatch over branches, module themes), data-object rules, nesting and early-return structure, method decomposition, and build-the-happy-path-first.
-tags: [python, coding-standards, structure]
-timestamp: 2026-10-08T00:00:00Z
+description: The Python coding standard — golden rule and requirement traceability, contracts (signature-is-contract, no hidden I/O, explicit inputs, truthful types, unknown-is-error, loud failure, pure validators, fallible-before-irreversible, dispatchers, module themes, exactly-one-of-everything), data objects, code structure, function naming and docstrings, and class rules.
+tags: [python, coding-standards, structure, functions, classes, naming]
+timestamp: 2026-10-16T00:00:00Z
 ---
 
 # General Coding
 
-Read this before writing or reviewing any Python. Companions: [functions.md](functions.md),
-[classes.md](classes.md), [unit-tests.md](unit-tests.md).
+Read this before writing or reviewing any Python. Tests have their own standard:
+[unit-tests.md](unit-tests.md).
 
 ## The Golden Rule
 
@@ -94,13 +94,26 @@ Anything another system reads — a metadata payload, an API response, a file fo
 concrete, filled-in example in the docstring or README, including a failing one. A field list
 never tells the reader what it looks like when three archives are in the zip and one has PHI.
 
-# Contracts
+## Contracts
 
-## Every input is a parameter
+### The signature is the contract
+
+Name, annotations, docstring and body say the same thing, and the body does nothing the name
+does not promise. A `get_`/`validate_` function mutates nothing; a serializer does not touch
+`self`; a name that says compute does not touch disk; a bool parameter that skips steps is two
+functions. If the docstring needs "and", "then", "unless" or "except when", split.
+
+### Nothing touches disk or network unless the caller asked for exactly that
+
+Constructors store what they are given. Imports define things. Every handle is closed by a
+context manager.
+
+### Every input is a parameter
 
 A function's inputs are its parameters and `self`. The body does not read an environment
 variable, a module global, or another object's private attribute, and an argument the caller
-passed is never overridden by one. When a value can come from several places, resolve in this
+passed is never overridden by one. Take the values you need, not a whole object to read two
+fields from it at construction. When a value can come from several places, resolve in this
 order: explicit argument, then values derived from other arguments, then the environment, then
 raise.
 
@@ -117,14 +130,45 @@ if not project:
     project = _get_project(dataset_id, path)  # args, then env, then raise
 ```
 
-## Unknown input is an error, not a default
+### State has one owner, one type, and one way in
+
+No field that holds different types depending on the code path, no `setattr` from parsed data,
+no call order enforced by a comment.
+
+### Types are truthful from the moment the value is read
+
+Convert at the read: `int(os.environ.get(...))`. Nullable is `Path | None = None`, never
+`Path = None`. No in-band magic values, no scalar check on a value that can be an array, no
+parameter rebound to a new type.
+
+### Unknown input is an error, not a default
 
 When a key, type, or value is not one the code knows, raise. Do not return `None`, pick a
 default, or infer intent from the shape of the input (a string that starts with `{` is not
 therefore a dict). Pydantic models get `model_config = ConfigDict(extra="forbid")`, so an
-unexpected key fails at the line that passed it instead of being dropped silently.
+unexpected key fails at the line that passed it instead of being dropped silently. Read model
+fields as attributes, not `.get()`, and never bolt a dict API onto a model (`get`,
+`__getitem__` via `getattr`). Never name a method after a framework method it shadows
+(`@model_serializer def model_dump`). A credential field is `SecretStr` or `Field(exclude=True)`
+on the day it is added.
 
-## Silence an exception explicitly or not at all
+### Failure is loud, specific, and stops the function
+
+Never `except Exception: return None`, never log where the contract is to raise, never skip
+work silently. One typed exception per subsystem. `log.exception(msg)` once, not `log.error`
+plus `log.exception`.
+
+### A validator is pure, visits every item, and reports every failure
+
+No network, no accumulator gating a per-item check. Check everything, then return one answer.
+
+### Do every fallible thing before the first irreversible thing
+
+Validate, compute, stage; then the one small step that makes the result visible (delete,
+publish, write the manifest). No rollback code. Find the first step you cannot undo and ask
+whether anything after it can fail.
+
+### Silence an exception explicitly or not at all
 
 A swallowed exception names the type, wraps only the one call that can raise it, and carries a
 one-line comment saying why ignoring it is correct. `contextlib.suppress(SomeError)` is the
@@ -143,14 +187,14 @@ with contextlib.suppress(FileNotFoundError):  # cache is optional; absent means 
     cache_path.unlink()
 ```
 
-## More than three branches is a dispatcher
+### More than three branches is a dispatcher
 
 Complex is many small parts composed; complicated is one part with many branches. A function
 with more than three mutually exclusive branches has no single name that describes it. Make it
 one function per branch plus a dispatcher that only delegates (a dict of callables, or a short
 `if`/`elif` whose every arm is a single call).
 
-## A module has one theme and imports go one direction
+### A module has one theme and imports go one direction
 
 Every function in a module fits the theme stated in its module docstring; a file that holds
 six unrelated concerns is a namespace, not a module. Lower layers (models, paths, storage)
@@ -158,51 +202,209 @@ never import higher ones (clients, builders). A function-local import added to b
 is a layering bug, not a fix. Import a name from the module that defines it, never through a
 re-export.
 
-# Data
+### Exactly one of everything
 
-## Data objects
- - simple data objects can be passed around directly or declared as local, one off variables (Lists
-   of integers, single level dictionary where the key names are not important)
- - Complex data objects should be defined using dataclasses or a pydantic baseclass, especially if
-   the keys in a dictionary are referenced by name in other parts of the code. 
+One implementation, one name per meaning, one write per mutation. A second way to do something
+is deleted or made the only way in the same change, along with its imports and tests. Code for
+a future split does not go in the tree, and neither does a public accessor nothing calls.
 
-## Code structure
+### Declare mappings; no literal special cases
+
+A relationship between names is a table, not string surgery. Customer data stays in the input.
+No `if name == "participants"` in a general path.
+
+## Data
+
+### Data objects
+
+- Simple data objects can be passed around directly or declared as local, one-off variables
+  (lists of integers, a single-level dictionary where the key names are not important).
+- Complex data objects are defined with dataclasses or a Pydantic base class, especially when
+  the keys in a dictionary are referenced by name in other parts of the code.
+
+## Code Structure
+
+### Readability
+
+Several readable lines beat one dense line, even at a small efficiency cost. One statement per
+line, no lookup chains, no conditional inside an f-string.
+
+### Nesting and early returns
+
 - Never nest more than two conditions/loops.
-- When possible, don't nest an entire method in an `if` statement, instead check `if not` first and
-  return if true.
-- If an `if` block ends with a `return` or raises an exception, do not use `else` for the
-  remaining logic — it is unreachable from the `if` branch and the `else` adds unnecessary nesting.
-  ```python
-  # BAD
-  if not is_valid(data):
-      return None
-  else:
-      return process(data)
+- Don't nest an entire method in an `if` statement; check `if not` first and return.
+- If an `if` block ends with a `return` or raises, do not use `else` for the remaining logic.
+  The `else` is unreachable from the `if` branch and only adds nesting.
 
-  # GOOD
-  if not is_valid(data):
-      return None
-  return process(data)
-  ```
-  
-- Each method should have ONE task, aside from orchestration methods that simply call other methods.
-  If a method is performing multiple tasks that are not encapsulated in other methods, decompose the
-  method into simple smaller methods. 
+```python
+# BAD
+if not is_valid(data):
+    return None
+else:
+    return process(data)
 
-  ## Method Decomposition
-  - If you can describe a method's purpose with "AND" or "THEN", it should be split:
-    - BAD: "validate the data AND export it" → Split into `_validate_data()` and `_export_data()`
-    - BAD: "load from source THEN transform it" → Split into `_load_from_source()` and `_transform()`
-    - GOOD: "process zip dicom" can orchestrate calling helpers
-  - Private helper methods (prefixed with `_`) are encouraged for breaking up logic
-  - Public methods should be high-level orchestrators, not implementation details
+# GOOD
+if not is_valid(data):
+    return None
+return process(data)
+```
 
-## Build the happy path first
+### One task per method
+
+Each method has ONE task, aside from orchestration methods that only call other methods. If you
+can describe a method's purpose with "AND" or "THEN", split it:
+
+- BAD: "validate the data AND export it" → split into `_validate_data()` and `_export_data()`
+- BAD: "load from source THEN transform it" → split into `_load_from_source()` and `_transform()`
+- GOOD: "process zip dicom" can orchestrate calling helpers
+
+Private helper methods (prefixed with `_`) are encouraged for breaking up logic. Public methods
+are high-level orchestrators, not implementation details.
+
+### Hygiene
+
+- No `print()` in library code; use the logger.
+- Log calls take lazy `%` args (`log.info("Wrote %s", path)`), not f-strings.
+- No `argparse` CLI inside the importable package.
+- No unused imports, especially ones that make dead code look live.
+- Persist after the loop that mutates, not inside it (`save()` per item).
+- Recursion over user-supplied structure keeps a visited set.
+- A TODO references a ticket.
+
+### Build the happy path first
+
 - Implement the straight-line flow the user described. Match any pseudocode they give: same
   steps, same order, same granularity.
 - Handle only common, likely failures: a file that will not open, an API timeout, a missing
   required input. Do not imagine other failure scenarios; no defensive try/except, cleanup,
   retries, gates or fallbacks for edge cases unless asked. Let unexpected failures propagate.
-- Docstrings are 1-3 lines. Put the "why" in a 1-2 line inline comment at the line it explains.
+- Put the "why" in a 1-2 line inline comment at the line it explains.
 - Code, comments and tests describe finished behavior only. Never reference planning history,
   sessions, revisions, design docs, other repos, review rounds or people.
+- An edit leaves no trace of itself: no duplicated block, no indentation that disagrees with its
+  neighbours, no comment describing the edit ("removed", "previous", "extracted", "STEP N"), no
+  docstring for the old signature, no placeholder, no TODO naming a defect you could fix now.
+
+## Functions
+
+### Names, type hints and docstrings
+
+- Use `snake_case` for descriptive, action-focused names.
+- All functions need type hints and docstrings.
+- Annotations use builtin generics and `X | None` (`list[str]`, `dict[str, int]`, `Path | None`).
+  Use `import typing as t` only for names with no builtin form (`t.Any`, `t.Callable`).
+- Docstrings follow Google format. Aim for 1-3 lines on small functions; complex functions can
+  run longer with `Args`/`Returns`/`Raises` sections. Do not repeat types the annotations
+  already state.
+
+### Naming prefixes
+
+Prefer these prefixes:
+
+- `get_` for returns
+- `set_` for setting
+- `is_` for booleans
+- `validate_` for verification
+- `process_` for data work
+- `orchestrate_` for coordination
+- `delete_` for deletion operations
+- `add_` for adding/appending
+- `build_` for constructing objects
+- `run_` for executing a process
+
+Another verb is fine when it is more precise than any of these (`parse_`, `load_`, `to_`,
+`from_`). Never use `maybe_`, `try_`, `do_` or `handle_` — they name no action, and reaching for
+one means the function has no single clear responsibility.
+
+### Name the goal, not the failure
+
+Name a function for what its caller is trying to learn. When the caller's question is "is X
+valid?", the function is `_get_validity()` or `is_valid()`, not `_get_invalid_items()`
+followed by `if not invalid_items`. The negative check belongs inside the function that
+answers the positive question:
+
+```python
+def is_item_valid(item: Item) -> bool:
+    """Return True when the item has no validation problems."""
+    return len(item.problems) == 0
+```
+
+- BAD: an orchestrator that checks validity by calling `_get_invalid_items()` and testing
+  `if not invalid_items`. Every reader has to negate the name, then negate the condition,
+  and the double negatives spread through every caller.
+- GOOD: the orchestrator calls `is_valid()` or `_get_validity()` and reads straight through.
+- A negative name is correct when the negative thing is genuinely what the caller needs.
+  `_get_invalid_items()` is right for a function whose job is to list the invalid items for a
+  report or a fix-up step.
+
+### Two names that differ by one character are one name
+
+If a reader has to diff two identifiers to tell them apart — `_build_skipped_check_result` next to
+`_build_skipped_check_results` — the names are broken no matter how accurate each one is. Rename so
+the difference is the word that carries the meaning, and before you do, ask why both functions
+exist: near-identical names usually mark a split that should not have happened.
+
+### A name that needs explaining is the wrong name
+
+`indexing_enabled` drew the question "what is this, and when is it false?". The answer was "the user
+turned completeness checking off" — so the name was `check_completeness`. When explaining a name
+takes a sentence, that sentence contains the better name.
+
+### Read the condition out loud
+
+`if not completeness_checkable: return Outcome.VALIDATED` reads as "if we could not check it, call it
+valid." That is indefensible as written, even when the surrounding logic happens to produce the right
+answer. A condition whose plain-English reading is absurd means either the logic is wrong or the names
+are lying about it. Fix it before a reviewer has to ask.
+
+### A function that only calls another function is a layer to collapse
+
+If function A's whole body is "call B, return what B returned" (or build one value and hand it
+straight to B), A adds a layer and no behavior. That is a code smell. Collapse the two into one
+function. Example: `parse_config` that only did `raw = _build_raw(ctx); return validate_config(raw)`
+belongs inline as one `parse_config` that builds `raw` and returns `validate_config(raw)`.
+Reviewers flag every such pair. A wrapper is fine only when it is a deliberate seam the design
+names (e.g. a public API boundary or a single source-selection point), and the comment says so.
+
+### Function example
+
+```python
+from dataclasses import dataclass
+from pathlib import Path
+
+
+@dataclass
+class ArchiveResult:
+    """Outcome of checking one archive."""
+
+    archive_name: str
+    problems: list[str]
+
+
+def get_archive_results(archive_paths: list[Path], max_size: int | None = None) -> list[ArchiveResult]:
+    """Check every archive and report the problems found in each.
+
+    Args:
+        archive_paths: Archives to check, in the order they are reported.
+        max_size: Largest allowed member size in bytes. No limit when None.
+
+    Returns:
+        One result per archive, including archives with no problems.
+
+    Raises:
+        zipfile.BadZipFile: An archive cannot be opened.
+    """
+
+
+def is_dicom_file(path: Path) -> bool:
+    """Return True when the file starts with the DICOM preamble."""
+```
+
+## Classes
+
+- `CamelCase` class names, `snake_case` methods and attributes.
+- Every class gets a docstring stating its one purpose. Methods follow the
+  [Functions](#functions) rules.
+- Child constructors call `super().__init__()`.
+- Code used by more than one child class moves up to the parent as a shared method.
+- A method that uses no instance or class data is a `@staticmethod`.

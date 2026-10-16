@@ -65,16 +65,10 @@ None of these? The mode rules alone apply.
 - Every section opens with its own **1-3 sentence summary**, then the detail. The reader must be
   able to read only the section openers and understand the whole document.
 - Write simply. Plain words over precise-sounding ones.
-- **Diagrams earn their place.** A mermaid flowchart, sequence diagram, state diagram, or gantt
-  beats three paragraphs describing the same flow. Reach for one whenever you're describing
-  order of operations, who-calls-what, a state machine, or a timeline. Confluence and GitLab
-  both render mermaid; Jira descriptions generally do not — there, use a plain ASCII diagram or
-  link out.
-- **Validate every mermaid block before delivering.** Write it to a temp file and run
-  `mmdc -i diagram.mmd -o diagram.svg`. A block that fails to render is worse than no diagram.
-  For whether a diagram earns its place and what it should show, the `artifact-diagramming`
-  skill has the judgment content — load it when the choice isn't obvious. Charts and graphs go
-  to `dataviz` instead.
+- **A diagram beats paragraphs** for order of operations, who-calls-what, a state machine, or a
+  timeline. Use mermaid in Confluence and GitLab; Jira descriptions don't render it, so use ASCII
+  or link out. Validate every mermaid block with `mmdc -i diagram.mmd -o diagram.svg` before
+  delivering. Charts and graphs go to `dataviz`.
 - Tables beat prose for anything with more than two parallel items.
 
 ## Mode 2 — Email
@@ -105,7 +99,7 @@ The hardest cap. Attention span is near zero.
 ## Step 3 — The Pipeline (mandatory, every writing request)
 
 After drafting and before delivering, run all three in order. Do not skip one because the draft
-"already looks clean."
+"already looks clean." The one exception: Chat mode skips step 2.
 
 1. **`no-ai-slop-writing-rules:no-ai-slop`** — strip the AI tells. Em-dashes, "Here's...",
    bold-label bullets, rule-of-three padding, wrap-up paragraphs.
@@ -113,16 +107,3 @@ After drafting and before delivering, run all three in order. Do not skip one be
    vocabulary, active voice. Use STE-flavored mode for general prose; strict mode only for
    procedures and safety steps. Never ban a word that is the correct technical term.
 3. **`deletion-pass`** — cut every concept and sentence the request doesn't require.
-
-## Step 4 — Check Before You Send
-
-- Does sentence one carry the whole point?
-- Any bullet longer than one short sentence?
-- Is every number attached to where it came from?
-- Chat mode: did any message exceed 4 sentences?
-- Email mode: did you explain something you should have offered instead?
-- Docs mode: would a diagram replace a paragraph you just wrote?
-- Channel: is it under that channel's ceiling?
-- Anything left that the reader already knows?
-
-Fix, then deliver.

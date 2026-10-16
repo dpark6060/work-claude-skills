@@ -21,6 +21,7 @@ VERBS
 - Use a verb for an action. "analyze the log", not "perform an analysis of the log".
 - No stacked auxiliaries. Not "it is important to note that this may help to improve". Write "this improves X".
 - No "-ing" main verb where a simple tense works.
+- No phrasal verbs ("spin up", "set up" as a verb) where a single verb exists.
 
 SENTENCES
 - One instruction per sentence. Max 20 words (instruction), max 25 (descriptive).
@@ -36,19 +37,13 @@ Write only the requested text. No preamble, no summary, no closing remarks.
 
 ## Modes
 
-- **strict** — procedures, runbooks, safety text, error messages: apply every rule and both length caps.
-- **STE-flavored** — general prose (READMEs, PR descriptions, docs): apply the sentence, paragraph, active-voice, and no-phrasal-verb discipline; relax the ~900-word dictionary lockdown so the text keeps enough range to read naturally.
-
-## Self-lint (run before returning text)
-
-1. Any sentence over 20 words? Split it.
-2. Any semicolon? Replace with a period.
-3. Any contraction? Expand it.
-4. Any passive voice with a known actor? Make it active.
-5. Any "-ing" main verb, nominalization ("perform an analysis"), or phrasal verb ("spin up")? Replace with a plain verb.
-6. Same thing named two ways? Pick one name.
-
-The mechanical rules above are lintable and are what removes slop. Full STE also needs human judgment (the right technical noun, whether a sentence "makes good sense") — a checker cannot certify that, and slop is not about that. This skill fixes the FORM of slop. It cannot make a hollow paragraph true.
+- **strict** — procedures, runbooks, safety text, error messages. Apply every rule and both
+  length caps. Use only words from the ASD-STE100 dictionary (Issue 8, Part 2; about 900
+  approved words), each in its approved meaning, plus the technical names and technical verbs
+  the domain needs (STE Rules 1.5 and 1.12).
+- **STE-flavored** — general prose (READMEs, PR descriptions, docs). Apply the sentence,
+  paragraph, active-voice, and no-phrasal-verb rules. The dictionary is not enforced, so the text
+  keeps enough range to read naturally, and contractions are allowed.
 
 ## Linter
 

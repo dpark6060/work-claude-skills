@@ -2,7 +2,7 @@
 name: test-writer
 description: Writes Python unit tests following project testing conventions. Use when asked to write tests, add test coverage, or test a specific function or class. Triggers on "write tests for", "add unit tests", "test coverage", "test this method".
 tools: Read, Glob, Grep, Edit, Write, Bash
-model: claude-sonnet-4-6
+model: inherit
 skills:
   - test-writer
 ---

@@ -207,20 +207,15 @@ clear, ask the user. Don't infer a client agreement.
 
 These are the ways this doc goes wrong. Check for every one before delivering.
 
-- **Internal leakage.** Jira keys, internal URLs, employee names, our dev workflow. Search the
-  draft for `GEAR-`, `FLYW-`, `atlassian`, `gitlab.com/flywheel-io`, `pre-commit`, `qa-ci`.
-- **Invented commands.** Every command ran in the clean checkout or is marked `(unverified)`.
-- **Versions from memory.** Versions come from the lock file or Dockerfile.
-- **Filling optional sections.** A section whose trigger doesn't fire gets deleted.
+- **Internal leakage.** Search the draft for `GEAR-`, `FLYW-`, `atlassian`,
+  `gitlab.com/flywheel-io`, `pre-commit`, `qa-ci`.
 - **Directory-tree tours.** A tree listing every folder is not architecture. Components are.
 - **Components that are just files.** If each component has exactly one piece and it's one file,
   regroup by workflow step.
-- **Invented component names.** Use the code's own words.
-- **Inferred scope.** Scope and limitations comes from code evidence or the user, never a guess
-  about what the client agreed to.
 - **Generic advice.** "Write tests", "follow PEP 8", "keep functions small". Delete on sight.
-- **Repeating the README.** Link to it.
-- **Speculative troubleshooting.** No entry without evidence.
+
+The rules in the sections above (no invented commands or versions, no unfired optional sections,
+no inferred scope, no repeating the README, no troubleshooting without evidence) also apply.
 
 ## Examples
 

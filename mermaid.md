@@ -39,15 +39,11 @@ graph BT
         s_fg["fw-gear"]:::skill
         s_fc["fw-client"]:::skill
         s_sdk["flywheel-sdk"]:::skill
-        s_cw["code_writer"]:::skill
         s_cr["code_reviewer"]:::skill
         s_ca["code_architect"]:::skill
-        s_car["code_architect_reviewer"]:::skill
-        s_cp["change_planner"]:::skill
         s_dbg["debugger"]:::skill
         s_dw["doc_writer"]:::skill
         s_tw["test_writer"]:::skill
-        s_pa["process_architect"]:::skill
         s_bv["bootstrap_validator"]:::skillOnly
         s_wc["write_claudemd"]:::skillOnly
         s_gl["gitlab"]:::skillOnly
@@ -60,12 +56,9 @@ graph BT
         a_cw["code_writer"]:::agent
         a_cr["code_reviewer"]:::agent
         a_ca["code_architect"]:::agent
-        a_car["code_architect_reviewer"]:::agent
-        a_cp["change_planner"]:::agent
         a_dbg["debugger"]:::agent
         a_dw["doc_writer"]:::agent
         a_tw["test_writer"]:::agent
-        a_pa["process_architect"]:::agent
         a_pm["pm"]:::agent
         a_ow["omni_writer"]:::agent
     end
@@ -93,13 +86,9 @@ graph BT
     s_fg --> a_cw
     s_fc --> a_cw
     s_sdk --> a_cw
-    s_cw --> a_cw
     s_cr --> a_cr
     s_ca --> a_ca
-    s_car --> a_car
-    s_cp --> a_cp
     s_dbg --> a_dbg
     s_dw --> a_dw
     s_tw --> a_tw
-    s_pa --> a_pa
 ```

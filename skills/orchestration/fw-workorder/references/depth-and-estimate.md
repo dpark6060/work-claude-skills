@@ -22,7 +22,7 @@ loop in one file is not.
 | Tier | The edit is... | Pipeline dispatched to `pm` |
 |---|---|---|
 | **trivial** | A no-logic edit — swapping a field path, constant, or variable — **or** a tightly scoped addition: one or two methods, checking one or two things, with one or two possible outcomes | `code-writer` → `code-reviewer` |
-| **standard** | A normal feature request: e.g. a new config option threaded through several methods, plus a more complex logic section | `change-planner` → `code-writer` → `test-writer` → `code-reviewer` + `code-architect-reviewer` |
+| **standard** | A normal feature request: e.g. a new config option threaded through several methods, plus a more complex logic section | `code-architect` in `change` mode → `code-writer` → `test-writer` → `code-reviewer` (`conformance` + `plan`) |
 | **design** | A complete rework of core functionality, or a large new logic/processing section | Full `pm` pipeline including `code-architect` |
 
 Score each repo separately. One work order can be trivial in one gear and standard in

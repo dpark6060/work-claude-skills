@@ -113,7 +113,7 @@ Scan the task content for keywords to determine which domain skills each section
 | SDK, `flywheel.Client`, `fw.get_*`, container methods, finder, data view | flywheel-sdk | `~/.claude/skills/flywheel-sdk/` |
 | REST, `FWClient`, API endpoints, `fw_client` | fw-client | `~/.claude/skills/fw-client/` |
 | gear, manifest, GearToolkitContext, `fw_gear` | fw-gear | `~/.claude/skills/fw-gear/` |
-| executable examples, runnable scripts, validation code | code-writer | `~/.claude/skills/code-writer/` |
+| executable examples, runnable scripts, validation code | coding standards | `~/.claude/skills/shared/coding/general-coding.md` |
 
 If a skill directory does not exist at the expected path, search with: `Glob: ~/.claude/skills/**/SKILL.md` (use `**/`, not `*/` — the Glob tool returns nothing for a single-level intermediate wildcard)
 

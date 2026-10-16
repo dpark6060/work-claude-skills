@@ -8,14 +8,13 @@ Mapping from upstream:
   ste-writing-skill.md          -> ../SKILL.md
   ste-lint.py                   -> ../scripts/ste-lint.py
   README.md                     -> upstream-README.md
-  experiment-results.md         -> experiment-results.md
-  experiment-results-openai.md  -> experiment-results-openai.md
   before-after-samples.md       -> before-after-samples.md
-  run-openai.py                 -> run-openai.py
 
-Everything in this sources/ directory is the author's test data and reproduction
-scripts for the episode. Nothing here is loaded by the skill. It is kept for
-provenance and so the linter's numbers can be re-derived.
+Not vendored (removed 2026-10-16): experiment-results.md, experiment-results-openai.md,
+run-openai.py. They are the author's experiment data and reproduction script; fetch them
+from the upstream commit above if the linter's numbers need re-deriving.
+
+Nothing in this sources/ directory is loaded by the skill. It is kept for provenance.
 
 Refresh with:
   BASE=https://raw.githubusercontent.com/woosal1337/blog/main/videos/ep01-the-cure-for-ai-slop

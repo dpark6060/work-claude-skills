@@ -1,6 +1,4 @@
 # Coding Standards
 
-* [General Coding](general-coding.md) - The golden rule (as simple as possible, no simpler), requirement-traceability and simplicity rules, contracts (explicit inputs, unknown-is-error, explicit silencing, dispatch over branches, module themes), data-object rules, nesting and early-return structure, method decomposition, and build-the-happy-path-first.
-* [Functions](functions.md) - Function naming (allowed prefixes, name-the-goal-not-the-failure, names that need explaining), type hints, Google-style docstrings, and single-responsibility rules.
-* [Classes](classes.md) - Class naming, docstrings, type hints, single responsibility, and inheritance rules (super().__init__, pull shared child code up to the parent).
-* [Unit Tests](unit-tests.md) - pytest and unittest.mock conventions — imports at top, naming, orchestration-vs-logic testing strategy, one-level-deep assertions, robustness rules, and mocking at architectural boundaries.
+* [General Coding](general-coding.md) - The Python coding standard — golden rule and requirement traceability, contracts (signature-is-contract, no hidden I/O, explicit inputs, truthful types, unknown-is-error, loud failure, pure validators, fallible-before-irreversible, dispatchers, module themes, exactly-one-of-everything), data objects, code structure, function naming and docstrings, and class rules.
+* [Unit Tests](unit-tests.md) - pytest and unittest.mock structure and style — imports at top, naming, orchestration-vs-logic testing strategy, one-level-deep assertions, robustness rules, mocking at architectural boundaries, and test docstrings.

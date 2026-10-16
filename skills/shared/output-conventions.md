@@ -1,7 +1,7 @@
 ---
 type: Convention
 title: Output Conventions
-description: Where skills write their output files — the shared claude-work/ directory convention all skills must follow.
+description: Where skills write their deliverable files — the shared claude-work/ directory convention all skills must follow.
 tags: [skills, output, convention]
 timestamp: 2026-07-15T00:00:00Z
 ---
@@ -23,19 +23,15 @@ This file defines where skills write their output files. All skills must follow 
 
 Skill-specific output files go in `claude-work/<skill-name>/`. Create the directory if it doesn't exist — `mkdir -p claude-work/<skill-name>`.
 
+A skill writes a file here only when the file is its deliverable (a plan, a report, a draft) or another skill reads it. Never write notes whose only purpose is summarizing the session; the reply already does that.
+
 **Do not use `.claude/work/`.** That path sits inside the `.claude/` config directory, which requires elevated permissions to write to and will interrupt the workflow with a permission prompt.
 
 ### Registered skill outputs
 
 | Skill | Directory | File |
 |-------|-----------|------|
-| `code-architect` | `claude-work/code_architect/` | `architecture-plan.md` |
-| `change-planner` | `claude-work/change_planner/` | `change-plan.md` |
-| `debugger` | `claude-work/debugger/` | `debug-findings.md` |
-| `process-architect` | `claude-work/process_architect/` | `process-design.md` |
-| `code-reviewer` | `claude-work/code_reviewer/` | `code-review.md` |
-| `code-architect-reviewer` | `claude-work/code_architect_reviewer/` | `architecture-review.md` |
-| `code-writer` | `claude-work/code_writer/` | `implementation-notes.md` |
+| `code-architect` | `claude-work/code_architect/` | `change-plan.md` (`change` mode), `architecture-plan.md` (`design` mode), `process-design.md` (`process` mode) |
 | `pipeline-babysitter` | `claude-work/pipeline-babysitter/` | `failure-report.md` |
 | `lint-fixer` | `claude-work/pipeline-babysitter/` | `fix-result.md` (co-located with failure report) |
 | `fw-verify` | `claude-work/fw-verify/<run-id>/` | `report.md` + probe scripts |

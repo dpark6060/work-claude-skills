@@ -78,9 +78,9 @@ Ask the user the following as a single grouped message. Don't proceed until you 
 | Type | Description | Example |
 |---|---|---|
 | **Action** | Tells Claude how to do a task (before/during/after phases) | `code-writer`, `doc-writer`, `test-writer` |
-| **Planning** | Multi-step workflow producing a deliverable (usually a file) | `change-planner`, `code-architect` |
+| **Planning** | Multi-step workflow producing a deliverable (usually a file) | `code-architect` |
 | **Reference/Library** | Overview + guide index for a large domain; points to sub-files | `fw-gear`, `fw-client` |
-| **Analysis/Review** | Reviews/audits/evaluates something; produces a report | `code-reviewer`, `code-architect-reviewer` |
+| **Analysis/Review** | Reviews/audits/evaluates something; produces a report | `code-reviewer` |
 
 **When reference files are worth it:** the skill covers several distinct sub-topics each noisy enough to clutter the base instructions; there are use-case-specific examples that only apply sometimes; SKILL.md is heading past the §4 length limit and some of that content is conditional. The canonical example is `fw-client`: SKILL.md covers instantiation, HTTP methods, and error handling (needed every time), while per-endpoint schemas live in `endpoints/*.md`, loaded only when a task needs that detail.
 
@@ -94,7 +94,7 @@ Based on the answers, design the structure before writing. Match the body to the
 
 **Action skill:** What shared standards should it read before acting (check `skills/shared/coding/` and `skills/shared/flywheel/`)? What are the non-negotiables — the rules most likely to be violated? What are the Before / While / After phases?
 
-**Planning skill:** What are the numbered steps (typical: Explore → Ask → Design → Present → Write)? What's the output file called and where does it go? Does it reference a shared format file (e.g. `~/.claude/skills/shared/plan_format.md`)?
+**Planning skill:** What are the numbered steps (typical: Explore → Ask → Design → Present → Write)? What's the output file called and where does it go? Does it reference a shared format file (e.g. `~/.claude/skills/code-architect/references/plan-template.md`)?
 
 **Reference/Library skill:** What's the overview content (install, key concepts, what it replaces)? What reference sub-files are needed and what does each cover? What's the guide-selection strategy (which guide for which task)?
 

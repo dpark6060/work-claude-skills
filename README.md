@@ -78,9 +78,7 @@ need them, so they cost nothing in sessions that don't.
 
 | File | Loaded by |
 |---|---|
-| `skills/shared/coding/general-coding.md` | code-writer, code-reviewer, fw-gear |
-| `skills/shared/coding/functions.md` | code-writer, code-reviewer, test-writer |
-| `skills/shared/coding/classes.md` | code-writer, code-reviewer |
+| `skills/shared/coding/general-coding.md` | code-writer, code-reviewer, test-writer, fw-gear |
 | `skills/shared/coding/unit-tests.md` | test-writer, code-writer, code-reviewer |
 | `skills/shared/flywheel/finder-behaviors.md` | fw-verify, fw-instance-inspector, code-writer |
 | `skills/shared/flywheel/sdk-investigation.md` | fw-verify, fw-instance-inspector, code-writer |
@@ -97,32 +95,18 @@ deeper topics. Skills are only loaded when you invoke them (either directly or v
 agent that has the skill configured).
 
 ### `architect_planner`
-Designs software architecture before code is written. Explores the codebase, asks
-clarifying questions, then produces a written plan file covering file structure, module
-responsibilities, data flow, and key design decisions. Use this when you're starting
-something new and want a design reviewed before anyone writes code.
-
-### `architect_reviewer`
-Reviews written code against an existing plan. Produces a verdict: compliant,
-non-compliant, partially compliant, or "plan needs rethinking" (for cases where the
-implementation exposed flaws in the original design). Use after code is written to
-validate it against the architecture.
-
-### `change_planner`
-Plans a focused change to an existing codebase for a feature request or ticket.
-Narrower than `architect_planner` — it explores first, then designs the minimum change
-needed without touching unrelated code. Outputs a plan file. Use for adding features
-to an existing system.
-
-### `code_writer`
-Writes Python code following project conventions. Reads the relevant rule files, checks
-its own output against them before presenting, and follows the established patterns in
-the codebase. Use when a plan exists and you need implementation.
+Plans code before it is written and produces a plan file, with the reasoning behind every
+decision. Modes: `change` (a focused change to an existing codebase — explores first, plans
+the minimum delta), `design` (a new feature's architecture: input/output states, patterns,
+module boundaries, data flow), and `outline` / `detail <N>` / `reconcile` for multi-step
+builds.
 
 ### `code_reviewer`
-Reviews Python code for quality, correctness, and adherence to project conventions.
-Checks naming, structure, error handling, and style. This is a code quality review —
-not a plan compliance check (use `architect_reviewer` for that).
+Reviews Python code changes in three modes: `mr` (default) judges merge readiness and
+ends in a verdict; `conformance` checks the change against every rule in the coding
+standards and returns a fix list; `plan` checks the code against an architecture plan and
+gives each file a verdict (Matches Plan, Deviates from Plan, Plan Was Wrong, Plan Needs
+Rethinking).
 
 ### `debugger`
 Diagnoses broken or failing code. Uses a hypothesis-driven approach: reads the error,
@@ -174,10 +158,8 @@ focused role, specific tools, and one or more skills pre-loaded into its system 
 |---|---|---|
 | `pm` | Coordinates the team — breaks down tasks, sequences work, synthesizes results | none |
 | `architect_planner` | Designs architecture, produces plan files | architect_planner |
-| `architect_reviewer` | Reviews code against plan | architect_reviewer |
-| `change_planner` | Plans focused feature changes | change_planner |
-| `code_writer` | Implements Python code | code_writer, flywheel-sdk, fw-gear |
-| `code_reviewer` | Reviews code quality | code_reviewer |
+| `code_writer` | Implements Python code | none (reads the coding standards; invokes flywheel-sdk, fw-gear, fw-client as needed) |
+| `code_reviewer` | Reviews code: `mr`, `conformance`, `plan` modes | code_reviewer |
 | `debugger` | Diagnoses bugs | debugger |
 | `test_writer` | Writes unit tests | test_writer |
 | `doc_writer` | Writes documentation | doc_writer |
@@ -193,7 +175,6 @@ variable is set (add it to `~/.claude/settings.json`).
 Claude to apply a specific methodology or load domain knowledge:
 
 ```
-/code_writer     → Claude writes code following project rules
 /debugger        → Claude approaches your bug systematically
 /fw-gear         → Claude loads gear library reference before writing gear code
 ```

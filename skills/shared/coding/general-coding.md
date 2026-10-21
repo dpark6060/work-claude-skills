@@ -13,7 +13,8 @@ Read this before writing or reviewing any Python. Tests have their own standard:
 
 ## The Golden Rule
 
-**As simple as possible, and no simpler.**
+**As simple as possible, and no simpler.** ([PEP 20](https://peps.python.org/pep-0020/): "Simple
+is better than complex.")
 
 This is the guiding principle above every other rule in this directory. When two rules
 conflict, or a rule would make the code more complicated than the problem requires, the
@@ -47,6 +48,14 @@ spec, and every test pinning all of that.
 Worked example: "log what was skipped" was never a requirement. Dropping it deleted a dataclass
 field, two builder helpers, the placeholder objects they produced, a "check `skipped` before you
 trust `passed`" gotcha, an output key and a spec paragraph.
+
+### Use a design pattern only where it earns its place
+
+Use a standard named pattern (Strategy, Factory, Adapter, Facade, Template Method) when the code
+has a variation point, wraps a boundary, or has a fixed skeleton with swappable steps. Below that
+(roughly one module, 2-3 functions, no variation point) write plain functions. Don't add a
+pattern for a variation the requirements don't name, and don't invent a homegrown pattern where
+a standard one fits.
 
 ### Record what happened, not what didn't
 
@@ -111,8 +120,9 @@ context manager.
 ### Every input is a parameter
 
 A function's inputs are its parameters and `self`. The body does not read an environment
-variable, a module global, or another object's private attribute, and an argument the caller
-passed is never overridden by one. Take the values you need, not a whole object to read two
+variable, a mutable module global, or another object's private attribute, and an argument the
+caller passed is never overridden by one. Module-level `SNAKE_CASE` constants are fine; they are
+configuration, not state. Take the values you need, not a whole object to read two
 fields from it at construction. When a value can come from several places, resolve in this
 order: explicit argument, then values derived from other arguments, then the environment, then
 raise.
@@ -143,7 +153,8 @@ parameter rebound to a new type.
 
 ### Unknown input is an error, not a default
 
-When a key, type, or value is not one the code knows, raise. Do not return `None`, pick a
+[PEP 20](https://peps.python.org/pep-0020/): "In the face of ambiguity, refuse the temptation to
+guess." When a key, type, or value is not one the code knows, raise. Do not return `None`, pick a
 default, or infer intent from the shape of the input (a string that starts with `{` is not
 therefore a dict). Pydantic models get `model_config = ConfigDict(extra="forbid")`, so an
 unexpected key fails at the line that passed it instead of being dropped silently. Read model
@@ -156,7 +167,8 @@ on the day it is added.
 
 Never `except Exception: return None`, never log where the contract is to raise, never skip
 work silently. One typed exception per subsystem. `log.exception(msg)` once, not `log.error`
-plus `log.exception`.
+plus `log.exception`. When re-raising as a different type, chain the original:
+`raise NewError(...) from e` ([PEP 3134](https://peps.python.org/pep-3134/)).
 
 ### A validator is pure, visits every item, and reports every failure
 
@@ -219,10 +231,26 @@ No `if name == "participants"` in a general path.
 
 - Simple data objects can be passed around directly or declared as local, one-off variables
   (lists of integers, a single-level dictionary where the key names are not important).
-- Complex data objects are defined with dataclasses or a Pydantic base class, especially when
+- Complex data objects are defined with dataclasses ([PEP 557](https://peps.python.org/pep-0557/))
+  or a Pydantic base class, especially when
   the keys in a dictionary are referenced by name in other parts of the code.
 
 ## Code Structure
+
+### Formatting
+
+Code follows [PEP 8](https://peps.python.org/pep-0008/); `ruff format` and `ruff check` enforce
+it. Always use double quotes. `ruff format` enforces this; don't hand-fix quotes the formatter will
+rewrite.
+
+Lines stop at 88 characters, ruff's default (the skeleton sets no `line-length`), a deliberate
+deviation from PEP 8's 79. No backslash
+continuation; wrap inside parentheses, which is what the formatter produces.
+
+Format strings with f-strings ([PEP 498](https://peps.python.org/pep-0498/)). No `%` formatting or `.format()`, except in logger calls, which
+pass lazy `%` args (`log.info("Wrote %s", path)`): the string is never built when the level is
+off, and log aggregators group on the unformatted template. qa-ci doesn't select ruff's `G`
+rules, so nothing lints this; it is a preference.
 
 ### Readability
 
@@ -231,7 +259,8 @@ line, no lookup chains, no conditional inside an f-string.
 
 ### Nesting and early returns
 
-- Never nest more than two conditions/loops.
+- Never nest more than two conditions/loops ([PEP 20](https://peps.python.org/pep-0020/): "Flat
+  is better than nested").
 - Don't nest an entire method in an `if` statement; check `if not` first and return.
 - If an `if` block ends with a `return` or raises, do not use `else` for the remaining logic.
   The `else` is unreachable from the `if` branch and only adds nesting.
@@ -264,12 +293,28 @@ are high-level orchestrators, not implementation details.
 ### Hygiene
 
 - No `print()` in library code; use the logger.
-- Log calls take lazy `%` args (`log.info("Wrote %s", path)`), not f-strings.
-- No `argparse` CLI inside the importable package.
+- No `argparse` CLI inside the importable package. A runnable script has a `main()` and an
+  `if __name__ == "__main__":` guard, so importing it runs nothing.
+- Absolute imports only ([PEP 8](https://peps.python.org/pep-0008/#imports),
+  [PEP 328](https://peps.python.org/pep-0328/)). ruff's isort rules (`I`) own grouping and
+  ordering.
+- A lambda is fine as a one-expression `key=` or callback; anything longer is a named function.
+  Never assign a lambda to a name ([PEP 8](https://peps.python.org/pep-0008/#programming-recommendations), ruff `E731`).
 - No unused imports, especially ones that make dead code look live.
 - Persist after the loop that mutates, not inside it (`save()` per item).
 - Recursion over user-supplied structure keeps a visited set.
-- A TODO references a ticket.
+- A TODO is a [PEP 350](https://peps.python.org/pep-0350/) codetag naming its ticket, not a person: `# TODO(GEAR-12345): drop the v1 fallback once all
+  sites are on 18.x`.
+
+### Logging
+
+- **No PHI in logs.** No subject or session labels, patient names, IDs, DICOM tag values, or
+  file contents. Gear logs are scraped into an aggregated store outside the site. Log container
+  IDs, counts, and outcomes instead.
+- Log external calls and the decisions that change the outcome. Log a result where it is
+  produced. No entry/exit or per-iteration logging.
+- Levels: `debug` for detail useful while developing; `info` for what the run did; `warning` for
+  something the user should know that didn't stop the run; `error` for a failure.
 
 ### Build the happy path first
 
@@ -289,11 +334,15 @@ are high-level orchestrators, not implementation details.
 
 ### Names, type hints and docstrings
 
-- Use `snake_case` for descriptive, action-focused names.
+- Use `snake_case` for descriptive, action-focused names
+  ([PEP 8 naming](https://peps.python.org/pep-0008/#naming-conventions)).
 - All functions need type hints and docstrings.
-- Annotations use builtin generics and `X | None` (`list[str]`, `dict[str, int]`, `Path | None`).
-  Use `import typing as t` only for names with no builtin form (`t.Any`, `t.Callable`).
-- Docstrings follow Google format. Aim for 1-3 lines on small functions; complex functions can
+- Type hints follow [PEP 484](https://peps.python.org/pep-0484/), written with builtin generics
+  ([PEP 585](https://peps.python.org/pep-0585/): `list[str]`, `dict[str, int]`) and `X | None`
+  unions ([PEP 604](https://peps.python.org/pep-0604/)). A method that returns its own instance
+  returns `Self` ([PEP 673](https://peps.python.org/pep-0673/)). Variable annotations are
+  optional. Use `import typing as t` only for names with no builtin form (`t.Any`, `t.Callable`).
+- Docstrings follow [PEP 257](https://peps.python.org/pep-0257/) in Google format. Aim for 1-3 lines on small functions; complex functions can
   run longer with `Args`/`Returns`/`Raises` sections. Do not repeat types the annotations
   already state.
 
@@ -315,6 +364,12 @@ Prefer these prefixes:
 Another verb is fine when it is more precise than any of these (`parse_`, `load_`, `to_`,
 `from_`). Never use `maybe_`, `try_`, `do_` or `handle_` — they name no action, and reaching for
 one means the function has no single clear responsibility.
+
+Use the same verb for the same action across the codebase: don't mix `get_`, `fetch_` and
+`load_` for one operation.
+
+A `@property` is the exception to the prefix list. It reads like an attribute, so it takes a noun
+(`archive.size`, not `archive.get_size`). A call that does work keeps its verb.
 
 ### Name the goal, not the failure
 
@@ -402,9 +457,17 @@ def is_dicom_file(path: Path) -> bool:
 
 ## Classes
 
-- `CamelCase` class names, `snake_case` methods and attributes.
-- Every class gets a docstring stating its one purpose. Methods follow the
+- `CamelCase` class names, `snake_case` methods and attributes
+  ([PEP 8](https://peps.python.org/pep-0008/#naming-conventions)).
+- Every class gets a docstring stating its one purpose. Add an `Attributes` section only for
+  public attributes that aren't constructor args. Methods follow the
   [Functions](#functions) rules.
-- Child constructors call `super().__init__()`.
+- A child that defines `__init__` calls `super().__init__()` in the no-argument form
+  ([PEP 3135](https://peps.python.org/pep-3135/)); Python never runs the parent's `__init__` for
+  you. A dataclass child's generated `__init__` covers parent fields, but a parent
+  `__post_init__` is still called by hand.
+- Mark an overriding method with `@typing.override`
+  ([PEP 698](https://peps.python.org/pep-0698/)) when you want type checkers to catch a renamed
+  or removed parent method.
 - Code used by more than one child class moves up to the parent as a shared method.
 - A method that uses no instance or class data is a `@staticmethod`.

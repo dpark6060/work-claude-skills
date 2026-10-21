@@ -131,7 +131,7 @@ gear-structure.
 All gear code you write should:
 1. Use `GearContext` as a context manager (the `with` pattern)
 2. Call `context.init_logging()` and `context.log_config()` at startup
-3. Place `sys.exit(e_code)` **outside** the `with GearContext()` block — never inside it. `main()` returns the exit code; `sys.exit()` happens after context cleanup. See the Gear Exit Lifecycle section in gear-basics.md.
+3. Call `sys.exit(e_code)` **inside** the `with GearContext()` block. `GearContext.__exit__` writes metadata only on a clean or `SystemExit(0)` exit; exiting after the block makes failed runs write metadata too and disables `clean_on_error`. See the Gear Exit Lifecycle section in gear-basics.md.
 4. Catch exceptions in `run()` with `log.exception()` and return 1 — never let exceptions propagate uncontrolled through the context manager
 5. Use correct method names from the guides (not outdated `flywheel-gear-toolkit` names)
 6. Only access `context.client` if the gear manifest declares an `api-key` input

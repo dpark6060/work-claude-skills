@@ -12,9 +12,8 @@ timestamp: 2026-10-16T00:00:00Z
 
 - CRITICAL: All imports go at the top of the file. NEVER add imports within test functions.
 - Use `pytest` and `unittest.mock`.
-- Always use double quotes.
 - Naming: `test_methodundertest_scenario_behavior`.
-- One test file per code file.
+- Tests live in `tests/`, one test file per code file.
 - Test functions, not test classes.
 - Fixtures shared across test files go in `conftest.py`; fixtures used by only one file go at
   the top of that file. Never duplicate a fixture across files. Use `@pytest.fixture` for
@@ -69,8 +68,9 @@ the assertion.
 
 ### Don't assert implementation details
 
-- Debug and info logging — never assert on them. Error logging may be asserted at the *level*
-  (`mock_log.error.assert_called_once()`), not the exact string, unless the message is a
+- Debug and info logging — never assert on them. Error and exception logging may be asserted
+  at the *level* (`mock_log.error.assert_called_once()`,
+  `mock_log.exception.assert_called_once()`), not the exact string, unless the message is a
   user-facing requirement.
 - Item ordering — only assert order if the method's contract guarantees it.
 - Internal call counts — only assert frequency if "called exactly N times" is a correctness

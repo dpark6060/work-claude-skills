@@ -40,6 +40,12 @@ Observations from real runs. Summarize this file at session start — don't just
 **Details:** PHI-hit/incomplete/non-4dv/conflict/dry-run are anticipated, not exceptional. A `PipelineResult` keeps the pipeline a total function, makes every branch a value-assert in tests, and centralizes the outcome→side-effect map in run.py. Exceptions reserved for real bugs.
 **Action taken:** Chose result object; documented the rejected exception approach.
 
+## 2026-10-19 | Priority: MED | Status: OPEN
+**Area:** detail mode, vendoring across sessions
+**Summary:** When step N vendors shared models and step N+1 vendors the code that fills them, check both come from the same upstream commit.
+**Details:** 4dv-archive-import session 1 vendors models.py from the validator's unmerged 2.0.0 branch, but design.md let session 2 fall back to 1.0.0, whose archive_db/archive_source populate fields 2.0.0 deleted. Caught by `git diff main..HEAD -- models.py` in the source repo. Also: an untracked same-named target dir (stale `__pycache__`) makes `git mv a b` nest `a` inside `b`; check the target path before a rename task.
+**Action taken:** Pinned the vendor commit in the session doc and raised the fallback as a question.
+
 ## 2026-07-22 | Priority: LOW | Status: RESOLVED
 **Area:** tooling
 **Summary:** `.learnings/*.md` are dot-dir files; Glob `.learnings/*.md` returned nothing but the files existed.

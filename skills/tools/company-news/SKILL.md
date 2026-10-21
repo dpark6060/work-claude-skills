@@ -3,8 +3,8 @@ name: company-news
 description: >
   Crawls Flywheel's company announcement sources (Nikki's update emails, IT announcement
   emails, the All Hands transcript and slides, #general, #ask-anything,
-  #real-talk-with-product, #it-crowd-sourced, #fw-it-security-postman) and the JSM ticket
-  diff, keeps only what matters per a criteria file, and writes scored news items for
+  #real-talk-with-product, #flywheel-release, #it-crowd-sourced, #fw-it-security-postman)
+  and the JSM ticket diff, keeps only what matters per a criteria file, and writes scored news items for
   the work dashboard's News tab. Normally run headless by run_news_crawl.sh. MANDATORY
   TRIGGERS: company-news, news crawl, crawl company news, what's the company news,
   backfill news.
@@ -54,6 +54,7 @@ A source that fails (tool error, connector never loads after ToolSearch) goes in
   - [slack-general] `CE10W8HST`
   - [slack-ask-anything] `C06TXNBE25Q`
   - [slack-real-talk-with-product] `C050VHN7HUH`
+  - [slack-flywheel-release] `C03DHHW1CAX`
   - [slack-it-crowd-sourced] `C08F520EAF8`
   - [slack-fw-it-security-postman] `C087U6STLAX`
 
@@ -71,7 +72,8 @@ One item per real piece of news. Merge a message and its thread, or an email and
 Slack echo, into one item that links to the best source.
 
 - `section`:
-  - `company`: Nikki's email, all hands, #general, #ask-anything, #real-talk-with-product.
+  - `company`: Nikki's email, all hands, #general, #ask-anything, #real-talk-with-product,
+    #flywheel-release.
   - `it`: IT email, #it-crowd-sourced, #fw-it-security-postman.
   - `tickets`: JSM.
 - `summary`: one sentence, the fact itself, no preamble.

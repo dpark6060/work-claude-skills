@@ -55,9 +55,8 @@ if __name__ == "__main__":
         gear_context.init_logging()
         gear_context.log_config()
         e_code = main(gear_context)
-
-    # Exit AFTER the context manager has cleaned up
-    sys.exit(e_code)
+        # Exit inside the block: GearContext writes metadata only on a 0 exit
+        sys.exit(e_code)
 ```
 
 **Always** use `GearContext` as a context manager (`with` block). It handles
@@ -70,32 +69,49 @@ Flywheel marks the job as failed if the process exits with a non-zero code.
 
 ## Gear Exit Lifecycle
 
-Getting the exit sequence right is critical. `GearContext.__exit__` performs cleanup
-tasks — writing `.metadata.json`, finalizing logs, and other bookkeeping that must
-complete before the process dies. If you call `sys.exit()` inside the `with` block,
-Python raises `SystemExit`, which triggers `__exit__` via exception handling rather
-than clean exit. This can cause metadata to not be written or cleanup to be skipped.
+`GearContext.__exit__` (fw-gear 0.3.7, `fw_gear/context.py:271`) decides between the
+success path and the failure path from the exception it sees:
+
+```python
+if exc_type is None or (issubclass(exc_type, SystemExit) and exc_value.code == 0):
+    ...metadata.write(...)       # success: write .metadata.json
+elif self._clean_on_error:
+    self._clean_output()         # failure: optionally clean outputs
+```
+
+`SystemExit(0)` is treated as success on purpose, so where `sys.exit()` runs decides
+what a failed run does:
+
+| | Exit code 0 | Non-zero exit |
+|---|---|---|
+| `sys.exit()` inside the `with` block | metadata written | metadata not written; outputs cleaned if `clean_on_error` |
+| `sys.exit()` after the `with` block | metadata written | metadata written anyway; `clean_on_error` never fires |
 
 ### The rule
 
-**`main()` returns an exit code. `sys.exit()` happens outside the `with` block.**
+**Call `sys.exit(e_code)` inside the `with` block.** Exiting after the block makes
+`__exit__` see a clean exit every time, so a failed gear writes its metadata as if it
+succeeded. Having `main()` return the exit code (instead of calling `sys.exit` itself)
+keeps `main()` testable; the skeleton calls `sys.exit` inside `main()`, which is
+equivalent at runtime.
 
 ```python
-# CORRECT — context cleans up, then process exits
+# CORRECT — __exit__ sees the real exit code
+if __name__ == "__main__":
+    with GearContext() as gear_context:
+        gear_context.init_logging()
+        e_code = main(gear_context)
+        sys.exit(e_code)
+```
+
+```python
+# WRONG — __exit__ always sees a clean exit, so failed runs write metadata
 if __name__ == "__main__":
     with GearContext() as gear_context:
         gear_context.init_logging()
         e_code = main(gear_context)
 
-    sys.exit(e_code)  # Outside the with block
-```
-
-```python
-# WRONG — sys.exit() fires inside the with block, skipping clean __exit__
-if __name__ == "__main__":
-    with GearContext() as gear_context:
-        gear_context.init_logging()
-        main(gear_context)  # main() calls sys.exit() internally
+    sys.exit(e_code)
 ```
 
 ### Exception handling in run()
@@ -118,11 +134,11 @@ def run(context: GearContext, **args) -> int:
 **Why `log.exception()` instead of re-raising:**
 - `log.exception()` captures the full traceback in the gear log where it's visible
   to anyone debugging the job
-- Returning 1 instead of raising means `main()` returns normally, the `with` block
-  exits cleanly, `GearContext` completes its cleanup, and *then* `sys.exit(1)` kills
-  the process
-- If you re-raise, the exception propagates through the context manager's `__exit__`
-  as an error path, which may skip cleanup or produce confusing log output
+- Returning 1 instead of raising lets `main()` pass the code to `sys.exit(1)` inside
+  the `with` block, so `GearContext` takes its failure path (no metadata, outputs
+  cleaned if `clean_on_error`) with a controlled log line instead of a raw traceback
+- A re-raised exception takes the same failure path in `__exit__`; the difference is
+  only what lands in the log
 
 ### Expected exceptions vs. unexpected
 

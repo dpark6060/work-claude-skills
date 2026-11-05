@@ -15,7 +15,7 @@
 ## Scheduled-run reporting
 
 - **Slack report channel:** `<SLACK-CHANNEL-ID>` — or `none` to disable Slack reporting.
-- **Reporter skill:** `report-to-slack` (posts no matter what — success, empty, or
+- **Reporter skill:** `report` (posts no matter what — success, empty, or
   failure). If you don't have that skill, set the channel to `none`; the sweep still
   prints its human summary and `SWEEP_RESULT` line to stdout.
 - Interactive runs never post to the channel — reporting is scheduled-run behavior only.

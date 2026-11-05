@@ -46,6 +46,36 @@ Observations from real runs. Summarize this file at session start — don't just
 **Details:** 4dv-archive-import session 1 vendors models.py from the validator's unmerged 2.0.0 branch, but design.md let session 2 fall back to 1.0.0, whose archive_db/archive_source populate fields 2.0.0 deleted. Caught by `git diff main..HEAD -- models.py` in the source repo. Also: an untracked same-named target dir (stale `__pycache__`) makes `git mv a b` nest `a` inside `b`; check the target path before a rename task.
 **Action taken:** Pinned the vendor commit in the session doc and raised the fallback as a question.
 
+## 2026-11-03 | Priority: MED | Status: OPEN
+**Area:** detail mode, design.md that already carries signatures
+**Summary:** When design.md lists both a dataclass's fields and the signature of the function that builds it, check every output field is derivable from the inputs before copying the signature into the session doc.
+**Details:** 4dv-archive-import rev h gave `get_missing_files(manifest, placements) -> tuple[MissingFile, ...]` while `MissingFile` carries `archive_root`, which neither `ArchiveManifest` nor an empty `placements` tuple holds. Also: a design that says "subject = Patient.PID" without saying what a blank PID does leaves the session doc to pick raise-vs-default; raise (archive ERROR via the per-archive try) was the only choice consistent with the FileStatus set.
+**Action taken:** Added the parameters in the session doc, recorded as an assumption, flagged for reconcile.
+
+## 2026-11-03 | Priority: MED | Status: OPEN
+**Area:** detail mode, a step outline that says "keep X" from a PoC
+**Summary:** Before planning to "keep" a PoC helper the outline names, rg the repo for its behavior under another name; and when wiring a write step, check whether an earlier step already passes `dry_run` into the producer.
+**Details:** v7-export-from-fw step 9b outline said "keep `storage_key_for`"; it already existed as `report._get_storage_key` (landed in step 8) and every `ExportedFile` carried the key, so a registrar-side copy would be dead code. Separately, step 5 had wired `submit_export(..., dry_run)` through, so a dry-run export produced a report whose keys never landed; the register call needed its own `config.dry_run` gate in 9b even though the dry-run output is step 11's. Also: `v7.py` had been added by an out-of-sequence ticket with no module-map row, which settled "new module vs. fold into v7.py" (folding changes the map, which detail must not do).
+**Action taken:** Dropped `storage_key_for`, added the gate, recorded both as assumptions and flagged the module-map drift for reconcile.
+
+## 2026-11-04 | Priority: MED | Status: OPEN
+**Area:** detail mode, naming the target of a write
+**Summary:** Don't address a write by a value the pipeline derived (e.g. a V7 item name split from an export dst_path); use the identifier the system of record just returned.
+**Details:** v7-export-from-fw session 10 planned `set_acquisition_file_info(acq_id, linkback.item_name, ...)`. item_name came from the export template's leaf, so a template that renamed the leaf would write to the wrong (or no) Flywheel file. Implementation used `get_file(id).name` instead. Also for reconcile: design.md has space-padded markdown tables; a short script that splits on `|` and `ljust`s the cell keeps alignment where a hand Edit would not.
+**Action taken:** Recorded as a plan deviation in the step-10 reconcile note.
+
+## 2026-11-05 | Priority: MED | Status: OPEN
+**Area:** detail mode, smart session doc template
+**Summary:** The smart template in multistep.md has no blank line after its headings or before its list/fence bodies; copied literally it fails markdownlint MD022/MD031/MD032 (the disable line only covers MD013/025/040/041).
+**Details:** 4dv-archive-import step 4 verification run; the mdlint hook rejected the first write with 17 findings. Also: SDK 22 upload accepts `metadata` with `info`, which would make upload + `info.4dv` one call and close the crash gap where an un-stamped file reads as CONFLICT on rerun.
+**Action taken:** Added blank lines in the doc; template itself not edited (out of scope for the run).
+
+## 2026-11-05 | Priority: MED | Status: OPEN
+**Area:** detail mode, write-then-stamp sequences
+**Summary:** When a design's rerun convergence depends on a stamp written after the upload, check the gap between the two calls.
+**Details:** 4dv-archive-import step 4 (dumb verification run) uploads, then calls `set_4dv_info`. A crash in between leaves an unstamped file, and REQ-18 turns that into an acquisition CONFLICT on rerun, so the design's "rerun converges" claim fails exactly in the crash window it was written for. Also: the design's `get_file_archive_ids -> dict[name, archive_id]` can't feed `SKIPPED` entries, which need a file id. When re-detailing a step that already landed, read the code at the pre-step merge commit (`git show <sha>:path`), not HEAD.
+**Action taken:** Recorded both as assumptions for reconcile; return type widened to `(file_id, archive_id)`.
+
 ## 2026-07-22 | Priority: LOW | Status: RESOLVED
 **Area:** tooling
 **Summary:** `.learnings/*.md` are dot-dir files; Glob `.learnings/*.md` returned nothing but the files existed.

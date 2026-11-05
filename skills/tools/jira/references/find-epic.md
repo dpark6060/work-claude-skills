@@ -23,7 +23,7 @@ Customer/s is a custom field; in JQL it is referenced as `cf[<id>]` with the exa
 option string. Id and option list:
 `~/.claude/skills/shared/tools/atlassian/gear-board-fields.md`.
 
-```
+```text
 ATL__searchJiraIssuesUsingJql(
     cloudId="flywheelio.atlassian.net",
     jql='project = GEAR AND issuetype = Epic AND cf[10108] = "UWash - NACC" ORDER BY updated DESC',
@@ -37,14 +37,10 @@ option (`UWash - NACC`, not `NACC`).
 
 Expect a lot of results — `UWash - NACC` alone has ~40 epics. Do not assume a short list.
 
-> **⚠ The MCP search returns at most 5 issues** regardless of `maxResults`, and its
-> pagination is dead (`hasNextPage: false` / `endCursor: null` even when `remainingCount`
-> is nonzero — re-confirmed 2026-08-17). With ~40 epics per customer, a naive run ranks
-> five arbitrary epics and silently hides the right one. **There is no REST fallback on
-> this machine.** Pass `searchResultMode: "all"` to get the true `totalCount`, then use
-> the two-ends trick (same query `ORDER BY ... DESC` and `ASC`, union the results) per
-> `~/.claude/skills/shared/tools/atlassian/jira-reads.md`. Only trust a single MCP call
-> here if `remainingCount` is 0.
+> **Page until `isLast` is true.** With ~40 epics per customer, stopping at the first page
+> can hide the right one. The search honors `maxResults` and returns `nextPageToken`
+> (confirmed 2026-11-04). The old 5-issue cap is gone. Details:
+> `~/.claude/skills/shared/tools/atlassian/jira-reads.md`.
 
 ---
 
@@ -52,7 +48,7 @@ Expect a lot of results — `UWash - NACC` alone has ~40 epics. Do not assume a 
 
 Epic summaries do not contain gear names. They use the convention `[CLIENT] <Human Name>`:
 
-```
+```text
 [NACC] REDCap Form Image Processor
 [NACC] LONI CSV Metadata Processor
 [NACC] LONI Exporter
@@ -83,7 +79,7 @@ work under a feature epic.
 Per component, return:
 
 | Outcome | Report |
-|---|---|
+| --- | --- |
 | One strong match | The key, summary, status, and whether it needs reopening |
 | Several plausible | All of them, ranked, with the ranking reason — let the caller choose |
 | None | Say so explicitly, and list the nearest misses |

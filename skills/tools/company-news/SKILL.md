@@ -141,7 +141,7 @@ Write the Slack summary to `REPORT_FILE`:
 - The critical items in full.
 - A line starting `ATTENTION:` for each failed source.
 
-Then use `report-to-slack` with channel `C0BEHDHGCLD`. End your output with exactly
+Then use `report` with channel `C0BEHDHGCLD`. End your output with exactly
 `NEWS_RESULT items=<N>`.
 
 The ticket sync state (`tracked.json`) is shared with the on-demand `fw-it-summary`

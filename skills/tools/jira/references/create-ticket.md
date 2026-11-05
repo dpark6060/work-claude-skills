@@ -17,7 +17,7 @@ Create a new ticket on the GEAR board. Follow each phase in order.
 Collect the following before drafting anything. If the user has not provided a value, ask. Do not guess or omit required fields.
 
 | Field | Required | Source |
-|---|---|---|
+| --- | --- | --- |
 | Summary (title) | Yes | User |
 | Issue type | Yes | User (Task / Bug / Story) |
 | Description | Yes | User |
@@ -45,7 +45,8 @@ a billable field id.
 Query the active sprint for the GEAR board before creating the ticket. Do not hardcode a sprint ID — sprints rotate quarterly.
 
 Use `ATL__searchJiraIssuesUsingJql` with:
-```
+
+```text
 jql: "project = GEAR AND sprint in openSprints()"
 fields: ["customfield_10021"]
 maxResults: 1
@@ -69,7 +70,8 @@ Present the proposed ticket to the user before creating it:
 > **Sprint:** `<sprint name>`
 > **Epic:** `<epic key>` (if provided)
 > **Description:**
-> ```
+>
+> ```text
 > <description>
 > ```
 >
@@ -81,25 +83,36 @@ Wait for explicit approval before proceeding.
 
 ## Phase 4 — Create the Ticket
 
-```
+```text
 ATL__createJiraIssue(
     cloudId="flywheelio.atlassian.net",
     projectKey="GEAR",
-    issueTypeName="<type>",
+    issueType="<type>",            # confirmed 2026-11-04 (was issueTypeName); see log below
     summary="<summary>",
     description="<description>",
     contentFormat="markdown",
-    assignee_account_id="<accountId>",
+    assignee="<accountId>",        # confirmed 2026-11-04 (was assignee_account_id); see log below
     parent="<epic key>",           # omit if no epic given
+    assignToSprint="<sprint id>",  # not customfield_10021 in additional_fields: the tool sends ["<id>"] and Jira 400s (2026-11-01)
     additional_fields={
         "customfield_10108": [{"value": "<customer name>"}],
-        "customfield_10021": <sprint id>,   # plain int — {"id": N} 400s ("Specify a valid value for Sprint"), confirmed 2026-08-14
         "labels": ["Hourly", "<client label>"]
     }
 )
 ```
 
+**Parameter-name log.** The Atlassian MCP renames `createJiraIssue` parameters without
+notice. When a create fails on an unknown parameter, find the working name, update the call
+above, and add a row here. Newest first.
+
+| Confirmed | Parameter now | Previously | Notes |
+| --- | --- | --- | --- |
+| 2026-11-04 | `issueType` | `issueTypeName` | GEAR-41935 created first try |
+| 2026-11-04 | `assignee` | `assignee_account_id` | GEAR-41935; value is still the accountId |
+| 2026-11-01 | `assignToSprint` | `customfield_10021` in `additional_fields` | the field path sends `["<id>"]` and Jira 400s |
+
 **Formatting the description:**
+
 - Always pass `contentFormat: "markdown"`
 - Use blank lines between paragraphs — do not use `\n` escape sequences
 - Use `**bold**`, `` `code` ``, `- bullet`, and tables as needed
@@ -114,6 +127,7 @@ channel** (the user can name another mode in the prompt).
 ## Phase 5 — Confirm and Link
 
 After creation, report back:
+
 - The new ticket key (e.g. `GEAR-11710`)
 - The direct URL: `https://flywheelio.atlassian.net/browse/<key>`
 
@@ -128,27 +142,29 @@ the ticket manually.
 2. Ticket Types:
     - "Story": Tickets that require coding or an MR
     - "Task": Non-coding, non-MR work (e.g. create tech spec)
-    - "Spike": An investigation to be carried out for information gathering. 
-3. Ticket name (summary) take the convention: <EpicNickname>-<OptionalNumber> <Summary>
+    - "Spike": An investigation to be carried out for information gathering.
+3. Ticket name (summary) take the convention: `<EpicNickname>-<OptionalNumber> <Summary>`
     Create a short nickname for the epic and if multiple related tickets are created
     where order is important add a number.  The number is not necessary.
-Good:
-```
-# Two related tickets with a clear order:
-SesSplit-1 Create Manifest
-SesSplit-2 Update Parser
 
-# Ticket with no required order:
-SesSplit remove default content from readme.md
-```
+    Good:
 
-Bad:
-```
-# Tickets with no required order with unnecessary numbers:
-SesSplit-1 Update Readme
-SesSplit-2 Update Contributing
-SesSplit-3 Update flywheel-sdk
-```
+    ```text
+    # Two related tickets with a clear order:
+    SesSplit-1 Create Manifest
+    SesSplit-2 Update Parser
+
+    # Ticket with no required order:
+    SesSplit remove default content from readme.md
+    ```
+
+    Bad:
+
+    ```text
+    # Tickets with no required order with unnecessary numbers:
+    SesSplit-1 Update Readme
+    SesSplit-2 Update Contributing
+    SesSplit-3 Update flywheel-sdk
+    ```
+
 4. always attach the tickets to the current active sprint.
-
-  

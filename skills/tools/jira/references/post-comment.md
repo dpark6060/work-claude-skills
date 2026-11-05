@@ -15,11 +15,13 @@ Post a work summary comment on the associated Jira ticket. Follow each phase in 
 ## Phase 1 — Find the Ticket
 
 Inspect the current branch name:
+
 ```bash
 git branch --show-current
 ```
 
 Extract the ticket key using the pattern `[A-Z]+-[0-9]+` (e.g. `PROJ-123`). Common branch formats:
+
 - `feature/PROJ-123-some-description`
 - `PROJ-123-some-description`
 - `fix/PROJ-123`
@@ -36,11 +38,13 @@ Extract the ticket key using the pattern `[A-Z]+-[0-9]+` (e.g. `PROJ-123`). Comm
 Run all of the following. Collect everything before synthesizing.
 
 **Git log since diverging from the default branch:**
+
 ```bash
 git log origin/$(git remote show origin | grep "HEAD branch" | awk '{print $NF}')...HEAD --oneline
 ```
 
 **Diff stat:**
+
 ```bash
 git diff origin/$(git remote show origin | grep "HEAD branch" | awk '{print $NF}')...HEAD --stat
 ```
@@ -48,6 +52,7 @@ git diff origin/$(git remote show origin | grep "HEAD branch" | awk '{print $NF}
 > **Fallback:** If either command errors (no remote configured, detached HEAD, or `origin` not found), fall back to `git log main...HEAD --oneline` / `git diff main...HEAD --stat`, then try `master` if `main` doesn't exist. Note the assumption to the user.
 
 **Work notes from other Claude skills:**
+
 ```bash
 find claude-work -name "*.md" 2>/dev/null | sort | xargs cat 2>/dev/null
 ```
@@ -71,7 +76,7 @@ Link commits by short SHA + subject and the MR by `!NN` rather than recapping th
 contents. Engineering log entry, not a status update for a manager. Under a screen — the
 work notes hold the detail.
 
-> **Correction (2026-08-17):** this file previously said `addCommentToJiraIssue` has no
+> **Correction (2026-08-17):** this file previously said the comment tool has no
 > `contentFormat` parameter and that comments must be plain prose with simple formatting.
 > **That is wrong.** Pass `contentFormat: "markdown"` and tables, bullets, code spans, and
 > bold all render — verified. Write real newlines, never `\n` escapes. `commentId` updates
@@ -94,11 +99,12 @@ Wait for explicit approval or an edited version before posting. Do not post with
 
 ## Phase 5 — Post the Comment
 
-```
-ATL__addCommentToJiraIssue(
+```text
+ATL__addOrEditJiraIssueComment(
     cloudId="flywheelio.atlassian.net",
-    issue_key="<ticket key>",
-    comment="<confirmed comment>"
+    issueIdOrKey="<ticket key>",
+    contentFormat="markdown",
+    commentBody="<confirmed comment>"
 )
 ```
 

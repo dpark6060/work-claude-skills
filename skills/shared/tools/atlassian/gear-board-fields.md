@@ -11,8 +11,8 @@ timestamp: 2026-08-13T00:00:00Z
 Single home for every GEAR-board constant. Point at this file; do not restate the tables.
 
 Tool prefix, `cloudId`, David's accountId, and the ADF/`contentFormat` write rules are in
-`mcp-access.md` in this directory. Read procedure (REST → file → jq, the MCP 5-issue search
-cap) is in `jira-reads.md`.
+`mcp-access.md` in this directory. `ATL__` in the calls below stands for the live tool
+prefix resolved there. Read procedure is in `jira-reads.md`.
 
 **Provenance:** everything tagged *(live 2026-08-13)* came from
 `getJiraIssueTypeMetaWithFields` / `getJiraProjectIssueTypesMetadata` against
@@ -28,7 +28,7 @@ GEAR = **Scientific Solutions**, project id **10020**, `projectTypeKey: software
 `simplified: true` → **team-managed**.
 
 | Issue type | id | Hierarchy |
-|---|---|---|
+| --- | --- | --- |
 | Task | `10020` | 0 |
 | Epic | `10021` | 1 |
 | Subtask | `10022` | -1 (subtask) |
@@ -52,7 +52,7 @@ Story (10029) and Task (10020) expose the **same 24 fields** on the create scree
 custom ones:
 
 | Field | Key | Schema | Notes |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Development | `customfield_10000` | any (devsummary) | Read-only in practice |
 | Start date | `customfield_10015` | date | |
 | Sprint | `customfield_10021` | array of json (`gh-sprint`) | Never hardcode the id — see below |
@@ -94,8 +94,8 @@ by definition; treat any literal you find as an example, not a value.
 
 Look up the current one:
 
-```
-mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql(
+```text
+ATL__searchJiraIssuesUsingJql(
     cloudId="flywheelio.atlassian.net",
     jql="project = GEAR AND sprint in openSprints()",
     fields=["customfield_10021"],
@@ -109,17 +109,19 @@ active sprint was `SSE - Board - 26Q3` on board 35 *(inherited)* — a naming ex
 New issues do **not** auto-join the active sprint on creation — set the sprint explicitly on
 every ticket you create.
 
-**Pass a plain int, not a dict** *(live 2026-08-14)*. `"customfield_10021": {"id": 3555}` on
-`createJiraIssue` returns 400 "Specify a valid value for Sprint"; `"customfield_10021": 3555`
-works. Older docs showing the `{"id": ...}` form are wrong. If a create still rejects it, fall
-back to a follow-up `editJiraIssue` with `{"customfield_10021": <int>}`.
+**On `createJiraIssue`, use `assignToSprint`, not `additional_fields`** *(live 2026-11-01)*.
+Passing `"customfield_10021": 3556` in `additional_fields` now returns 400 "Specify a valid
+value for Sprint": the MCP tool sends it as `["3556"]`. Pass `assignToSprint="3556"` (a
+numeric sprint id, an exact sprint name, or `"active"`) instead; the response reports
+`sprintAssignment.assigned`. On `editJiraIssue`, the plain int `{"customfield_10021": <int>}`
+worked as of 2026-10-12. The plain int also worked on create until at least 2026-10-08.
 
 ### Customer/s option ids
 
 `customfield_10108` is a multiselect; the allowed-value list is ~150 options long. Common ones:
 
 | Option | id |
-|---|---|
+| --- | --- |
 | GE HealthCare | `11867` |
 | Genentech (GNE) | `10192` |
 | Genentech (GNE) - TRACE | `11636` |
@@ -140,13 +142,17 @@ back to a follow-up `editJiraIssue` with `{"customfield_10021": <int>}`.
 
 Full list, on demand *(this is the call that produced this file)*:
 
-```
-mcp__claude_ai_Atlassian__getJiraIssueTypeMetaWithFields(
+```text
+ATL__executeRead(
+    name="getJiraIssueTypeMetaWithFields",
     cloudId="flywheelio.atlassian.net",
-    projectIdOrKey="GEAR",
-    issueTypeId="10029",          # Story; Task 10020 is identical
-    requiredFieldsOnly=false,
-    maxResults=12, startAt=0      # page it — Customer/s alone is ~150 options
+    inputs={
+        "cloudId": "flywheelio.atlassian.net",
+        "projectIdOrKey": "GEAR",
+        "issueTypeId": "10029",       # Story; Task 10020 is identical
+        "requiredFieldsOnly": False,
+        "maxResults": 12, "startAt": 0  # page it — Customer/s alone is ~150 options
+    }
 )
 ```
 
@@ -165,7 +171,7 @@ on the option **id**, never on a name you reconstructed.
 Default is **Medium (3)**.
 
 | Priority | id |
-|---|---|
+| --- | --- |
 | Blocker | `10001` |
 | Urgent | `1` |
 | High | `2` |
@@ -184,7 +190,7 @@ Custom fields go in `additional_fields` on `createJiraIssue`; the same keys work
 fields object on `editJiraIssue` *(inherited — shapes below are what working skills use, not
 something the metadata call verifies)*:
 
-```
+```text
 additional_fields={
     "customfield_10108": [{"value": "UWash - NACC"}],   # Customer/s
     "customfield_10021": <sprint id>,                   # Sprint — plain int, not {"id": ...}
@@ -202,7 +208,7 @@ the tool signature). accountId is in `mcp-access.md`.
 
 Custom fields are referenced as `cf[<numeric id>]`, with the **option string**, not the id:
 
-```
+```text
 project = GEAR AND cf[10108] = "UWash - NACC" AND issuetype = Epic
 project = GEAR AND sprint in openSprints()
 ```
@@ -222,7 +228,7 @@ some other board, re-run the createmeta call for that board.
 **These drift.** Options get added, screens change. Re-derive before any create or edit
 rather than trusting this page — it is a map, not an authority.
 
-```
+```text
 getJiraProjectIssueTypesMetadata  cloudId=<id> projectIdOrKey=GEAR
 getJiraIssueTypeMetaWithFields    cloudId=<id> projectIdOrKey=GEAR \
                                   issueTypeId=10029 requiredFieldsOnly=false

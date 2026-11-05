@@ -2,6 +2,15 @@
 
 Patterns that worked, non-obvious behaviors, workflow adjustments. Append-only; newest first.
 
+## 2026-10-22 (fwv-1022-1478) — flyw job pull config.json, flyw 23.0.3, alatest
+
+- The job document never stores the `api-key` input (job doc, `/jobs/<id>/config.json`, and
+  `flyw job pull`'s config.json all omit it); the engine injects it at run time. A pulled job
+  has no api-key input at all, stale or otherwise.
+- Raw `/jobs` list rows mix `id` and `_id`; use `j.get("id") or j.get("_id")`. SDK
+  `fw.jobs.find` returns config inputs as model objects, so `v.get("base")` fails — use raw JSON.
+- `flyw` auto-updates itself on the first call against a newer site (0.36.1 -> 23.0.3 here).
+
 ## 2026-10-09 (fwv-1009-a375) — .metadata.json on a failed job, fw-gear 0.3.7, alatest
 - **The engine applies `.metadata.json` AND uploads outputs for a job that exits 1.** Canonical
   fw-gear pattern (with-block exits clean, `sys.exit(1)` after) -> job `failed`, yet container

@@ -1,18 +1,19 @@
 ---
 type: Reference
 title: Atlassian MCP Access
-description: How to reach Jira and Confluence through the claude.ai Atlassian connector — resolving the unstable tool namespace, cloudId, accountId, and the ADF rules for writes.
+description: How to reach Jira and Confluence through the Atlassian MCP — resolving the unstable tool namespace, cloudId, accountId, and the ADF rules for writes.
 tags: [atlassian, jira, confluence, mcp, connector]
 timestamp: 2026-08-17T00:00:00Z
 ---
 
 # Atlassian MCP Access
 
-The claude.ai Atlassian connector is the **only** route to Jira and Confluence from
-this machine, interactive or headless. There is no REST fallback — see
-`jira-reads.md` for what that costs you.
+The Atlassian MCP is the **only** route to Jira and Confluence from this machine,
+interactive or headless. It is the claude.ai connector or the Atlassian plugin, depending
+on the session. There is no REST fallback.
 
 ## Contents
+
 - Resolving the tool namespace (do this first)
 - Constants: cloudId, accountId
 - Tool inventory
@@ -23,18 +24,16 @@ this machine, interactive or headless. There is no REST fallback — see
 
 ## Resolving the tool namespace — do this first
 
-**The namespace is not stable. Never hardcode it, never assume it.** Known spellings:
+**The namespace is not stable. Never hardcode it, never assume it.** Every rename, with
+dates and the calls confirmed live at each switch, is in `mcp-name-history.md`. Live as of
+2026-11-04: `mcp__plugin_atlassian_atlassian__*` (the Atlassian plugin). None of the
+claude.ai spellings resolved that day. The previous one, `mcp__claude_ai_Atlassian_MCP__*`,
+was confirmed live on 2026-11-02, so either may be live in a given session.
 
-| Prefix | Seen |
-|---|---|
-| `mcp__claude_ai_Atlassian__*` | until 2026-08-14 |
-| `mcp__claude_ai_Atlassian_Rovo__*` | since 2026-08-17 (server renamed "Atlassian Rovo") |
-
-Both appear in `~/.claude.json` → `claudeAiMcpEverConnected`, so either can be live.
 Resolve it with one `ToolSearch` call and use whatever returns a schema:
 
-```
-ToolSearch: select:mcp__claude_ai_Atlassian__getJiraIssue,mcp__claude_ai_Atlassian_Rovo__getJiraIssue
+```text
+ToolSearch: select:mcp__plugin_atlassian_atlassian__getJiraIssue,mcp__claude_ai_Atlassian_MCP__getJiraIssue,mcp__claude_ai_Atlassian_Rovo__getJiraIssue,mcp__claude_ai_Atlassian__getJiraIssue
 ```
 
 ### The failure this prevents
@@ -42,7 +41,7 @@ ToolSearch: select:mcp__claude_ai_Atlassian__getJiraIssue,mcp__claude_ai_Atlassi
 A rename does **not** produce a transport error, a 401, or a 5xx. Every call is
 refused by the local permission layer before it leaves the machine:
 
-```
+```text
 Claude requested permissions to use
 mcp__claude_ai_Atlassian_Rovo__searchJiraIssuesUsingJql,
 but you haven't granted it yet.
@@ -63,6 +62,9 @@ not authenticated. Headless it cannot surface an auth prompt, so a run either ha
 silently reads nothing. That failure mode took out three scheduled sweeps before it was
 found.
 
+**Never `mcp__plugin_engineering_atlassian__*`.** The engineering plugin registers it, but
+on 2026-11-04 it exposed only `authenticate` and `complete_authentication`.
+
 A **local token-auth** Atlassian server (`sooperset/mcp-atlassian` via `uvx`) is a
 separate thing and a fallback only. Its tools are named `jira_search` etc. — neither
 claude.ai spelling.
@@ -72,7 +74,7 @@ claude.ai spelling.
 ## Constants
 
 | Value | Setting |
-|---|---|
+| --- | --- |
 | Site | `https://flywheelio.atlassian.net` |
 | `cloudId` | `27a9c1e5-5c70-4dad-a559-80493dd1429d` |
 | David's `accountId` | `5d88bebcc7d4e30dc282e6e0` |
@@ -93,28 +95,30 @@ Existing docs use both; neither is wrong, so don't "fix" one to the other. The h
 
 ## Tool inventory
 
-Reads: `searchJiraIssuesUsingJql`, `getJiraIssue`, `getTransitionsForJiraIssue`,
-`getJiraIssueRemoteIssueLinks`, `getVisibleJiraProjects`,
-`getJiraProjectIssueTypesMetadata`, `getJiraIssueTypeMetaWithFields`,
-`lookupJiraAccountId`, `atlassianUserInfo`, `getAccessibleAtlassianResources`,
-`searchConfluenceUsingCql`, `getConfluencePage`, `getPagesInConfluenceSpace`,
-`getConfluencePageDescendants`, `getConfluencePageFooterComments`, `search`, `fetch`.
+The current call names, and what each old name became, are in `mcp-name-history.md`'s top
+entry. Short version for the plugin server:
 
-Writes: `addCommentToJiraIssue`, `transitionJiraIssue`, `editJiraIssue`,
-`createJiraIssue`, `createIssueLink`, `createConfluencePage`, `updateConfluencePage`,
-`createConfluenceFooterComment`.
+Primary tools: `getJiraIssue`, `searchJiraIssuesUsingJql`, `listJiraIssueComments`,
+`addOrEditJiraIssueComment`, `createJiraIssue`, `editJiraIssue`, `transitionJiraIssue`,
+`atlassianUserInfo`, `getAccessibleAtlassianResources`, `searchConfluence`,
+`getConfluenceContent`, `createConfluenceContent`, `updateConfluenceContent`, `search`.
 
-**No attachment tool exists.** Ticket attachments are unreachable — see `jira-reads.md`.
+Everything else goes through `discover` and then `executeRead`, `executeWrite`, or
+`executeDestructive` with the operation `name` that `discover` returned. Transitions list,
+issue-type metadata, sprints, boards, link types, worklogs, and changelogs all live there.
+
+Attachments: `downloadJiraIssueAttachment` (read) and `uploadAttachmentToJiraIssue`
+(write), both through `discover`. See `jira-reads.md`.
 
 ---
 
 ## Writes and ADF
 
-Comment and description bodies are **Atlassian Document Format** (JSON), not
-markdown. Reading: pass `responseContentFormat: "markdown"` to get plain text back,
-or `"adf"` for full fidelity. Writing: the tools accept markdown and convert, but
-anything round-tripped through a read comes back as ADF unless you asked for
-markdown — don't feed raw ADF JSON into a comment body expecting it to render.
+Jira stores bodies as **Atlassian Document Format** (ADF), but the tools convert both
+ways. Reads default to markdown (`responseContentFormat`), and the response's
+`appliedContentFormat` says what you got. Bodies holding media, panels, statuses, or
+@mentions come back as HTML automatically. Edit those with `contentFormat: "html"`, or the
+media is dropped. `"adf"` is no longer an option (2026-11-04).
 
 ### Writing: `contentFormat` and the `\n` trap
 
@@ -126,11 +130,11 @@ as literal `\n` characters that render as raw text in the ticket.
 - Always pass `contentFormat: "markdown"` on `createJiraIssue` and `editJiraIssue`.
 - Write paragraph breaks as blank lines — real newlines, not `\n`.
 - Bold, code spans, and bullet lists then follow standard markdown syntax.
-- `addCommentToJiraIssue` **does** take `contentFormat` (verified against the live tool
-  schema 2026-08-28). Pass `"markdown"` and tables, bullets, and code spans render.
+- `addOrEditJiraIssueComment` (formerly `addCommentToJiraIssue`) **does** take
+  `contentFormat` (verified against the live tool schema 2026-08-28 and 2026-11-04). Pass `"markdown"` and tables, bullets, and code spans render.
   An older note claiming this param doesn't exist was wrong.
 
-```
+```text
 createJiraIssue(
     cloudId="flywheelio.atlassian.net",
     contentFormat="markdown",

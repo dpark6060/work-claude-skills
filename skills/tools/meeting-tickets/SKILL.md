@@ -153,6 +153,15 @@ skeleton if new; append `## DRAFT n` blocks if it exists).
    no action items found") so a quiet day stays distinguishable from a silent failure.
    (An interactive sweep you run yourself doesn't post to the channel — that's a
    scheduled-run behavior.)
+   When the run is given a cards file (`cards:<path>`), the reporter also writes it, with
+   this mapping:
+   - One **post** per meeting that produced drafts. `key` = the meeting's
+     `transcript_id`; title = the meeting name; `body_md` = a 1–3 sentence summary of
+     what was decided; `source_path` = the day's draft file.
+   - One **task** per draft, as a child of its meeting's post. `key` =
+     `<transcript_id>:<slug of the draft summary>`; title = the draft summary;
+     `body_md` = "What I'm on the hook for"; `due` = the draft's `due` when set.
+   - A meeting with no action items gets no post.
 3. Print a final machine-readable line, exactly this format, for a wrapper to parse:
    `SWEEP_RESULT meetings=<N> transcripts=<T> drafts=<M>`
 

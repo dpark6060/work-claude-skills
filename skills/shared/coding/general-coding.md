@@ -220,6 +220,15 @@ One implementation, one name per meaning, one write per mutation. A second way t
 is deleted or made the only way in the same change, along with its imports and tests. Code for
 a future split does not go in the tree, and neither does a public accessor nothing calls.
 
+### Carry values forward; never rederive them
+
+A value the system already produced is passed along, not rebuilt from its inputs somewhere
+else. If a path, key, id or label is defined by a template, a response, or an upstream step,
+every later consumer reads that value off the record that carried it. A second construction
+is a second definition: it drifts the moment the first one changes, and it describes what you
+expected rather than what actually happened. If a downstream step needs a shape the record
+doesn't carry, add the field at the point of origin and thread it through.
+
 ### Declare mappings; no literal special cases
 
 A relationship between names is a table, not string surgery. Customer data stays in the input.
@@ -329,6 +338,32 @@ are high-level orchestrators, not implementation details.
 - An edit leaves no trace of itself: no duplicated block, no indentation that disagrees with its
   neighbours, no comment describing the edit ("removed", "previous", "extracted", "STEP N"), no
   docstring for the old signature, no placeholder, no TODO naming a defect you could fix now.
+
+### Noticed cases get a seam, not a branch
+
+When you see cases the requirement didn't ask for, split the function: `decide_case` returns
+an `Enum` with one member, `act` dispatches on it with one arm plus `else: raise`. List the
+unhandled cases in a comment on the dispatcher. Don't build them, their members, or their
+tests. No variation point noticed, no split.
+
+```python
+class PlacementCase(Enum):
+    HAPPY = auto()
+
+
+def decide_case(row: Row | None, file: Path) -> PlacementCase:
+    return PlacementCase.HAPPY
+
+
+def place_file(row: Row | None, file: Path, dest: Path) -> None:
+    # Unhandled, seen during design: row with empty target column; row with no file on disk;
+    # file with no row. Each becomes a member above and an arm below when it is asked for.
+    case = decide_case(row, file)
+    if case is PlacementCase.HAPPY:
+        shutil.move(file, dest / row.target)
+    else:
+        raise ValueError(f"unhandled placement case: {case}")
+```
 
 ## Functions
 

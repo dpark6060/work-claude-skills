@@ -14,7 +14,7 @@ output. No code: structure, responsibility, data flow and decisions only.
 |---|---|---|
 | `change` | A focused change to an existing codebase: ticket, feature request, small addition | [references/change.md](references/change.md) |
 | `design` | A new feature or system, or a restructure, that needs its architecture decided | [references/design.md](references/design.md) |
-| `outline`, `detail <N>`, `reconcile` | A multi-step build: one conversation and one MR per step (the repo has, or will have, `docs/design.md` with `Build Steps`) | [references/multistep.md](references/multistep.md) |
+| `outline`, `detail <N> [smart\|dumb]`, `reconcile` | A multi-step build: one conversation and one MR per step (the repo has, or will have, `docs/design.md` with `Build Steps`) | [references/multistep.md](references/multistep.md) |
 | `process` | A workflow with several actors, systems, or asynchronous steps needs its steps and data handoffs mapped before any code design | [references/process.md](references/process.md) |
 
 Use the mode a dispatch names. Otherwise pick `change` when the work modifies an existing

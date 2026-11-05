@@ -15,6 +15,7 @@ from an unattended `claude -p` run — scheduled sweeps, launchd jobs, cron.
 Telling them apart is most of the job.
 
 ## Contents
+
 - The three failure modes
 - Deferred tools
 - Allowlist mechanics
@@ -26,7 +27,7 @@ Telling them apart is most of the job.
 ## The four failure modes
 
 | Symptom | Actually means | Fix |
-|---|---|---|
+| --- | --- | --- |
 | Tool absent from your initial tool list | **Deferred** — not loaded yet | `ToolSearch` it |
 | `requested permissions to use mcp__…, but you haven't granted it yet` | **Allowlist/name mismatch** | Add the name to `--allowedTools` |
 | Call returns transport error / 401 / 5xx | **Genuinely unreachable** | Log, flag, fall back |
@@ -46,8 +47,8 @@ list until loaded. A tool's absence means *unloaded*, never *down*.
 
 Load them up front, before doing any work:
 
-```
-ToolSearch: select:mcp__claude_ai_Atlassian_Rovo__searchJiraIssuesUsingJql,mcp__claude_ai_Slack__slack_send_message
+```text
+ToolSearch: select:mcp__plugin_atlassian_atlassian__searchJiraIssuesUsingJql,mcp__claude_ai_Atlassian_MCP__searchJiraIssuesUsingJql,mcp__claude_ai_Slack__slack_send_message
 ```
 
 **Never skip a ticket, a check, or your end-of-run report because a tool "isn't
@@ -73,12 +74,12 @@ arrays and gate only the writes:
 
 ```bash
 ATLASSIAN_PREFIXES=( mcp__claude_ai_Atlassian mcp__claude_ai_Atlassian_Rovo
-                     mcp__claude_ai_Atlassian_MCP mcp__plugin_engineering_atlassian )
+                     mcp__claude_ai_Atlassian_MCP mcp__plugin_atlassian_atlassian )
 # NB: the _MCP spelling also renamed BASENAMES (addOrEditJiraIssueComment,
 # searchConfluence, getConfluenceContent, listJiraIssueTransitions) — list both
 # old and new basenames in the READ/WRITE arrays.
 ATLASSIAN_READ=( searchJiraIssuesUsingJql getJiraIssue ... )
-ATLASSIAN_WRITE=( addCommentToJiraIssue transitionJiraIssue )
+ATLASSIAN_WRITE=( addCommentToJiraIssue addOrEditJiraIssueComment transitionJiraIssue )
 
 for p in "${ATLASSIAN_PREFIXES[@]}"; do
   for t in "${ATLASSIAN_READ[@]}"; do TOOLS+=( "${p}__${t}" ); done
@@ -96,8 +97,11 @@ A future rename is then one string appended to `ATLASSIAN_PREFIXES`.
 
 ## Diagnosing a name mismatch
 
-**Connector server names change, and the tool namespace changes with them.** The
-claude.ai Atlassian server has shipped under THREE spellings:
+**Connector server names change, and the tool namespace changes with them.** The dated
+log of every Atlassian spelling, with the calls confirmed at each switch, is
+`../tools/atlassian/mcp-name-history.md`. As of 2026-11-04 the live one is the Atlassian
+plugin, `mcp__plugin_atlassian_atlassian__*`. Before that, the claude.ai Atlassian server
+shipped under THREE spellings:
 `mcp__claude_ai_Atlassian__*`, `mcp__claude_ai_Atlassian_Rovo__*` (renamed
 ~2026-08-15; cost the fw-quest sweep an entire run — every Jira read and write
 denied, reported as "0 tickets"), and `mcp__claude_ai_Atlassian_MCP__*`
@@ -172,7 +176,7 @@ change, recurred 2026-09-25 (zero connectors). Scope **varies run to run**, so a
   Slack and Atlassian squeaked in at 29 s each). Every failed run started minutes
   past the slot; every clean run started at 23:00:0x on an awake machine. Fix lives
   in the wrappers (`unlinked/schedule/await_full_wake.sh`: wait for a full `Wake`
-  + network, then `caffeinate`), documented in the scheduling-tasks skill,
+  - network, then `caffeinate`), documented in the scheduling-tasks skill,
   `references/headless-setup.md` §4. If this fault shows up again, check the
   wrapper log's start time and `pmset -g log` before suspecting the connector.
 

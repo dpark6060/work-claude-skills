@@ -14,6 +14,7 @@ the create call itself are in [create-ticket.md](create-ticket.md).
 ## Inputs
 
 Ask for whichever of these is missing:
+
 1. A brief plain-language description of the bug.
 2. The exact command or code that triggers it.
 3. The exact output observed.
@@ -38,6 +39,7 @@ Present the report as a draft in chat for the user to confirm before creating th
 ## Writing the reproduction script
 
 ### Client
+
 Put the API key in a variable the tester can change. The code does not have to execute as-is.
 
 ```python
@@ -47,6 +49,7 @@ fw = flywheel.Client(API_KEY)
 ```
 
 ### Containers
+
 If the bug is tied to a specific project, use the IDs from the prompt. Otherwise, for a
 **non-destructive** call (nothing altered or deleted), grab any example containers:
 

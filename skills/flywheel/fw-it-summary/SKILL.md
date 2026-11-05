@@ -75,11 +75,19 @@ on a desk the account can no longer see. The error message names which.
    - **Quiet desks.** Put every desk with nothing open and no changes on one line at
      the end: `No activity: DOC, MKTG, ...`.
    - Lead the post with totals across all desks: new, closed and stale.
-3. **Post.** Use the `report-to-slack` skill with channel `C0BEHDHGCLD`. Tell it this
+3. **Post.** Use the `report` skill with channel `C0BEHDHGCLD`. Tell it this
    is a digest that may run past its usual ~150-word ceiling, and that it must not
    trim content. Slack caps a message at 5000 characters. If the digest runs longer,
    split it into two messages at a desk boundary and post them in order. Never split a
    desk's section across messages.
+
+   When the run is given a cards file (`cards:<path>`), `report` also writes it:
+   - One **post** per desk with any activity. `key` = `desk:<desk_id>:<Monday of this
+     week, YYYY-MM-DD>`; title = the desk name with its new/closed/stale counts;
+     `body_md` = that desk's section of the digest.
+   - One **task** only for a request David reported himself that went stale or got a new
+     comment, under its desk's post. `key` = the request key; title = what he needs to
+     do about it (reply, chase, close).
 4. **Commit.** Run `commit` only after the Slack post succeeded. If the post failed,
    leave `pending.json` in place. The next `sync` rebuilds the same diff and nothing
    is lost.

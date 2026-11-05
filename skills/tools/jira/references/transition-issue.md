@@ -28,7 +28,7 @@ global** (`isGlobal: true`), so these IDs work from any current status *within t
 type*.
 
 | ID | Name | Lands in status | Category |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `2` | READY FOR DEV | READY FOR DEV | To Do |
 | `4` | REQUIREMENTS DEVELOPMENT | REQUIREMENTS DEVELOPMENT | In Progress |
 | `5` | ON HOLD | ON HOLD | To Do |
@@ -47,7 +47,7 @@ Confirmed against `GEAR-21960` (Story) on 2026-08-12. All `isGlobal: true`, all
 `isAvailable: true` from `INBOX`.
 
 | ID | Name | Lands in status | Category |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `11` | INBOX | INBOX | To Do |
 | `21` | IN PROGRESS | IN PROGRESS | In Progress |
 | `31` | READY FOR DEV | READY FOR DEV | To Do |
@@ -72,7 +72,7 @@ Two traps in the Epic table:
 - **The Clockify sync only creates tasks for six of these statuses.** Verified against
   `sync.py` (`EPIC_STATUS_CREATING_TASK`) on 2026-08-12:
 
-  ```
+  ```text
   TO DO · READY FOR DEV · IN PROGRESS · REQUIREMENTS DEVELOPMENT · UAT · ON HOLD
   ```
 
@@ -81,10 +81,11 @@ Two traps in the Epic table:
 
 Verify before relying on an ID — IDs are stable but board config changes:
 
-```
-ATL__getTransitionsForJiraIssue(
+```text
+ATL__executeRead(
+    name="listJiraIssueTransitions",
     cloudId="flywheelio.atlassian.net",
-    issueIdOrKey="GEAR-7595"
+    inputs={"cloudId": "flywheelio.atlassian.net", "issueIdOrKey": "GEAR-7595"}
 )
 ```
 
@@ -95,18 +96,18 @@ ATL__getTransitionsForJiraIssue(
 Work has arrived for an epic that is `DONE`. Reopen it to `IN PROGRESS` (`11`) — the work is
 starting now, and `IN PROGRESS` also satisfies the Clockify sync's status requirement.
 
-```
+```text
 ATL__transitionJiraIssue(
     cloudId="flywheelio.atlassian.net",
     issueIdOrKey="GEAR-7595",
-    transition={"id": "11"}
+    transitionId="11"
 )
 ```
 
 Do **not** reopen to `New Request` — it looks reasonable and silently breaks time logging.
 
-Re-read the issue afterward and confirm the status actually changed. A transition that is
-rejected by a condition can return without an obvious error.
+Check the status in the response; `transitionJiraIssue` now returns the status the issue
+actually landed in.
 
 **Check the Clockify task before you reopen.** If the epic's `[GEAR-XXXX]` Clockify task is
 already closed, reopening the epic does not make time logging work — the sync has no path
@@ -135,7 +136,7 @@ What belongs here is the write mechanics.
 **Labels replace, they do not merge.** Read the current labels first and write the full
 list back, or you will drop the client label:
 
-```
+```text
 ATL__editJiraIssue(
     cloudId="flywheelio.atlassian.net",
     issueIdOrKey="GEAR-7595",

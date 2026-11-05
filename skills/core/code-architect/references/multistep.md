@@ -12,7 +12,7 @@ dispatch states which. If it doesn't, infer from repo state and say which you pi
 | Mode | When | Reads | Writes | Must not |
 |---|---|---|---|---|
 | `outline` | Once, at project start | The request, existing code | `docs/design.md` | Write any session doc; decide anything internal to a single step |
-| `detail <N>` | Start of the session that builds step N | `design.md`, the repo, the most recent completed session doc(s) | `docs/sessions/session-0N-<slug>.md` | Touch another step's outline; write detail for step N+1 |
+| `detail <N> [smart\|dumb]` | Start of the session that builds step N | `design.md`, the repo, the most recent completed session doc(s) | `docs/sessions/session-0N-<slug>.md` | Touch another step's outline; write detail for step N+1 |
 | `reconcile` | End of that session, after tests pass | `design.md`, the diff, the session doc, test results | `design.md` | Write detail for any step; expand an outline into a spec |
 
 ## The depth line
@@ -78,9 +78,25 @@ Read in this order:
 3. The most recent completed session doc(s) — what the last step actually built, at code level.
    `design.md` deliberately no longer carries this.
 
-Then write the session doc for step N **only**. Full depth here: this is the one place
-signatures, behavior rules, error strings and test requirements belong. Decide everything the
-step needs, as in [design.md](design.md)'s concrete decisions, with reasoning.
+Then write the session doc for step N **only**, in the target the dispatch names. **Default is
+`smart`.**
+
+| Target | Reader | Shape | Length |
+| --- | --- | --- | --- |
+| `smart` | A Sonnet- or Opus-level agent that reads the code itself | [Smart session doc](#smart-session-doc) | ~100–150 lines |
+| `dumb` | A weaker model that needs the surfaces spelled out | [Dumb session doc](#dumb-session-doc) | ≤ ~300 lines |
+
+Both targets:
+
+- Write only what the implementer can't get from reading the code, `design.md`, the coding
+  standards, or the repo's CLAUDE.md. Never restate conventions, imports, or lint gates; point
+  at them.
+- Decisions get a reason only when the obvious approach is wrong. The "every decision carries
+  its why" rule does not apply to session docs; `design.md` holds the reasoning.
+- No revision history and no "why this session exists" essay. `design.md` tracks both.
+- Tests: one happy path plus the single most likely error path per unit, unless the dispatch
+  says otherwise. No edge-case lists.
+- A prior session doc is not a template. Use the shape below, not the last doc's shape.
 
 ## `reconcile` mode
 
@@ -134,9 +150,12 @@ Learned: ImageRef.FileSize is the exact sum of all files for a basename, not
 
 Status vocabulary: `OUTLINE`, `NEXT`, `DONE (MR !N)`. Exactly one step is `NEXT` at a time; `NEXT` covers both "detailed, not started" and "in progress", distinguished by whether its session doc exists. `Learned` appears only on `DONE` steps and only `reconcile` writes it — in the same pass that promotes the next step to `NEXT`, so the two cannot drift.
 
-### Session doc template
+### Session doc templates
 
-Written by `detail <N>` to `docs/sessions/session-0N-<slug>.md`. This is where full depth belongs — signatures, behavior rules, error strings, test requirements. Completed session docs are kept as the code-level record of what was actually built, and later steps read the most recent ones.
+Written by `detail <N>` to `docs/sessions/session-0N-<slug>.md`. Completed session docs are kept
+as the record of what was built, and later steps read the most recent ones.
+
+#### Smart session doc
 
 ```markdown
 ---
@@ -145,24 +164,68 @@ description: [one line, for docs/sessions/index.md]
 ---
 <!-- markdownlint-disable MD013 MD025 MD040 MD041 -->
 
-## Context
-[Why this step exists, what it depends on, what shipped before it.]
+# Session N — [name]
 
-## Read first
-[Specific files and sections — design.md sections, prior session docs, real code.]
+Branch `<KEY>_session-0N-<slug>` from `<base>`. Ticket: GEAR-TBD. Baseline: `<test cmd>` → N passed.
 
-## Module surfaces
-[Per module: signatures with behavior comments. Full depth.]
+## Goal
 
-## Behavior rules
-[Ordering, edge cases, error handling, exact strings where they are contractual.]
+[2–4 sentences: what this step adds to the running program.]
 
-## Testing requirements
-[Concrete cases, including the regression tests for anything a prior step got wrong.]
+## Critical seams
+
+[What this step exposes to and consumes from other modules or steps. Signatures only for
+calls that cross a module boundary; nothing internal.]
+
+## Approach
+
+[The flow in prose or short pseudocode. Enough to see the shape, not every branch.]
+
+## Gotchas
+
+- [Non-obvious traps: library quirks, ordering constraints, the obvious approach that's wrong.]
 
 ## Tasks
-[The dispatchable `Tasks` section from plan-template.md. This is what makes the step executable.]
+
+### Task 1 — [name]
+
+[One or two lines.] Verify: [command or observable result].
+
+## Assumptions
+
+- [Anything decided without confirmation.]
 
 ## Out of scope
-[What belongs to a later step. Prevents scope creep into unstarted work.]
+
+- [What belongs to a later step.]
+```
+
+#### Dumb session doc
+
+Same header, Goal, Assumptions and Out of scope as smart, plus:
+
+```markdown
+## Read first
+
+[Files to read before coding, one line each. Paths, not section-by-section tours.]
+
+## Module surfaces
+
+[Per module: every function signature with a one-line behavior comment.]
+
+## Behavior rules
+
+[Ordering, error handling, exact strings only where they are contractual.]
+
+## Gotchas
+
+- [As in smart.]
+
+## Testing requirements
+
+[Per unit: the happy path and the most likely error path, named.]
+
+## Tasks
+
+[The `Tasks` section from plan-template.md, each with a Verify line.]
 ```
